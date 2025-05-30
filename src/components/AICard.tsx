@@ -47,54 +47,54 @@ const AICard = () => {
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full font-inter">
       {/* Main Card */}
-      <div className="relative bg-white rounded-3xl p-8 shadow-2xl overflow-hidden border border-orange-100">
+      <div className="relative bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 rounded-3xl p-10 shadow-2xl overflow-hidden border border-orange-200/20">
         
-        {/* Subtle Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-orange-100/30 to-orange-200/40"></div>
+        {/* Dark overlay for better text contrast */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-black/5 to-black/20"></div>
         
         {/* Floating Decorative Elements with Elegant Animations */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Floating Stars with Smooth Movement */}
-          <div className="absolute top-8 right-12 w-3 h-3 bg-orange-400/40 rounded-full animate-[float_6s_ease-in-out_infinite]" />
-          <div className="absolute top-16 right-24 w-2 h-2 bg-orange-300/35 rounded-full animate-[float_8s_ease-in-out_infinite_1s]" />
-          <div className="absolute top-12 right-8 w-1.5 h-1.5 bg-orange-500/30 rounded-full animate-[float_7s_ease-in-out_infinite_2s]" />
+          <div className="absolute top-8 right-12 w-3 h-3 bg-white/30 rounded-full animate-[float_6s_ease-in-out_infinite]" />
+          <div className="absolute top-16 right-24 w-2 h-2 bg-white/20 rounded-full animate-[float_8s_ease-in-out_infinite_1s]" />
+          <div className="absolute top-12 right-8 w-1.5 h-1.5 bg-white/25 rounded-full animate-[float_7s_ease-in-out_infinite_2s]" />
           
           {/* Star Shapes with Elegant Rotation */}
-          <div className="absolute top-10 right-16 text-orange-400/35 animate-[rotate_20s_linear_infinite]">
+          <div className="absolute top-10 right-16 text-white/25 animate-[rotate_20s_linear_infinite]">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="transform-gpu">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
           </div>
           
-          <div className="absolute top-20 right-32 text-orange-300/30 animate-[rotate_25s_linear_infinite_reverse]">
+          <div className="absolute top-20 right-32 text-white/20 animate-[rotate_25s_linear_infinite_reverse]">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="transform-gpu">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
           </div>
 
           {/* Large Star with Subtle Scale Animation */}
-          <div className="absolute top-16 right-20 text-orange-200/25 animate-[breathe_4s_ease-in-out_infinite]">
+          <div className="absolute top-16 right-20 text-white/15 animate-[breathe_4s_ease-in-out_infinite]">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" className="transform-gpu">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
           </div>
 
           {/* Additional floating dots with gentle drift */}
-          <div className="absolute top-24 right-14 w-2 h-2 bg-orange-300/30 rounded-full animate-[drift_10s_ease-in-out_infinite]" />
-          <div className="absolute top-28 right-28 w-1.5 h-1.5 bg-orange-400/35 rounded-full animate-[drift_12s_ease-in-out_infinite_3s]" />
+          <div className="absolute top-24 right-14 w-2 h-2 bg-white/20 rounded-full animate-[drift_10s_ease-in-out_infinite]" />
+          <div className="absolute top-28 right-28 w-1.5 h-1.5 bg-white/25 rounded-full animate-[drift_12s_ease-in-out_infinite_3s]" />
         </div>
         
         {/* Content */}
         <div className="relative z-10">
           {/* Main Title */}
-          <h1 className="text-4xl font-bold text-gray-900 mb-3 leading-tight">
+          <h1 className="font-space text-5xl font-bold text-white mb-4 leading-tight tracking-tight">
             iQube
           </h1>
           
           {/* Subtitle */}
-          <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+          <p className="text-white/90 text-lg mb-8 leading-relaxed font-inter font-medium">
             Generates intelligent questions for various languages and topics.
           </p>
 
@@ -102,7 +102,7 @@ const AICard = () => {
           <Button
             onClick={handleGenerateQuestions}
             disabled={isGenerating}
-            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border-0"
+            className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border border-white/30 font-inter"
           >
             {isGenerating ? (
               <div className="flex items-center gap-2">
