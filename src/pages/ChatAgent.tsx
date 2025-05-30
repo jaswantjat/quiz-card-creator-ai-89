@@ -47,37 +47,6 @@ const ChatAgent = () => {
             
           </div>
 
-          {/* Enhanced Quick Action Buttons */}
-          <div className="relative z-10 mb-12">
-            <div className="flex flex-wrap gap-3">
-              {[{
-                icon: TrendingUp,
-                label: "Trending Topics",
-                color: "from-emerald-500 to-emerald-600"
-              }, {
-                icon: Newspaper,
-                label: "Latest Updates",
-                color: "from-blue-500 to-blue-600"
-              }, {
-                icon: Users,
-                label: "Community",
-                color: "from-purple-500 to-purple-600"
-              }, {
-                icon: Activity,
-                label: "Analytics",
-                color: "from-pink-500 to-pink-600"
-              }].map((item, index) => (
-                <button
-                  key={index}
-                  className={`group relative overflow-hidden bg-gradient-to-r ${item.color} text-white px-6 py-3 rounded-2xl font-medium transition-all duration-300 hover:scale-105 hover:shadow-xl shadow-lg`}
-                >
-                  <item.icon className="w-5 h-5 mr-2 inline-block" />
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Enhanced Question Generation Form */}
           <div className="relative z-10 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-xl rounded-3xl p-8 border border-orange-200/40 shadow-xl shadow-orange-500/5">
             
