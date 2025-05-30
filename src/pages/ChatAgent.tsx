@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -44,13 +43,13 @@ const ChatAgent = () => {
         <div className="relative bg-white/95 backdrop-blur-xl rounded-[2rem] p-6 sm:p-10 shadow-2xl shadow-orange-500/8 overflow-hidden border border-orange-100/60 transition-all duration-500 hover:shadow-3xl hover:shadow-orange-500/12">
           
           {/* Credits Display - Top Right */}
-          <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-xl rounded-xl px-4 py-2 shadow-lg shadow-orange-500/10 border border-orange-200/40 flex items-center gap-2 z-20">
-            <div className="w-6 h-6 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-1 shadow-md">
+          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-xl rounded-lg px-3 py-2 shadow-lg shadow-orange-500/10 border border-orange-200/40 flex items-center gap-2 z-20">
+            <div className="w-5 h-5 bg-gradient-to-r from-orange-500 to-orange-600 rounded-md p-1 shadow-md">
               <CreditCard className="w-full h-full text-white" />
             </div>
             <div>
               <p className="text-xs text-slate-600 font-medium">Credits</p>
-              <p className="text-lg font-bold text-slate-800">{credits}</p>
+              <p className="text-sm font-bold text-slate-800">{credits}</p>
             </div>
           </div>
 
