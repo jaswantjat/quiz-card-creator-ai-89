@@ -45,51 +45,56 @@ const QuestionGenerationForm = ({
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [brewingStage, setBrewingStage] = useState(0);
 
-  // Enhanced coffee brewing storyline with rich animations
+  // Enhanced coffee brewing storyline with rich animations and improved color scheme
   const brewingSteps = [
     { 
       icon: Coffee, 
       text: "Selecting premium beans...", 
-      description: "Handpicking the finest question seeds",
-      color: "text-amber-700",
-      bgColor: "bg-gradient-to-br from-amber-50 to-orange-100",
-      accent: "border-amber-300"
+      description: "Handpicking the finest question seeds from our curated collection",
+      color: "text-orange-700",
+      bgColor: "bg-gradient-to-br from-orange-50/90 via-white to-amber-50/80",
+      accent: "border-orange-300/60",
+      glowColor: "shadow-orange-500/15"
     },
     { 
       icon: Lightbulb, 
       text: "Grinding fresh concepts...", 
-      description: "Transforming ideas into perfect particles",
-      color: "text-orange-700",
-      bgColor: "bg-gradient-to-br from-orange-50 to-red-100",
-      accent: "border-orange-300"
+      description: "Transforming brilliant ideas into perfect educational particles",
+      color: "text-amber-700",
+      bgColor: "bg-gradient-to-br from-amber-50/90 via-white to-orange-50/80",
+      accent: "border-amber-300/60",
+      glowColor: "shadow-amber-500/15"
     },
     { 
       icon: Brain, 
       text: "Brewing intelligence...", 
-      description: "Infusing AI wisdom at optimal temperature",
-      color: "text-purple-700",
-      bgColor: "bg-gradient-to-br from-purple-50 to-pink-100",
-      accent: "border-purple-300"
+      description: "Infusing AI wisdom at the optimal temperature for learning",
+      color: "text-orange-600",
+      bgColor: "bg-gradient-to-br from-slate-50/90 via-white to-orange-50/80",
+      accent: "border-slate-300/60",
+      glowColor: "shadow-orange-500/20"
     },
     { 
       icon: BookOpen, 
       text: "Extracting knowledge...", 
-      description: "Distilling pure educational essence",
-      color: "text-blue-700",
-      bgColor: "bg-gradient-to-br from-blue-50 to-indigo-100",
-      accent: "border-blue-300"
+      description: "Distilling pure educational essence with precision and care",
+      color: "text-slate-700",
+      bgColor: "bg-gradient-to-br from-slate-50/90 via-white to-amber-50/80",
+      accent: "border-slate-300/60",
+      glowColor: "shadow-slate-500/15"
     },
     { 
       icon: Sparkles, 
       text: "Perfecting the blend!", 
-      description: "Your custom question brew is ready to serve",
-      color: "text-emerald-700",
-      bgColor: "bg-gradient-to-br from-emerald-50 to-green-100",
-      accent: "border-emerald-300"
+      description: "Your custom question brew is ready to serve - crafted to perfection",
+      color: "text-orange-700",
+      bgColor: "bg-gradient-to-br from-orange-50/90 via-white to-amber-50/90",
+      accent: "border-orange-400/60",
+      glowColor: "shadow-orange-500/25"
     }
   ];
 
-  // Cycle through brewing steps when generating
+  // Cycle through brewing steps when generating - increased timing for better experience
   useEffect(() => {
     if (isGenerating) {
       setCurrentStepIndex(0);
@@ -101,7 +106,7 @@ const QuestionGenerationForm = ({
           setBrewingStage(next);
           return next;
         });
-      }, 2000);
+      }, 1200); // Increased from 2000ms to 1200ms for smoother transitions
       
       return () => clearInterval(interval);
     }
@@ -161,47 +166,48 @@ const QuestionGenerationForm = ({
       {/* Enhanced Coffee Brewing Animation - Only visible when generating */}
       {isGenerating && (
         <div className="mb-8 relative">
-          <div className={`relative p-10 rounded-3xl border-3 transition-all duration-1000 ${currentStep.bgColor} ${currentStep.accent} shadow-2xl`}>
+          <div className={`relative p-12 rounded-3xl border-2 transition-all duration-1000 ${currentStep.bgColor} ${currentStep.accent} shadow-2xl ${currentStep.glowColor} backdrop-blur-sm`}>
             
-            {/* Coffee Shop Ambiance */}
+            {/* Enhanced Coffee Shop Ambiance */}
             <div className="absolute inset-0 rounded-3xl overflow-hidden">
-              {/* Animated background particles */}
-              {[...Array(12)].map((_, i) => (
+              {/* Animated background particles with improved colors */}
+              {[...Array(15)].map((_, i) => (
                 <div
                   key={i}
-                  className="absolute w-1 h-1 bg-current opacity-20 rounded-full"
+                  className={`absolute w-1.5 h-1.5 ${currentStep.color.replace('text-', 'bg-')} opacity-20 rounded-full`}
                   style={{
                     left: `${Math.random() * 100}%`,
                     top: `${Math.random() * 100}%`,
-                    animation: `float ${3 + Math.random() * 4}s ease-in-out infinite ${Math.random() * 2}s`,
+                    animation: `enhanced-float ${4 + Math.random() * 3}s ease-in-out infinite ${Math.random() * 2}s`,
                     animationDirection: Math.random() > 0.5 ? 'normal' : 'reverse'
                   }}
                 />
               ))}
               
-              {/* Warm glow effect */}
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-gradient-radial from-current/10 to-transparent rounded-full blur-xl animate-pulse" />
+              {/* Enhanced warm glow effect */}
+              <div className={`absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-40 bg-gradient-radial from-orange-400/15 via-orange-300/10 to-transparent rounded-full blur-2xl animate-pulse`} />
+              <div className={`absolute bottom-0 right-0 w-32 h-32 bg-gradient-radial from-amber-400/10 to-transparent rounded-full blur-xl animate-pulse`} style={{ animationDelay: '1s' }} />
             </div>
 
-            {/* Animated coffee steam - enhanced */}
-            <div className="absolute top-6 right-10 flex gap-1">
-              {[...Array(4)].map((_, i) => (
+            {/* Enhanced animated coffee steam */}
+            <div className="absolute top-8 right-12 flex gap-1">
+              {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
                   className="relative"
                 >
                   <div
-                    className="w-0.5 h-12 bg-gradient-to-t from-gray-400 via-gray-300 to-transparent rounded-full opacity-60"
+                    className="w-0.5 h-16 bg-gradient-to-t from-orange-400/60 via-orange-300/40 to-transparent rounded-full"
                     style={{
-                      animation: `steam ${2 + i * 0.3}s ease-in-out infinite ${i * 0.4}s`,
-                      transform: `rotate(${-10 + i * 5}deg)`
+                      animation: `enhanced-steam ${2.5 + i * 0.4}s ease-in-out infinite ${i * 0.3}s`,
+                      transform: `rotate(${-15 + i * 6}deg)`
                     }}
                   />
-                  {/* Steam wisps */}
+                  {/* Enhanced steam wisps */}
                   <div
-                    className="absolute top-0 w-1 h-8 bg-gradient-to-t from-gray-300/40 to-transparent rounded-full"
+                    className="absolute top-0 w-1 h-10 bg-gradient-to-t from-orange-300/30 to-transparent rounded-full"
                     style={{
-                      animation: `wisp ${3 + i * 0.5}s ease-in-out infinite ${i * 0.6}s`,
+                      animation: `enhanced-wisp ${3.5 + i * 0.6}s ease-in-out infinite ${i * 0.5}s`,
                       left: `${-2 + i}px`
                     }}
                   />
@@ -209,124 +215,145 @@ const QuestionGenerationForm = ({
               ))}
             </div>
 
-            {/* Coffee shop scene - enhanced */}
-            <div className="flex items-center justify-center mb-8">
+            {/* Enhanced coffee shop scene */}
+            <div className="flex items-center justify-center mb-10">
               <div className="relative">
-                {/* Coffee cup with enhanced design */}
-                <div className="w-24 h-24 bg-gradient-to-b from-amber-50 via-amber-100 to-amber-200 rounded-b-3xl border-4 border-amber-400 relative overflow-hidden shadow-lg">
+                {/* Enhanced coffee cup design */}
+                <div className="w-28 h-28 bg-gradient-to-b from-orange-50 via-orange-100 to-orange-200 rounded-b-3xl border-4 border-orange-400 relative overflow-hidden shadow-xl">
                   
-                  {/* Cup highlight */}
-                  <div className="absolute top-2 left-2 w-4 h-6 bg-gradient-to-br from-white/60 to-white/20 rounded-full blur-sm" />
+                  {/* Enhanced cup highlight */}
+                  <div className="absolute top-3 left-3 w-5 h-7 bg-gradient-to-br from-white/70 to-white/30 rounded-full blur-sm" />
+                  <div className="absolute top-2 left-2 w-3 h-4 bg-white/50 rounded-full" />
                   
-                  {/* Coffee liquid with enhanced animated fill */}
+                  {/* Enhanced coffee liquid with animated fill */}
                   <div 
-                    className="absolute bottom-0 w-full bg-gradient-to-t from-amber-900 via-amber-800 to-amber-700 transition-all duration-1500 rounded-b-2xl shadow-inner"
+                    className="absolute bottom-0 w-full bg-gradient-to-t from-orange-900 via-orange-800 to-orange-700 transition-all duration-2000 rounded-b-2xl shadow-inner overflow-hidden"
                     style={{
-                      height: `${Math.min((brewingStage + 1) * 18, 85)}%`,
-                      animation: 'gentle-bubble 3s ease-in-out infinite'
+                      height: `${Math.min((brewingStage + 1) * 16, 82)}%`,
+                      animation: 'enhanced-bubble 4s ease-in-out infinite'
                     }}
                   >
-                    {/* Coffee surface ripples */}
-                    <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 opacity-80 animate-pulse" />
+                    {/* Enhanced coffee surface with realistic ripples */}
+                    <div className="absolute top-0 w-full h-1.5 bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 opacity-90">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-400/50 to-transparent animate-pulse" />
+                    </div>
+                    
+                    {/* Coffee texture lines */}
+                    <div className="absolute top-2 w-full h-0.5 bg-orange-600/30 opacity-60" />
+                    <div className="absolute top-4 w-full h-0.5 bg-orange-600/20 opacity-40" />
                   </div>
                   
                   {/* Enhanced floating coffee bubbles */}
-                  {[...Array(5)].map((_, i) => (
+                  {[...Array(8)].map((_, i) => (
                     <div
                       key={i}
-                      className="absolute bg-amber-300/50 rounded-full"
+                      className="absolute bg-orange-300/60 rounded-full"
                       style={{
-                        width: `${4 + Math.random() * 4}px`,
-                        height: `${4 + Math.random() * 4}px`,
-                        left: `${15 + i * 12}%`,
-                        bottom: `${10 + Math.random() * 20}%`,
-                        animation: `bubble-rise ${2 + Math.random() * 2}s ease-in-out infinite ${i * 0.8}s`
+                        width: `${3 + Math.random() * 5}px`,
+                        height: `${3 + Math.random() * 5}px`,
+                        left: `${12 + i * 10}%`,
+                        bottom: `${8 + Math.random() * 25}%`,
+                        animation: `enhanced-bubble-rise ${2.5 + Math.random() * 2}s ease-in-out infinite ${i * 0.6}s`
                       }}
                     />
                   ))}
 
-                  {/* Coffee foam */}
+                  {/* Enhanced coffee foam */}
                   <div 
-                    className="absolute top-1 w-full h-3 bg-gradient-to-b from-white/80 to-white/40 rounded-t-2xl transition-all duration-1500"
+                    className="absolute top-1 w-full h-4 bg-gradient-to-b from-white/90 to-white/50 rounded-t-2xl transition-all duration-2000 shadow-inner"
                     style={{
                       opacity: brewingStage > 2 ? 1 : 0,
                       transform: `translateY(${brewingStage > 2 ? 0 : 20}px)`
                     }}
-                  />
+                  >
+                    {/* Foam texture */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-orange-100/20 to-transparent rounded-t-2xl" />
+                  </div>
                 </div>
                 
                 {/* Enhanced coffee cup handle */}
-                <div className="absolute right-0 top-5 w-7 h-10 border-4 border-amber-400 rounded-r-full border-l-0 shadow-md" />
+                <div className="absolute right-0 top-6 w-8 h-12 border-4 border-orange-400 rounded-r-full border-l-0 shadow-lg bg-gradient-to-r from-transparent to-orange-50/30" />
                 
                 {/* Enhanced animated icon above cup */}
-                <div className={`absolute -top-12 left-1/2 transform -translate-x-1/2 ${currentStep.color} transition-all duration-500`}>
+                <div className={`absolute -top-16 left-1/2 transform -translate-x-1/2 ${currentStep.color} transition-all duration-700`}>
                   <div className="relative">
-                    <CurrentIcon className="w-10 h-10 animate-bounce drop-shadow-lg" />
-                    {/* Icon glow */}
-                    <div className="absolute inset-0 w-10 h-10 bg-current opacity-20 rounded-full blur-md animate-pulse" />
+                    <CurrentIcon className="w-12 h-12 animate-bounce drop-shadow-xl" />
+                    {/* Enhanced icon glow with pulsing effect */}
+                    <div className={`absolute inset-0 w-12 h-12 ${currentStep.color.replace('text-', 'bg-')} opacity-30 rounded-full blur-lg animate-pulse`} />
+                    <div className={`absolute inset-0 w-12 h-12 ${currentStep.color.replace('text-', 'bg-')} opacity-10 rounded-full blur-xl animate-ping`} />
                   </div>
                 </div>
 
-                {/* Coffee beans scattered around */}
-                {[...Array(6)].map((_, i) => (
+                {/* Enhanced coffee beans scattered around */}
+                {[...Array(8)].map((_, i) => (
                   <div
                     key={i}
-                    className="absolute w-2 h-3 bg-gradient-to-b from-amber-800 to-amber-900 rounded-full opacity-60"
+                    className="absolute w-2.5 h-3.5 bg-gradient-to-b from-orange-800 to-orange-900 rounded-full opacity-50 shadow-sm"
                     style={{
-                      left: `${-20 + Math.random() * 140}%`,
-                      top: `${80 + Math.random() * 40}%`,
+                      left: `${-25 + Math.random() * 150}%`,
+                      top: `${75 + Math.random() * 50}%`,
                       transform: `rotate(${Math.random() * 360}deg)`,
-                      animation: `gentle-float ${4 + Math.random() * 2}s ease-in-out infinite ${Math.random() * 2}s`
+                      animation: `enhanced-gentle-float ${5 + Math.random() * 3}s ease-in-out infinite ${Math.random() * 2}s`
                     }}
                   />
                 ))}
+
+                {/* Coffee shop accessories */}
+                <div className="absolute -left-8 top-12 w-4 h-6 bg-orange-800 rounded opacity-30 transform rotate-12" />
+                <div className="absolute -right-6 top-16 w-3 h-4 bg-orange-700 rounded opacity-25 transform -rotate-45" />
               </div>
             </div>
 
             {/* Enhanced brewing progress text */}
             <div className="text-center relative z-10">
-              <h3 className={`text-3xl font-bold mb-3 ${currentStep.color} transition-all duration-700 drop-shadow-sm`}>
+              <h3 className={`text-3xl font-bold mb-4 ${currentStep.color} transition-all duration-1000 drop-shadow-md`}>
                 {currentStep.text}
               </h3>
-              <p className="text-slate-700 text-lg font-medium mb-6 leading-relaxed">
+              <p className="text-slate-700 text-lg font-medium mb-8 leading-relaxed max-w-md mx-auto">
                 {currentStep.description}
               </p>
               
               {/* Enhanced progress dots with coffee bean shapes */}
-              <div className="flex justify-center gap-3 mb-4">
+              <div className="flex justify-center gap-4 mb-6">
                 {brewingSteps.map((step, index) => (
                   <div key={index} className="relative">
                     <div
-                      className={`w-4 h-4 rounded-full transition-all duration-700 ${
+                      className={`w-5 h-5 rounded-full transition-all duration-1000 ${
                         index <= brewingStage 
                           ? `${step.color.replace('text-', 'bg-')} scale-125 shadow-lg` 
-                          : 'bg-gray-300 scale-100'
+                          : 'bg-orange-200 scale-100'
                       }`}
                     />
                     {index <= brewingStage && (
-                      <div className={`absolute inset-0 w-4 h-4 ${step.color.replace('text-', 'bg-')} rounded-full opacity-40 animate-ping`} />
+                      <div className={`absolute inset-0 w-5 h-5 ${step.color.replace('text-', 'bg-')} rounded-full opacity-40 animate-ping`} />
+                    )}
+                    {index === brewingStage && (
+                      <div className={`absolute inset-0 w-5 h-5 ${step.color.replace('text-', 'bg-')} rounded-full opacity-20 animate-pulse`} />
                     )}
                   </div>
                 ))}
               </div>
 
-              {/* Brewing progress bar */}
-              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+              {/* Enhanced brewing progress bar */}
+              <div className="w-full bg-orange-100/60 rounded-full h-3 overflow-hidden shadow-inner">
                 <div 
-                  className={`h-full ${currentStep.color.replace('text-', 'bg-')} transition-all duration-1000 rounded-full`}
-                  style={{ width: `${((brewingStage + 1) / brewingSteps.length) * 100}%` }}
+                  className={`h-full ${currentStep.color.replace('text-', 'bg-')} transition-all duration-1500 rounded-full shadow-sm`}
+                  style={{ 
+                    width: `${((brewingStage + 1) / brewingSteps.length) * 100}%`,
+                    background: `linear-gradient(90deg, ${currentStep.color.includes('orange') ? '#ea580c' : '#d97706'}, ${currentStep.color.includes('orange') ? '#f97316' : '#f59e0b'})`
+                  }}
                 />
               </div>
             </div>
 
-            {/* Coffee aroma lines */}
-            <div className="absolute top-8 left-8 opacity-30">
-              {[...Array(3)].map((_, i) => (
+            {/* Enhanced coffee aroma lines */}
+            <div className="absolute top-10 left-10 opacity-40">
+              {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="w-8 h-0.5 bg-current rounded-full mb-1"
+                  className={`w-10 h-0.5 ${currentStep.color.replace('text-', 'bg-')} rounded-full mb-1.5 opacity-60`}
                   style={{
-                    animation: `aroma ${2 + i * 0.5}s ease-in-out infinite ${i * 0.3}s`,
+                    animation: `enhanced-aroma ${2.5 + i * 0.6}s ease-in-out infinite ${i * 0.4}s`,
                     transformOrigin: 'left center'
                   }}
                 />
@@ -355,24 +382,24 @@ const QuestionGenerationForm = ({
           <Button 
             onClick={onGenerate} 
             disabled={credits < totalQuestions || totalQuestions === 0 || isGenerating}
-            className={`relative overflow-hidden bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl shadow-xl transition-all duration-500 font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`relative overflow-hidden bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl shadow-xl transition-all duration-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
               isGenerating 
-                ? 'py-6 px-20 text-lg scale-110 shadow-2xl shadow-orange-500/60 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500' 
+                ? 'py-7 px-24 text-xl scale-110 shadow-2xl shadow-orange-500/50 bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500' 
                 : 'py-4 px-12 text-lg hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/40 shadow-orange-500/30'
             }`}
           >
             {/* Enhanced Button Content */}
             <div className="relative z-10 flex items-center justify-center">
               {isGenerating ? (
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-5">
                   <div className="relative">
-                    <Coffee className="w-6 h-6 animate-spin" />
-                    <div className="absolute inset-0 w-6 h-6 bg-white/20 rounded-full animate-ping" />
+                    <Coffee className="w-7 h-7 animate-spin" />
+                    <div className="absolute inset-0 w-7 h-7 bg-white/30 rounded-full animate-ping" />
                   </div>
-                  <span className="font-medium tracking-wide">
+                  <span className="font-semibold tracking-wide">
                     Brewing Your Questions...
                   </span>
-                  <Heart className="w-5 h-5 animate-pulse text-red-200" />
+                  <Heart className="w-6 h-6 animate-pulse text-red-200" />
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
@@ -386,8 +413,9 @@ const QuestionGenerationForm = ({
             {/* Enhanced Background Animation for Loading State */}
             {isGenerating && (
               <>
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 animate-pulse opacity-30 rounded-2xl"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-ping rounded-2xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-orange-500 to-amber-400 animate-pulse opacity-40 rounded-2xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-ping rounded-2xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-45 from-orange-300/20 to-amber-300/20 animate-pulse rounded-2xl" style={{ animationDelay: '0.5s' }}></div>
               </>
             )}
           </Button>
@@ -396,38 +424,50 @@ const QuestionGenerationForm = ({
 
       {/* Enhanced CSS animations */}
       <style jsx>{`
-        @keyframes steam {
-          0% { opacity: 0.6; transform: translateY(0px) scale(1); }
-          50% { opacity: 0.8; transform: translateY(-8px) scale(1.1); }
-          100% { opacity: 0.3; transform: translateY(-16px) scale(0.8); }
+        @keyframes enhanced-steam {
+          0% { opacity: 0.6; transform: translateY(0px) scale(1) rotate(0deg); }
+          50% { opacity: 0.9; transform: translateY(-12px) scale(1.2) rotate(5deg); }
+          100% { opacity: 0.2; transform: translateY(-24px) scale(0.7) rotate(-3deg); }
         }
         
-        @keyframes wisp {
-          0% { opacity: 0.3; transform: translateX(0px) rotate(0deg); }
-          50% { opacity: 0.6; transform: translateX(4px) rotate(10deg); }
-          100% { opacity: 0.2; transform: translateX(-2px) rotate(-5deg); }
+        @keyframes enhanced-wisp {
+          0% { opacity: 0.3; transform: translateX(0px) rotate(0deg) scale(1); }
+          50% { opacity: 0.7; transform: translateX(6px) rotate(15deg) scale(1.1); }
+          100% { opacity: 0.1; transform: translateX(-3px) rotate(-8deg) scale(0.8); }
         }
         
-        @keyframes gentle-bubble {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-1px); }
+        @keyframes enhanced-bubble {
+          0%, 100% { transform: translateY(0px) scale(1); }
+          25% { transform: translateY(-1px) scale(1.01); }
+          50% { transform: translateY(-2px) scale(1.02); }
+          75% { transform: translateY(-1px) scale(1.01); }
         }
         
-        @keyframes bubble-rise {
-          0% { opacity: 0; transform: translateY(0px) scale(0.8); }
-          50% { opacity: 1; transform: translateY(-8px) scale(1); }
-          100% { opacity: 0; transform: translateY(-16px) scale(0.6); }
+        @keyframes enhanced-bubble-rise {
+          0% { opacity: 0; transform: translateY(0px) scale(0.6); }
+          30% { opacity: 0.8; transform: translateY(-6px) scale(1); }
+          70% { opacity: 1; transform: translateY(-12px) scale(1.1); }
+          100% { opacity: 0; transform: translateY(-20px) scale(0.4); }
         }
         
-        @keyframes gentle-float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-3px) rotate(5deg); }
+        @keyframes enhanced-gentle-float {
+          0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+          25% { transform: translateY(-2px) rotate(3deg) scale(1.05); }
+          50% { transform: translateY(-4px) rotate(-2deg) scale(1.1); }
+          75% { transform: translateY(-2px) rotate(1deg) scale(1.05); }
         }
         
-        @keyframes aroma {
-          0% { transform: scaleX(1) translateX(0px); opacity: 0.5; }
-          50% { transform: scaleX(1.2) translateX(2px); opacity: 0.8; }
-          100% { transform: scaleX(0.8) translateX(-1px); opacity: 0.3; }
+        @keyframes enhanced-aroma {
+          0% { transform: scaleX(1) translateX(0px) rotate(0deg); opacity: 0.4; }
+          50% { transform: scaleX(1.3) translateX(4px) rotate(2deg); opacity: 0.8; }
+          100% { transform: scaleX(0.7) translateX(-2px) rotate(-1deg); opacity: 0.2; }
+        }
+        
+        @keyframes enhanced-float {
+          0%, 100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+          25% { transform: translateY(-6px) translateX(2px) rotate(2deg); }
+          50% { transform: translateY(-3px) translateX(-1px) rotate(-1deg); }
+          75% { transform: translateY(-8px) translateX(1px) rotate(1deg); }
         }
       `}</style>
     </div>

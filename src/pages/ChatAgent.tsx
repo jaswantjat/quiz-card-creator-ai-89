@@ -86,14 +86,14 @@ const ChatAgent = () => {
     // Start generation immediately
     setIsGenerating(true);
 
-    // Simulate API call delay and then show questions
+    // Increased simulation time from 2500ms to 6000ms for better loading experience
     setTimeout(() => {
       setIsGenerating(false);
       setGeneratedQuestions(sampleQuestions.slice(0, totalQuestions || 3));
       
       // Consume credits
       setCredits(prevCredits => prevCredits - (totalQuestions || 3));
-    }, 2500);
+    }, 6000);
   };
 
   const handleRegenerate = () => {
