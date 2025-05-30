@@ -135,7 +135,7 @@ const AICard = () => {
                 <img 
                   src="/lovable-uploads/2d10c74e-3a04-4e16-adec-d4b95a85bc81.png" 
                   alt="AI Icon" 
-                  className="w-5 h-5"
+                  className="w-6 h-6"
                 />
                 Generate Questions with AI
               </div>
