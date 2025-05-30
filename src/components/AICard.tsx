@@ -1,7 +1,8 @@
 
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, User, Cloud, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import QuestionGenerator from "./QuestionGenerator";
 import { useToast } from "@/hooks/use-toast";
 
@@ -38,10 +39,8 @@ const AICard = () => {
   const handleGenerateQuestions = async () => {
     setIsGenerating(true);
     try {
-      // Simulate AI generation with realistic delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Pick a random topic and generate questions
       const randomTopic = topics[Math.floor(Math.random() * topics.length)];
       const randomQuestions = generateQuestionsForTopic(randomTopic);
       setQuestions(randomQuestions);
@@ -62,75 +61,109 @@ const AICard = () => {
   };
 
   return (
-    <div className="relative w-full font-inter">
+    <div className="relative w-full max-w-md mx-auto font-inter">
       {/* Main Card */}
-      <div className="relative bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 rounded-3xl p-10 shadow-2xl overflow-hidden border border-orange-200/20">
+      <div className="relative bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 rounded-3xl p-8 shadow-2xl overflow-hidden">
         
-        {/* Dark overlay for better text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-black/5 to-black/20"></div>
+        {/* Dark overlay for better contrast */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-black/10 to-black/30"></div>
         
-        {/* Floating Decorative Elements with Elegant Animations */}
+        {/* Decorative Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Floating Stars with Smooth Movement */}
-          <div className="absolute top-8 right-12 w-3 h-3 bg-white/30 rounded-full animate-[float_6s_ease-in-out_infinite]" />
-          <div className="absolute top-16 right-24 w-2 h-2 bg-white/20 rounded-full animate-[float_8s_ease-in-out_infinite_1s]" />
-          <div className="absolute top-12 right-8 w-1.5 h-1.5 bg-white/25 rounded-full animate-[float_7s_ease-in-out_infinite_2s]" />
+          {/* Geometric shapes similar to the reference */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-black/10 transform rotate-45 translate-x-16 -translate-y-16"></div>
+          <div className="absolute top-8 right-8 w-24 h-24 bg-black/5 transform rotate-12"></div>
           
-          {/* Star Shapes with Elegant Rotation */}
-          <div className="absolute top-10 right-16 text-white/25 animate-[rotate_20s_linear_infinite]">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="transform-gpu">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-          </div>
-          
-          <div className="absolute top-20 right-32 text-white/20 animate-[rotate_25s_linear_infinite_reverse]">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="transform-gpu">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-          </div>
+          {/* Floating decorative elements */}
+          <div className="absolute top-6 right-12 w-2 h-2 bg-white/30 rounded-full"></div>
+          <div className="absolute top-12 right-20 w-1.5 h-1.5 bg-white/40 rounded-full"></div>
+          <div className="absolute top-16 right-16 w-1 h-1 bg-white/50 rounded-full"></div>
+          <div className="absolute top-20 right-24 w-1.5 h-1.5 bg-white/30 rounded-full"></div>
+        </div>
 
-          {/* Large Star with Subtle Scale Animation */}
-          <div className="absolute top-16 right-20 text-white/15 animate-[breathe_4s_ease-in-out_infinite]">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" className="transform-gpu">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-          </div>
-
-          {/* Additional floating dots with gentle drift */}
-          <div className="absolute top-24 right-14 w-2 h-2 bg-white/20 rounded-full animate-[drift_10s_ease-in-out_infinite]" />
-          <div className="absolute top-28 right-28 w-1.5 h-1.5 bg-white/25 rounded-full animate-[drift_12s_ease-in-out_infinite_3s]" />
+        {/* Most Popular Badge */}
+        <div className="relative z-10 flex justify-end mb-6">
+          <Badge className="bg-black/30 text-white border-white/20 px-3 py-1 text-sm font-medium">
+            Most popular
+          </Badge>
         </div>
         
         {/* Content */}
         <div className="relative z-10">
-          {/* Main Title */}
-          <h1 className="font-space text-5xl font-bold text-white mb-4 leading-tight tracking-tight">
+          {/* Logo/Icon */}
+          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-6">
+            <Sparkles className="w-6 h-6 text-white" />
+          </div>
+          
+          {/* Title */}
+          <h1 className="font-space text-3xl font-bold text-white mb-4 leading-tight tracking-tight">
             iQube
           </h1>
           
-          {/* Subtitle */}
-          <p className="text-white/90 text-lg mb-8 leading-relaxed font-inter font-medium">
-            Generates intelligent questions for various topics.
+          {/* Description */}
+          <p className="text-white/90 text-base mb-8 leading-relaxed font-medium">
+            Generates intelligent questions for various topics. Personalized guidance. Market insights.
           </p>
 
-          {/* Generate Button */}
+          {/* Price */}
+          <div className="mb-8">
+            <span className="text-white text-4xl font-bold">Free</span>
+            <span className="text-white/70 text-lg ml-2">/forever</span>
+          </div>
+
+          {/* CTA Button */}
           <Button 
             onClick={handleGenerateQuestions} 
             disabled={isGenerating}
-            className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border border-white/30 font-inter"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg transition-all duration-300 border-0 text-lg mb-8"
           >
             {isGenerating ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Generating Questions...
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                Generate AI Questions
-              </div>
+              "Generate AI Questions"
             )}
           </Button>
+
+          {/* Features List */}
+          <div className="space-y-4 mb-6">
+            <div className="flex items-center gap-3 text-white/80">
+              <User className="w-4 h-4" />
+              <span className="text-sm">Unlimited question generation</span>
+            </div>
+            <div className="flex items-center gap-3 text-white/80">
+              <Cloud className="w-4 h-4" />
+              <span className="text-sm">AI-powered insights</span>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-1 h-px bg-white/20"></div>
+            <span className="text-white/50 text-xs uppercase tracking-wider">AI Features</span>
+            <div className="flex-1 h-px bg-white/20"></div>
+          </div>
+
+          {/* Feature Tags */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Check className="w-4 h-4 text-white" />
+              <span className="text-white text-sm">Intelligent questions</span>
+              <Badge className="bg-black/20 text-white/80 border-white/10 text-xs px-2 py-0.5 ml-auto">
+                AI-based
+              </Badge>
+            </div>
+            <div className="flex items-center gap-3">
+              <Check className="w-4 h-4 text-white" />
+              <span className="text-white text-sm">Personalized guidance</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Check className="w-4 h-4 text-white" />
+              <span className="text-white text-sm">Topic insights</span>
+            </div>
+          </div>
         </div>
       </div>
 
