@@ -103,11 +103,11 @@ const AICard = () => {
         {/* Content */}
         <div className="relative z-10">
           {/* Logo and Title */}
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-3 mb-4">
             <img 
               src="/lovable-uploads/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png" 
               alt="iQube Logo" 
-              className="w-16 h-16 object-contain"
+              className="w-20 h-20 object-contain"
             />
             <h1 className="font-space text-5xl font-bold text-white leading-tight tracking-tight">
               iQube
