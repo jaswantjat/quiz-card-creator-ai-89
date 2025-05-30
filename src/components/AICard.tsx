@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -103,10 +102,17 @@ const AICard = () => {
         
         {/* Content */}
         <div className="relative z-10">
-          {/* Main Title */}
-          <h1 className="font-space text-5xl font-bold text-white mb-4 leading-tight tracking-tight">
-            iQube
-          </h1>
+          {/* Logo and Title */}
+          <div className="flex items-center gap-4 mb-4">
+            <img 
+              src="/lovable-uploads/435cd307-815a-46db-ab2d-6b8c9843ed4c.png" 
+              alt="iQube Logo" 
+              className="w-16 h-16 object-contain"
+            />
+            <h1 className="font-space text-5xl font-bold text-white leading-tight tracking-tight">
+              iQube
+            </h1>
+          </div>
           
           {/* Subtitle */}
           <p className="text-white/90 text-lg mb-8 leading-relaxed font-inter font-medium">
