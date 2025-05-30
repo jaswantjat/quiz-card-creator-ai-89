@@ -1,9 +1,11 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Send, Mic, Plus, TrendingUp, Newspaper, Users, Activity, Zap } from "lucide-react";
+
 const ChatAgent = () => {
   const [inputValue, setInputValue] = useState("");
   const [context, setContext] = useState("");
@@ -11,6 +13,7 @@ const ChatAgent = () => {
   const [easyCount, setEasyCount] = useState(0);
   const [mediumCount, setMediumCount] = useState(0);
   const [hardCount, setHardCount] = useState(0);
+
   const handleGenerate = () => {
     console.log("Generating questions with:", {
       context,
@@ -21,7 +24,9 @@ const ChatAgent = () => {
     });
     // TODO: Add generation logic here
   };
-  return <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-4 font-inter">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-4 font-inter">
       <div className="w-full max-w-4xl mx-auto">
         {/* Main Chat Card */}
         <div className="relative bg-gradient-to-br from-orange-100 via-orange-50 to-red-50 rounded-3xl p-10 shadow-2xl overflow-hidden border border-orange-200/50">
@@ -53,7 +58,13 @@ const ChatAgent = () => {
               <Label htmlFor="context" className="text-gray-700 font-medium mb-2 block">
                 Context
               </Label>
-              <Textarea id="context" placeholder="Provide context for question generation..." value={context} onChange={e => setContext(e.target.value)} className="w-full min-h-[100px] bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200" />
+              <Textarea
+                id="context"
+                placeholder="Provide context for question generation..."
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                className="w-full min-h-[100px] bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+              />
             </div>
 
             {/* Topic Name */}
@@ -61,7 +72,14 @@ const ChatAgent = () => {
               <Label htmlFor="topic" className="text-gray-700 font-medium mb-2 block">
                 Topic Name
               </Label>
-              <Input id="topic" type="text" placeholder="Enter topic name..." value={topicName} onChange={e => setTopicName(e.target.value)} className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200" />
+              <Input
+                id="topic"
+                type="text"
+                placeholder="Enter topic name..."
+                value={topicName}
+                onChange={(e) => setTopicName(e.target.value)}
+                className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+              />
             </div>
 
             {/* Number of Questions by Difficulty */}
@@ -75,7 +93,15 @@ const ChatAgent = () => {
                   <Label htmlFor="easy" className="text-gray-600 text-sm mb-2 block">
                     Easy Questions
                   </Label>
-                  <Input id="easy" type="number" min="0" placeholder="0" value={easyCount} onChange={e => setEasyCount(Number(e.target.value))} className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200" />
+                  <Input
+                    id="easy"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={easyCount}
+                    onChange={(e) => setEasyCount(Number(e.target.value))}
+                    className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
                 </div>
 
                 {/* Medium Questions */}
@@ -83,7 +109,15 @@ const ChatAgent = () => {
                   <Label htmlFor="medium" className="text-gray-600 text-sm mb-2 block">
                     Medium Questions
                   </Label>
-                  <Input id="medium" type="number" min="0" placeholder="0" value={mediumCount} onChange={e => setMediumCount(Number(e.target.value))} className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200" />
+                  <Input
+                    id="medium"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={mediumCount}
+                    onChange={(e) => setMediumCount(Number(e.target.value))}
+                    className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
                 </div>
 
                 {/* Hard Questions */}
@@ -91,16 +125,29 @@ const ChatAgent = () => {
                   <Label htmlFor="hard" className="text-gray-600 text-sm mb-2 block">
                     Hard Questions
                   </Label>
-                  <Input id="hard" type="number" min="0" placeholder="0" value={hardCount} onChange={e => setHardCount(Number(e.target.value))} className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200" />
+                  <Input
+                    id="hard"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={hardCount}
+                    onChange={(e) => setHardCount(Number(e.target.value))}
+                    className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
                 </div>
               </div>
             </div>
 
             {/* Generate Button */}
-            <Button onClick={handleGenerate} className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-3 px-8 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] text-base font-semibold text-center">
-              <Zap className="w-5 h-5 mr-2" />
-              Generate Questions
-            </Button>
+            <div className="flex justify-center">
+              <Button
+                onClick={handleGenerate}
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-3 px-8 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] text-base font-semibold"
+              >
+                <Zap className="w-5 h-5 mr-2" />
+                Generate Questions
+              </Button>
+            </div>
           </div>
 
           {/* Action Buttons */}
@@ -127,6 +174,8 @@ const ChatAgent = () => {
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ChatAgent;
