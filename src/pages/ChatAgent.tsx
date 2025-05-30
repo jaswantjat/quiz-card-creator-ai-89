@@ -161,12 +161,13 @@ const ChatAgent = () => {
             
           </div>
 
-          {/* Top right logo placeholder */}
+          {/* Top right logo */}
           <div className="absolute top-6 right-6">
-            <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-red-400 rounded-lg flex items-center justify-center">
-              {/* Replace this placeholder with your logo */}
-              <div className="w-4 h-4 bg-white rounded-sm"></div>
-            </div>
+            <img 
+              src="/lovable-uploads/4a7eb61d-f2d1-4530-ae72-abaccb971ba2.png" 
+              alt="Company Logo" 
+              className="w-16 h-16 object-contain"
+            />
           </div>
         </div>
       </div>
