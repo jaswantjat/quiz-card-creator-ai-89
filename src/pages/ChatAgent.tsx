@@ -1,22 +1,26 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Send, Mic, Plus, TrendingUp, Newspaper, Users, Activity, Zap } from "lucide-react";
 
 const ChatAgent = () => {
   const [inputValue, setInputValue] = useState("");
   const [context, setContext] = useState("");
   const [topicName, setTopicName] = useState("");
-  const [difficulty, setDifficulty] = useState("Easy");
+  const [easyCount, setEasyCount] = useState(0);
+  const [mediumCount, setMediumCount] = useState(0);
+  const [hardCount, setHardCount] = useState(0);
 
   const handleGenerate = () => {
     console.log("Generating questions with:", {
       context,
       topicName,
-      difficulty
+      easyCount,
+      mediumCount,
+      hardCount
     });
     // TODO: Add generation logic here
   };
@@ -92,25 +96,60 @@ const ChatAgent = () => {
               />
             </div>
 
-            {/* Difficulty Level */}
+            {/* Number of Questions by Difficulty */}
             <div className="mb-6">
               <Label className="text-gray-700 font-medium mb-3 block">
-                Difficulty Level
+                Number of Questions by Difficulty
               </Label>
-              <RadioGroup value={difficulty} onValueChange={setDifficulty} className="flex gap-6">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Easy" id="easy" className="border-orange-400 text-orange-500" />
-                  <Label htmlFor="easy" className="text-gray-700 cursor-pointer">Easy</Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Easy Questions */}
+                <div>
+                  <Label htmlFor="easy" className="text-gray-600 text-sm mb-2 block">
+                    Easy Questions
+                  </Label>
+                  <Input
+                    id="easy"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={easyCount}
+                    onChange={(e) => setEasyCount(Number(e.target.value))}
+                    className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Medium" id="medium" className="border-orange-400 text-orange-500" />
-                  <Label htmlFor="medium" className="text-gray-700 cursor-pointer">Medium</Label>
+
+                {/* Medium Questions */}
+                <div>
+                  <Label htmlFor="medium" className="text-gray-600 text-sm mb-2 block">
+                    Medium Questions
+                  </Label>
+                  <Input
+                    id="medium"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={mediumCount}
+                    onChange={(e) => setMediumCount(Number(e.target.value))}
+                    className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Hard" id="hard" className="border-orange-400 text-orange-500" />
-                  <Label htmlFor="hard" className="text-gray-700 cursor-pointer">Hard</Label>
+
+                {/* Hard Questions */}
+                <div>
+                  <Label htmlFor="hard" className="text-gray-600 text-sm mb-2 block">
+                    Hard Questions
+                  </Label>
+                  <Input
+                    id="hard"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={hardCount}
+                    onChange={(e) => setHardCount(Number(e.target.value))}
+                    className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+                  />
                 </div>
-              </RadioGroup>
+              </div>
             </div>
 
             {/* Generate Button */}
