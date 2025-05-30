@@ -49,78 +49,78 @@ const AICard = () => {
 
   return (
     <div className="relative w-full">
-      <FloatingElements />
-      
-      {/* Main Card with Orange Shine */}
-      <div className="relative bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 p-[2px] rounded-3xl shadow-2xl hover:shadow-orange-500/25 transition-all duration-500 group">
-        <div className="bg-white rounded-3xl p-8 relative overflow-hidden">
-          
-          {/* Orange Shine Effect */}
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-orange-25 to-transparent rounded-3xl opacity-50" />
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-200/30 to-transparent rounded-full -translate-y-16 translate-x-16" />
-          
-          {/* Content */}
-          <div className="relative z-10">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">AI Assistant</h2>
-                <p className="text-gray-600 text-sm">Intelligent Question Generator</p>
-              </div>
-            </div>
-
-            {/* Description */}
-            <p className="text-gray-700 mb-8 leading-relaxed">
-              Supercharged AI tools for generating thoughtful questions. 
-              Get personalized insights and discover new perspectives.
-            </p>
-
-            {/* Generate Button */}
-            <Button
-              onClick={handleGenerateQuestions}
-              disabled={isGenerating}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed mb-6"
-            >
-              {isGenerating ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Generating Questions...
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5" />
-                  Generate AI Questions
-                </div>
-              )}
-            </Button>
-
-            {/* Features */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <div className="w-5 h-5 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
-                  <Zap className="w-3 h-3 text-white" />
-                </div>
-                <span>Instant AI-powered generation</span>
-              </div>
-              
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <div className="w-5 h-5 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full flex items-center justify-center">
-                  <Stars className="w-3 h-3 text-white" />
-                </div>
-                <span>Personalized question insights</span>
-              </div>
-              
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <div className="w-5 h-5 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center">
-                  <Brain className="w-3 h-3 text-white" />
-                </div>
-                <span>Advanced AI algorithms</span>
-              </div>
-            </div>
+      {/* Main Card */}
+      <div className="relative bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 rounded-3xl p-8 shadow-2xl overflow-hidden">
+        
+        {/* Floating Decorative Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Language Icon (top left) */}
+          <div className="absolute top-6 left-6 text-orange-200/80">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+            </svg>
           </div>
+
+          {/* Floating Stars */}
+          <div className="absolute top-8 right-12 w-2 h-2 bg-white/60 rounded-full animate-pulse" />
+          <div className="absolute top-16 right-24 w-1.5 h-1.5 bg-white/40 rounded-full animate-pulse delay-300" />
+          <div className="absolute top-12 right-8 w-1 h-1 bg-white/50 rounded-full animate-pulse delay-700" />
+          
+          {/* Star Shapes */}
+          <div className="absolute top-10 right-16 text-white/40 animate-pulse delay-500">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          </div>
+          
+          <div className="absolute top-20 right-32 text-white/30 animate-pulse delay-1000">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          </div>
+
+          {/* Large Star */}
+          <div className="absolute top-16 right-20 text-white/20 animate-pulse delay-800">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+          </div>
+
+          {/* Additional floating dots */}
+          <div className="absolute top-24 right-14 w-1.5 h-1.5 bg-white/30 rounded-full animate-bounce delay-400" />
+          <div className="absolute top-28 right-28 w-1 h-1 bg-white/40 rounded-full animate-bounce delay-600" />
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10">
+          {/* Main Title */}
+          <h1 className="text-4xl font-bold text-white mb-3 leading-tight">
+            AI Question Generator
+          </h1>
+          
+          {/* Subtitle */}
+          <p className="text-orange-100/90 text-lg mb-8 leading-relaxed">
+            Generates intelligent questions for various languages and topics.
+          </p>
+
+          {/* Generate Button */}
+          <Button
+            onClick={handleGenerateQuestions}
+            disabled={isGenerating}
+            className="bg-white/20 hover:bg-white/30 text-white font-semibold py-4 px-8 rounded-2xl backdrop-blur-sm border border-white/20 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isGenerating ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Generating Questions...
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                Generate AI Questions
+              </div>
+            )}
+          </Button>
         </div>
       </div>
 
