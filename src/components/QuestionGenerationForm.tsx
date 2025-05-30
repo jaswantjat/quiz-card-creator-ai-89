@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,13 +41,11 @@ const QuestionGenerationForm = ({
 }: QuestionGenerationFormProps) => {
   const totalQuestions = easyCount + mediumCount + hardCount;
 
-  // Story sequence for loading animation
+  // Simplified story sequence
   const storySteps = [
-    { icon: Lightbulb, text: "Analyzing your topic...", delay: 0 },
-    { icon: Brain, text: "Thinking deeply about content...", delay: 1000 },
-    { icon: Target, text: "Crafting perfect questions...", delay: 2000 },
-    { icon: Sparkles, text: "Adding final touches...", delay: 3000 },
-    { icon: CheckCircle, text: "Almost ready!", delay: 4000 }
+    { icon: Brain, text: "Analyzing your topic...", delay: 0 },
+    { icon: Target, text: "Crafting questions...", delay: 2000 },
+    { icon: Sparkles, text: "Almost ready!", delay: 4000 }
   ];
 
   return (
@@ -118,91 +115,61 @@ const QuestionGenerationForm = ({
           <Button 
             onClick={onGenerate} 
             disabled={credits < totalQuestions || totalQuestions === 0 || isGenerating}
-            className={`relative overflow-hidden bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl shadow-xl shadow-orange-500/30 transition-all duration-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`relative overflow-hidden bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl shadow-xl shadow-orange-500/30 transition-all duration-500 font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
               isGenerating 
                 ? 'py-6 px-16 text-lg scale-110 shadow-2xl shadow-orange-500/50' 
                 : 'py-4 px-10 text-lg hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/40'
             }`}
           >
-            {/* Story-based Loading Animation */}
+            {/* Smooth Loading Animation */}
             {isGenerating && (
               <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500">
-                {/* Expanding ripple effect */}
+                {/* Simple expanding ripple */}
                 <div className="absolute inset-0 rounded-2xl">
-                  <div className="absolute inset-0 bg-white/20 rounded-2xl animate-ping"></div>
-                  <div className="absolute inset-2 bg-white/10 rounded-xl animate-pulse"></div>
-                  <div className="absolute inset-4 bg-white/5 rounded-lg animate-bounce"></div>
+                  <div className="absolute inset-0 bg-white/10 rounded-2xl animate-ping opacity-60"></div>
+                  <div className="absolute inset-2 bg-white/5 rounded-xl animate-pulse"></div>
                 </div>
 
-                {/* Floating story elements */}
+                {/* Clean floating particles */}
                 <div className="absolute inset-0 overflow-hidden rounded-2xl">
-                  {/* Floating dots that represent ideas */}
-                  {[...Array(6)].map((_, i) => (
+                  {[...Array(3)].map((_, i) => (
                     <div
                       key={i}
-                      className="absolute w-2 h-2 bg-white/60 rounded-full animate-bounce"
+                      className="absolute w-1.5 h-1.5 bg-white/70 rounded-full"
                       style={{
-                        left: `${15 + i * 12}%`,
-                        top: `${30 + (i % 2) * 40}%`,
-                        animationDelay: `${i * 0.3}s`,
-                        animationDuration: `${1.5 + i * 0.2}s`
+                        left: `${25 + i * 25}%`,
+                        top: '50%',
+                        animation: `bounce 1.5s ease-in-out ${i * 0.3}s infinite`
                       }}
                     />
                   ))}
-                  
-                  {/* Connecting lines between ideas */}
-                  <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 200 80">
-                    <path 
-                      d="M20,40 Q60,20 100,40 T180,40" 
-                      stroke="white" 
-                      strokeWidth="2" 
-                      fill="none" 
-                      strokeDasharray="5 5"
-                      className="animate-pulse"
-                    />
-                  </svg>
                 </div>
 
-                {/* Central spinning brain/processing icon */}
+                {/* Central icon with smooth rotation */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative">
-                    <Brain className="w-8 h-8 text-white animate-spin" />
-                    <div className="absolute -top-1 -right-1">
-                      <Sparkles className="w-4 h-4 text-white animate-ping" />
-                    </div>
-                  </div>
+                  <Brain className="w-6 h-6 text-white animate-spin" style={{ animationDuration: '2s' }} />
                 </div>
               </div>
             )}
 
-            {/* Button Content with Story Progression */}
+            {/* Button Content */}
             <div className="relative z-10 flex items-center justify-center">
               {isGenerating ? (
                 <div className="flex flex-col items-center gap-2">
-                  {/* Dynamic story text that changes */}
-                  <div className="text-center min-h-[24px]">
+                  {/* Sequential story text */}
+                  <div className="text-center min-h-[20px] relative">
                     {storySteps.map((step, index) => {
                       const StepIcon = step.icon;
+                      const isActive = index === 0 || (index === 1 && Date.now() % 6000 > 2000) || (index === 2 && Date.now() % 6000 > 4000);
+                      
                       return (
                         <div 
                           key={index}
-                          className={`flex items-center gap-2 transition-all duration-500 ${
-                            // Show each step sequentially with fade in/out
-                            index === 0 ? 'animate-pulse' : 
-                            index === 1 ? 'opacity-0 animate-[fadeIn_0.5s_ease-in-out_1s_forwards]' :
-                            index === 2 ? 'opacity-0 animate-[fadeIn_0.5s_ease-in-out_2s_forwards]' :
-                            index === 3 ? 'opacity-0 animate-[fadeIn_0.5s_ease-in-out_3s_forwards]' :
-                            'opacity-0 animate-[fadeIn_0.5s_ease-in-out_4s_forwards]'
+                          className={`absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ${
+                            isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
                           }`}
-                          style={{
-                            position: index === 0 ? 'relative' : 'absolute',
-                            top: index === 0 ? 'auto' : '50%',
-                            left: index === 0 ? 'auto' : '50%',
-                            transform: index === 0 ? 'none' : 'translate(-50%, -50%)'
-                          }}
                         >
-                          <StepIcon className="w-5 h-5 animate-bounce" style={{ animationDelay: `${index * 0.2}s` }} />
-                          <span className="text-sm font-medium animate-pulse">
+                          <span className="text-sm font-medium whitespace-nowrap">
                             {step.text}
                           </span>
                         </div>
@@ -210,17 +177,13 @@ const QuestionGenerationForm = ({
                     })}
                   </div>
                   
-                  {/* Progress indicators */}
-                  <div className="flex gap-1 mt-2">
+                  {/* Simple progress dots */}
+                  <div className="flex gap-1 mt-1">
                     {storySteps.map((_, index) => (
                       <div 
                         key={index}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                          index <= 0 ? 'bg-white animate-pulse' : 'bg-white/30'
-                        }`}
-                        style={{
-                          animationDelay: `${index * 1000}ms`
-                        }}
+                        className="w-1.5 h-1.5 bg-white/40 rounded-full animate-pulse"
+                        style={{ animationDelay: `${index * 0.5}s` }}
                       />
                     ))}
                   </div>
