@@ -1,9 +1,11 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Send, Mic, Plus, TrendingUp, Newspaper, Users, Activity, Zap } from "lucide-react";
+
 const ChatAgent = () => {
   const [inputValue, setInputValue] = useState("");
   const [context, setContext] = useState("");
@@ -11,6 +13,7 @@ const ChatAgent = () => {
   const [easyCount, setEasyCount] = useState(0);
   const [mediumCount, setMediumCount] = useState(0);
   const [hardCount, setHardCount] = useState(0);
+
   const handleGenerate = () => {
     console.log("Generating questions with:", {
       context,
@@ -21,112 +24,174 @@ const ChatAgent = () => {
     });
     // TODO: Add generation logic here
   };
-  return <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-100 p-6 font-inter">
-      <div className="w-full max-w-5xl mx-auto">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-amber-50/20 p-4 sm:p-6 font-inter">
+      <div className="w-full max-w-6xl mx-auto">
         {/* Main Chat Card */}
-        <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl shadow-orange-500/10 overflow-hidden border border-orange-100/50">
+        <div className="relative bg-white/95 backdrop-blur-xl rounded-[2rem] p-6 sm:p-10 shadow-2xl shadow-orange-500/8 overflow-hidden border border-orange-100/60 transition-all duration-500 hover:shadow-3xl hover:shadow-orange-500/12">
           
-          {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 via-transparent to-orange-100/20 pointer-events-none" />
+          {/* Enhanced gradient overlay with subtle animation */}
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-50/40 via-transparent to-amber-100/30 pointer-events-none animate-pulse opacity-60" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-orange-200/20 to-transparent rounded-full blur-3xl pointer-events-none" />
           
-          {/* Header */}
-          <div className="relative z-10 mb-8">
-            <h2 className="text-orange-500 font-semibold text-xs uppercase tracking-[0.2em] mb-3 opacity-80">
-              CHAT AGENT
-            </h2>
-            <h1 className="text-3xl font-light text-slate-800 mb-3 leading-tight">
+          {/* Header with enhanced typography */}
+          <div className="relative z-10 mb-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-2 h-8 bg-gradient-to-b from-orange-500 to-orange-600 rounded-full"></div>
+              <h2 className="text-orange-600 font-semibold text-sm uppercase tracking-[0.25em] opacity-90">
+                CHAT AGENT
+              </h2>
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-light text-slate-800 mb-4 leading-tight tracking-tight">
               Good afternoon!
             </h1>
-            
-            <p className="text-lg text-slate-600 font-light">
-              Generate customized questions for any topic with ease.
+            <p className="text-xl text-slate-600 font-light leading-relaxed max-w-2xl">
+              Generate customized questions for any topic with ease and precision.
             </p>
           </div>
 
-          {/* Chat Input Area */}
-          <div className="relative z-10 mb-8">
-            
+          {/* Chat Input Area - Enhanced but kept minimal */}
+          <div className="relative z-10 mb-10">
+            <div className="bg-white/70 backdrop-blur-md rounded-2xl p-1 border border-orange-200/40 shadow-lg shadow-orange-500/5">
+              <div className="flex items-center gap-3 p-4">
+                <div className="flex-1 flex items-center gap-3 bg-white/80 rounded-xl px-4 py-3 border border-orange-100/50">
+                  <Input
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Ask me anything or describe what you need..."
+                    className="border-0 bg-transparent focus:ring-0 text-slate-700 placeholder:text-slate-400 text-base"
+                  />
+                  <Button size="sm" variant="ghost" className="text-slate-400 hover:text-orange-500 transition-colors p-2">
+                    <Mic className="w-5 h-5" />
+                  </Button>
+                </div>
+                <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl px-6 py-3 shadow-lg shadow-orange-500/25 transition-all duration-300 transform hover:scale-105">
+                  <Send className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
           </div>
 
-          {/* Quick Action Buttons */}
-          <div className="relative z-10 mb-8">
+          {/* Enhanced Quick Action Buttons */}
+          <div className="relative z-10 mb-12">
             <div className="flex flex-wrap gap-3">
-              
-              
-              
-              
+              {[
+                { icon: TrendingUp, label: "Trending Topics", color: "from-emerald-500 to-emerald-600" },
+                { icon: Newspaper, label: "Latest Updates", color: "from-blue-500 to-blue-600" },
+                { icon: Users, label: "Community", color: "from-purple-500 to-purple-600" },
+                { icon: Activity, label: "Analytics", color: "from-pink-500 to-pink-600" }
+              ].map((item, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className="bg-white/80 backdrop-blur-sm border-orange-200/40 hover:bg-orange-50/80 text-slate-700 hover:text-orange-700 rounded-xl px-4 py-3 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/10 hover:scale-105 group"
+                >
+                  <item.icon className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                  {item.label}
+                </Button>
+              ))}
             </div>
           </div>
 
-          {/* Question Generation Form */}
-          <div className="relative z-10 bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-orange-200/30 shadow-inner">
-            <h3 className="text-xl font-semibold text-slate-800 mb-6">Generate Questions</h3>
+          {/* Enhanced Question Generation Form */}
+          <div className="relative z-10 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-xl rounded-3xl p-8 border border-orange-200/40 shadow-xl shadow-orange-500/5">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/25">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-2xl font-semibold text-slate-800 tracking-tight">Generate Questions</h3>
+            </div>
             
-            {/* Context Text Box */}
-            <div className="mb-6">
-              <Label htmlFor="context" className="text-slate-700 font-medium mb-3 block text-sm">
-                Context
-              </Label>
-              <Textarea id="context" placeholder="Provide context for question generation..." value={context} onChange={e => setContext(e.target.value)} className="w-full min-h-[100px] bg-white/80 backdrop-blur-sm border-orange-200/50 focus:border-orange-400 focus:ring-orange-200/50 rounded-xl resize-none" />
-            </div>
-
-            {/* Topic Name */}
-            <div className="mb-6">
-              <Label htmlFor="topic" className="text-slate-700 font-medium mb-3 block text-sm">
-                Topic Name
-              </Label>
-              <Input id="topic" type="text" placeholder="Enter topic name..." value={topicName} onChange={e => setTopicName(e.target.value)} className="w-full bg-white/80 backdrop-blur-sm border-orange-200/50 focus:border-orange-400 focus:ring-orange-200/50 rounded-xl" />
-            </div>
-
-            {/* Number of Questions by Difficulty */}
+            {/* Enhanced Context Text Box */}
             <div className="mb-8">
-              <Label className="text-slate-700 font-medium mb-4 block text-sm">
-                Number of Questions by Difficulty
+              <Label htmlFor="context" className="text-slate-700 font-semibold mb-4 block text-base flex items-center gap-2">
+                Context
+                <span className="text-sm font-normal text-slate-500 bg-slate-100 px-2 py-1 rounded-full">(optional)</span>
               </Label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Easy Questions */}
-                <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-orange-200/30">
-                  <Label htmlFor="easy" className="text-slate-600 text-sm mb-2 block font-medium">
-                    Easy Questions
-                  </Label>
-                  <Input id="easy" type="number" min="0" placeholder="0" value={easyCount} onChange={e => setEasyCount(Number(e.target.value))} className="w-full bg-white/80 border-orange-200/50 focus:border-orange-400 focus:ring-orange-200/50 rounded-lg" />
-                </div>
-
-                {/* Medium Questions */}
-                <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-orange-200/30">
-                  <Label htmlFor="medium" className="text-slate-600 text-sm mb-2 block font-medium">
-                    Medium Questions
-                  </Label>
-                  <Input id="medium" type="number" min="0" placeholder="0" value={mediumCount} onChange={e => setMediumCount(Number(e.target.value))} className="w-full bg-white/80 border-orange-200/50 focus:border-orange-400 focus:ring-orange-200/50 rounded-lg" />
-                </div>
-
-                {/* Hard Questions */}
-                <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-orange-200/30">
-                  <Label htmlFor="hard" className="text-slate-600 text-sm mb-2 block font-medium">
-                    Hard Questions
-                  </Label>
-                  <Input id="hard" type="number" min="0" placeholder="0" value={hardCount} onChange={e => setHardCount(Number(e.target.value))} className="w-full bg-white/80 border-orange-200/50 focus:border-orange-400 focus:ring-orange-200/50 rounded-lg" />
+              <div className="relative">
+                <Textarea 
+                  id="context" 
+                  placeholder="Provide context for question generation. This helps create more targeted and relevant questions..." 
+                  value={context} 
+                  onChange={(e) => setContext(e.target.value)} 
+                  className="w-full min-h-[120px] bg-white/90 backdrop-blur-sm border-orange-200/60 focus:border-orange-400 focus:ring-orange-200/50 rounded-2xl resize-none text-base leading-relaxed transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5" 
+                />
+                <div className="absolute bottom-4 right-4 text-xs text-slate-400">
+                  {context.length}/500
                 </div>
               </div>
             </div>
 
-            {/* Generate Button */}
+            {/* Enhanced Topic Name */}
+            <div className="mb-8">
+              <Label htmlFor="topic" className="text-slate-700 font-semibold mb-4 block text-base">
+                Topic Name
+              </Label>
+              <Input 
+                id="topic" 
+                type="text" 
+                placeholder="Enter topic name (e.g., Machine Learning, History, Biology)..." 
+                value={topicName} 
+                onChange={(e) => setTopicName(e.target.value)} 
+                className="w-full bg-white/90 backdrop-blur-sm border-orange-200/60 focus:border-orange-400 focus:ring-orange-200/50 rounded-2xl py-4 text-base transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5" 
+              />
+            </div>
+
+            {/* Enhanced Difficulty Grid */}
+            <div className="mb-10">
+              <Label className="text-slate-700 font-semibold mb-6 block text-base">
+                Number of Questions by Difficulty
+              </Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                  { id: "easy", label: "Easy Questions", value: easyCount, setter: setEasyCount, color: "from-green-500 to-green-600", bgColor: "bg-green-50/80" },
+                  { id: "medium", label: "Medium Questions", value: mediumCount, setter: setMediumCount, color: "from-yellow-500 to-yellow-600", bgColor: "bg-yellow-50/80" },
+                  { id: "hard", label: "Hard Questions", value: hardCount, setter: setHardCount, color: "from-red-500 to-red-600", bgColor: "bg-red-50/80" }
+                ].map((item) => (
+                  <div key={item.id} className={`${item.bgColor} backdrop-blur-sm rounded-2xl p-6 border border-orange-200/30 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/10 hover:scale-105 group`}>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`w-3 h-3 bg-gradient-to-r ${item.color} rounded-full`}></div>
+                      <Label htmlFor={item.id} className="text-slate-700 text-base font-semibold group-hover:text-slate-800 transition-colors">
+                        {item.label}
+                      </Label>
+                    </div>
+                    <Input 
+                      id={item.id} 
+                      type="number" 
+                      min="0" 
+                      placeholder="0" 
+                      value={item.value} 
+                      onChange={(e) => item.setter(Number(e.target.value))} 
+                      className="w-full bg-white/90 border-orange-200/50 focus:border-orange-400 focus:ring-orange-200/50 rounded-xl text-lg font-medium text-center transition-all duration-300" 
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Enhanced Generate Button */}
             <div className="flex justify-center">
-              <Button onClick={handleGenerate} className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 px-8 rounded-full shadow-lg shadow-orange-500/25 transition-all duration-300 transform hover:scale-[1.02] text-base font-semibold">
-                <Zap className="w-5 h-5 mr-2" />
+              <Button 
+                onClick={handleGenerate} 
+                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-4 px-10 rounded-2xl shadow-xl shadow-orange-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/40 text-lg font-semibold group"
+              >
+                <Zap className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform" />
                 Generate Questions
               </Button>
             </div>
           </div>
 
-          {/* Top right logo */}
-          <div className="absolute top-6 right-6 z-20">
-            <div className="w-12 h-12 bg-white/80 backdrop-blur-sm rounded-xl p-2 shadow-lg shadow-orange-500/10 border border-orange-200/30">
+          {/* Enhanced top right logo */}
+          <div className="absolute top-8 right-8 z-20">
+            <div className="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-2xl p-3 shadow-xl shadow-orange-500/15 border border-orange-200/40 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/25 hover:scale-110">
               <img src="/lovable-uploads/4a7eb61d-f2d1-4530-ae72-abaccb971ba2.png" alt="Company Logo" className="w-full h-full object-contain" />
             </div>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ChatAgent;
