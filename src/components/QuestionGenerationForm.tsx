@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -423,7 +422,7 @@ const QuestionGenerationForm = ({
       </div>
 
       {/* Enhanced CSS animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes enhanced-steam {
           0% { opacity: 0.6; transform: translateY(0px) scale(1) rotate(0deg); }
           50% { opacity: 0.9; transform: translateY(-12px) scale(1.2) rotate(5deg); }
