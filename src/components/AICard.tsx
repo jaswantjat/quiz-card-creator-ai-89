@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,23 +27,17 @@ const AICard = () => {
     return topicQuestions.sort(() => 0.5 - Math.random()).slice(0, 3);
   };
 
-  const handleGenerateQuestions = async () => {
-    setIsGenerating(true);
+  const handleGenerateQuestions = () => {
     try {
-      // Simulate AI generation with realistic delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       // Pick a random topic and generate questions
       const randomTopic = topics[Math.floor(Math.random() * topics.length)];
       const randomQuestions = generateQuestionsForTopic(randomTopic);
       setQuestions(randomQuestions);
       
-      // Navigate to chat agent after generating questions
+      // Navigate to chat agent immediately
       navigate('/chat-agent');
     } catch (error) {
       console.error('Generation failed:', error);
-    } finally {
-      setIsGenerating(false);
     }
   };
 
