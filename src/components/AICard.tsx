@@ -1,13 +1,12 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import QuestionGenerator from "./QuestionGenerator";
-import { useToast } from "@/hooks/use-toast";
 
 const AICard = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [questions, setQuestions] = useState<string[]>([]);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const topics = ["Business & AI", "Technology & Innovation", "Education & Learning", "Health & Wellness", "Science & Research", "Marketing & Sales", "Leadership & Management", "Creative Writing", "Philosophy & Ethics", "Environment & Sustainability"];
@@ -39,19 +38,11 @@ const AICard = () => {
       const randomTopic = topics[Math.floor(Math.random() * topics.length)];
       const randomQuestions = generateQuestionsForTopic(randomTopic);
       setQuestions(randomQuestions);
-      toast({
-        title: "Questions Generated! ✨",
-        description: `AI has generated thoughtful questions about ${randomTopic}.`
-      });
       
       // Navigate to chat agent after generating questions
       navigate('/chat-agent');
     } catch (error) {
-      toast({
-        title: "Generation Failed",
-        description: "Please try again in a moment.",
-        variant: "destructive"
-      });
+      console.error('Generation failed:', error);
     } finally {
       setIsGenerating(false);
     }

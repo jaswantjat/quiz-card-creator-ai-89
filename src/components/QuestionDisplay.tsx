@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, Plus, CheckCircle, BookOpen } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 interface MCQQuestion {
   id: string;
@@ -21,14 +20,9 @@ interface QuestionDisplayProps {
 }
 
 const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplayProps) => {
-  const { toast } = useToast();
-
   const handleAddToQB = (questionId: string) => {
     onAddToQB(questionId);
-    toast({
-      title: "Added to Question Bank",
-      description: "Question has been successfully added to your question bank.",
-    });
+    console.log('Question added to QB:', questionId);
   };
 
   const getDifficultyColor = (difficulty: string) => {

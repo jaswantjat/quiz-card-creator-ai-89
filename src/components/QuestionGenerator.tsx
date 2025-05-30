@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, MessageCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 interface QuestionGeneratorProps {
   questions: string[];
@@ -11,24 +10,16 @@ interface QuestionGeneratorProps {
 
 const QuestionGenerator = ({ questions }: QuestionGeneratorProps) => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const { toast } = useToast();
 
   const copyToClipboard = async (text: string, index: number) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedIndex(index);
-      toast({
-        title: "Copied!",
-        description: "Question copied to clipboard.",
-      });
+      console.log('Question copied to clipboard');
       
       setTimeout(() => setCopiedIndex(null), 2000);
     } catch (error) {
-      toast({
-        title: "Copy failed",
-        description: "Please try again.",
-        variant: "destructive",
-      });
+      console.error('Copy failed:', error);
     }
   };
 
