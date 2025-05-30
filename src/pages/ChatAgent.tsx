@@ -2,10 +2,21 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Send, Mic, Plus, TrendingUp, Newspaper, Users, Activity } from "lucide-react";
 
 const ChatAgent = () => {
   const [inputValue, setInputValue] = useState("");
+  const [context, setContext] = useState("");
+  const [topicName, setTopicName] = useState("");
+  const [difficulty, setDifficulty] = useState("Easy");
+
+  const handleGenerate = () => {
+    console.log("Generating questions with:", { context, topicName, difficulty });
+    // TODO: Add generation logic here
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-4 font-inter">
@@ -50,6 +61,69 @@ const ChatAgent = () => {
                 <Send className="w-5 h-5" />
               </Button>
             </div>
+          </div>
+
+          {/* Question Generation Form */}
+          <div className="bg-white/60 rounded-2xl p-6 mb-8 border border-orange-200/30">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Generate Questions</h3>
+            
+            {/* Context Text Box */}
+            <div className="mb-4">
+              <Label htmlFor="context" className="text-gray-700 font-medium mb-2 block">
+                Context
+              </Label>
+              <Textarea
+                id="context"
+                placeholder="Provide context for question generation..."
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                className="w-full min-h-[100px] bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+              />
+            </div>
+
+            {/* Topic Name */}
+            <div className="mb-4">
+              <Label htmlFor="topic" className="text-gray-700 font-medium mb-2 block">
+                Topic Name
+              </Label>
+              <Input
+                id="topic"
+                type="text"
+                placeholder="Enter topic name..."
+                value={topicName}
+                onChange={(e) => setTopicName(e.target.value)}
+                className="w-full bg-white border-orange-200 focus:border-orange-400 focus:ring-orange-200"
+              />
+            </div>
+
+            {/* Difficulty Level */}
+            <div className="mb-6">
+              <Label className="text-gray-700 font-medium mb-3 block">
+                Difficulty Level
+              </Label>
+              <RadioGroup value={difficulty} onValueChange={setDifficulty} className="flex gap-6">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Easy" id="easy" className="border-orange-400 text-orange-500" />
+                  <Label htmlFor="easy" className="text-gray-700 cursor-pointer">Easy</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Medium" id="medium" className="border-orange-400 text-orange-500" />
+                  <Label htmlFor="medium" className="text-gray-700 cursor-pointer">Medium</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Hard" id="hard" className="border-orange-400 text-orange-500" />
+                  <Label htmlFor="hard" className="text-gray-700 cursor-pointer">Hard</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Generate Button */}
+            <Button 
+              onClick={handleGenerate}
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02]"
+            >
+              Generate Questions
+            </Button>
           </div>
 
           {/* Action Buttons */}
