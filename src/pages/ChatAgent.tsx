@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import QuestionGenerationForm from "@/components/QuestionGenerationForm";
-import LoadingAnimation from "@/components/LoadingAnimation";
 import QuestionDisplay from "@/components/QuestionDisplay";
 
 interface MCQQuestion {
@@ -84,14 +83,8 @@ const ChatAgent = () => {
       hardCount
     });
 
-    // Start the animation sequence
-    setShowAnimation(true);
-    
-    // After animation completes, start loading
-    setTimeout(() => {
-      setIsGenerating(true);
-      setShowAnimation(false);
-    }, 800);
+    // Start generation immediately
+    setIsGenerating(true);
 
     // Simulate API call delay and then show questions
     setTimeout(() => {
@@ -146,9 +139,6 @@ const ChatAgent = () => {
             showAnimation={showAnimation}
             onGenerate={handleGenerate}
           />
-
-          {/* Loading Animation */}
-          {isGenerating && <LoadingAnimation />}
 
           {/* Generated Questions */}
           {generatedQuestions.length > 0 && (

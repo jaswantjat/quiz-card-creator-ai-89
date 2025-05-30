@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Zap } from "lucide-react";
+import { Zap, Loader2 } from "lucide-react";
 import ChatAgentHeader from "./ChatAgentHeader";
 import DifficultySelector from "./DifficultySelector";
 
@@ -110,8 +110,17 @@ const QuestionGenerationForm = ({
           disabled={credits < totalQuestions || totalQuestions === 0 || isGenerating}
           className={`bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-4 px-10 rounded-2xl shadow-xl shadow-orange-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/40 text-lg font-semibold group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${showAnimation ? 'animate-pulse scale-110' : ''}`}
         >
-          <Zap className={`w-6 h-6 mr-3 group-hover:rotate-12 transition-transform ${isGenerating ? 'animate-spin' : ''}`} />
-          {isGenerating ? 'Generating...' : 'Generate Questions'}
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Zap className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform" />
+              Generate Questions
+            </>
+          )}
         </Button>
       </div>
     </div>
