@@ -1,0 +1,181 @@
+
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { RefreshCw, Plus, CheckCircle, XCircle, BookOpen } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface MCQQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+}
+
+interface QuestionDisplayProps {
+  questions: MCQQuestion[];
+  onAddToQB: (questionId: string) => void;
+  onRegenerate: () => void;
+}
+
+const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplayProps) => {
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
+  const [showAnswers, setShowAnswers] = useState<Record<string, boolean>>({});
+  const { toast } = useToast();
+
+  const handleOptionSelect = (questionId: string, optionIndex: number) => {
+    setSelectedAnswers(prev => ({
+      ...prev,
+      [questionId]: optionIndex
+    }));
+    
+    setShowAnswers(prev => ({
+      ...prev,
+      [questionId]: true
+    }));
+  };
+
+  const handleAddToQB = (questionId: string) => {
+    onAddToQB(questionId);
+    toast({
+      title: "Added to Question Bank",
+      description: "Question has been successfully added to your question bank.",
+    });
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return 'bg-green-100 text-green-800 border-green-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'hard': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in-50 duration-700">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <BookOpen className="w-6 h-6 text-orange-500" />
+          <h3 className="text-2xl font-semibold text-slate-800">Generated Questions</h3>
+          <Badge variant="outline" className="text-slate-600">
+            {questions.length} Question{questions.length !== 1 ? 's' : ''}
+          </Badge>
+        </div>
+        
+        <Button
+          onClick={onRegenerate}
+          variant="outline"
+          className="border-orange-200 text-orange-600 hover:bg-orange-50"
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Regenerate
+        </Button>
+      </div>
+
+      {/* Questions */}
+      <div className="space-y-6">
+        {questions.map((question, index) => (
+          <Card
+            key={question.id}
+            className="bg-white/90 backdrop-blur-sm border-orange-200/60 shadow-lg hover:shadow-xl transition-all duration-300 animate-in slide-in-from-bottom-4"
+            style={{ animationDelay: `${index * 200}ms` }}
+          >
+            <CardContent className="p-6">
+              {/* Question Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-semibold text-slate-500">Q{index + 1}</span>
+                    <Badge className={getDifficultyColor(question.difficulty)}>
+                      {question.difficulty.charAt(0).toUpperCase() + question.difficulty.slice(1)}
+                    </Badge>
+                  </div>
+                  <h4 className="text-lg font-semibold text-slate-800 leading-relaxed">
+                    {question.question}
+                  </h4>
+                </div>
+              </div>
+
+              {/* Options */}
+              <div className="space-y-3 mb-6">
+                {question.options.map((option, optionIndex) => {
+                  const isSelected = selectedAnswers[question.id] === optionIndex;
+                  const isCorrect = optionIndex === question.correctAnswer;
+                  const showResult = showAnswers[question.id];
+                  
+                  let optionClass = "p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md ";
+                  
+                  if (showResult) {
+                    if (isCorrect) {
+                      optionClass += "bg-green-50 border-green-300 text-green-800";
+                    } else if (isSelected && !isCorrect) {
+                      optionClass += "bg-red-50 border-red-300 text-red-800";
+                    } else {
+                      optionClass += "bg-gray-50 border-gray-200 text-gray-600";
+                    }
+                  } else {
+                    optionClass += isSelected 
+                      ? "bg-orange-50 border-orange-300 text-orange-800" 
+                      : "bg-white border-gray-200 text-gray-700 hover:border-orange-200 hover:bg-orange-50/50";
+                  }
+
+                  return (
+                    <div
+                      key={optionIndex}
+                      className={optionClass}
+                      onClick={() => !showAnswers[question.id] && handleOptionSelect(question.id, optionIndex)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-current/10 text-current font-semibold text-sm">
+                          {String.fromCharCode(65 + optionIndex)}
+                        </div>
+                        <span className="flex-1">{option}</span>
+                        {showResult && isCorrect && (
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        )}
+                        {showResult && isSelected && !isCorrect && (
+                          <XCircle className="w-5 h-5 text-red-600" />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Answer Explanation */}
+              {showAnswers[question.id] && (
+                <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-4 mb-6 animate-in fade-in-50 duration-300">
+                  <div className="flex items-start gap-2">
+                    <BookOpen className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h5 className="font-semibold text-blue-800 mb-1">Explanation</h5>
+                      <p className="text-blue-700 leading-relaxed">{question.explanation}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Button */}
+              <div className="flex justify-end">
+                <Button
+                  onClick={() => handleAddToQB(question.id)}
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add to QB
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default QuestionDisplay;

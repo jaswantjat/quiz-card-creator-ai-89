@@ -1,10 +1,19 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Send, Mic, Plus, TrendingUp, Newspaper, Users, Activity, Zap, CreditCard } from "lucide-react";
+import QuestionDisplay from "@/components/QuestionDisplay";
+
+interface MCQQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+}
 
 const ChatAgent = () => {
   const [inputValue, setInputValue] = useState("");
@@ -14,10 +23,56 @@ const ChatAgent = () => {
   const [mediumCount, setMediumCount] = useState(0);
   const [hardCount, setHardCount] = useState(0);
   const [credits, setCredits] = useState(10);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
+  const [generatedQuestions, setGeneratedQuestions] = useState<MCQQuestion[]>([]);
 
   const totalQuestions = easyCount + mediumCount + hardCount;
 
-  const handleGenerate = () => {
+  // Sample questions for testing
+  const sampleQuestions: MCQQuestion[] = [
+    {
+      id: "1",
+      question: "What is the primary purpose of React's useState hook?",
+      options: [
+        "To manage component lifecycle",
+        "To handle side effects",
+        "To manage local component state",
+        "To optimize performance"
+      ],
+      correctAnswer: 2,
+      explanation: "The useState hook is specifically designed to manage local state within functional components. It returns a state variable and a setter function to update that state.",
+      difficulty: 'easy'
+    },
+    {
+      id: "2", 
+      question: "Which of the following best describes the Virtual DOM in React?",
+      options: [
+        "A direct copy of the browser's DOM",
+        "A lightweight JavaScript representation of the DOM",
+        "A database for storing component data",
+        "A styling framework for React components"
+      ],
+      correctAnswer: 1,
+      explanation: "The Virtual DOM is a lightweight JavaScript representation of the actual DOM. React uses it to efficiently update the UI by comparing (diffing) the virtual DOM with the previous version and only updating the parts that changed.",
+      difficulty: 'medium'
+    },
+    {
+      id: "3",
+      question: "What happens when you call setState() multiple times in the same function?",
+      options: [
+        "Each setState call triggers an immediate re-render",
+        "Only the last setState call takes effect",
+        "React batches the updates and triggers one re-render",
+        "It causes an error in the application"
+      ],
+      correctAnswer: 2,
+      explanation: "React batches multiple setState calls within the same function and triggers only one re-render for performance optimization. This is called 'batching' and helps prevent unnecessary re-renders.",
+      difficulty: 'hard'
+    }
+  ];
+
+  const handleGenerate = async () => {
     if (credits < totalQuestions) {
       console.log("Not enough credits. Need:", totalQuestions, "Have:", credits);
       return;
@@ -31,10 +86,33 @@ const ChatAgent = () => {
       hardCount
     });
 
-    // Consume credits
-    setCredits(prevCredits => prevCredits - totalQuestions);
+    // Start the animation sequence
+    setShowAnimation(true);
     
-    // TODO: Add generation logic here
+    // After animation completes, start loading
+    setTimeout(() => {
+      setIsGenerating(true);
+      setShowAnimation(false);
+    }, 800);
+
+    // Simulate API call delay and then show questions
+    setTimeout(() => {
+      setIsGenerating(false);
+      setGeneratedQuestions(sampleQuestions.slice(0, totalQuestions || 3));
+      
+      // Consume credits
+      setCredits(prevCredits => prevCredits - (totalQuestions || 3));
+    }, 2500);
+  };
+
+  const handleRegenerate = () => {
+    setGeneratedQuestions([]);
+    handleGenerate();
+  };
+
+  const handleAddToQB = (questionId: string) => {
+    console.log("Adding question to QB:", questionId);
+    // TODO: Add to question bank functionality
   };
 
   return (
@@ -47,6 +125,13 @@ const ChatAgent = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/40 via-transparent to-amber-100/30 pointer-events-none animate-pulse opacity-60" />
           <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-orange-200/20 to-transparent rounded-full blur-3xl pointer-events-none" />
           
+          {/* Animation Overlay */}
+          {showAnimation && (
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 via-amber-400/20 to-orange-600/20 animate-pulse z-50 rounded-[2rem] border-2 border-orange-400/50">
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent animate-ping" />
+            </div>
+          )}
+
           {/* Header with enhanced typography */}
           <div className="relative z-10 mb-10">
             
@@ -185,14 +270,38 @@ const ChatAgent = () => {
               
               <Button 
                 onClick={handleGenerate} 
-                disabled={credits < totalQuestions || totalQuestions === 0}
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-4 px-10 rounded-2xl shadow-xl shadow-orange-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/40 text-lg font-semibold group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                disabled={credits < totalQuestions || totalQuestions === 0 || isGenerating}
+                className={`bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-4 px-10 rounded-2xl shadow-xl shadow-orange-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/40 text-lg font-semibold group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${showAnimation ? 'animate-pulse scale-110' : ''}`}
               >
-                <Zap className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform" />
-                Generate Questions
+                <Zap className={`w-6 h-6 mr-3 group-hover:rotate-12 transition-transform ${isGenerating ? 'animate-spin' : ''}`} />
+                {isGenerating ? 'Generating...' : 'Generate Questions'}
               </Button>
             </div>
           </div>
+
+          {/* Loading Animation */}
+          {isGenerating && (
+            <div className="relative z-10 mt-8 flex flex-col items-center justify-center py-12">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-orange-200 rounded-full animate-spin border-t-orange-500"></div>
+                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent rounded-full animate-ping border-t-orange-300"></div>
+              </div>
+              <p className="mt-4 text-slate-600 font-medium animate-pulse">
+                Crafting intelligent questions...
+              </p>
+            </div>
+          )}
+
+          {/* Generated Questions */}
+          {generatedQuestions.length > 0 && (
+            <div className="relative z-10 mt-8">
+              <QuestionDisplay 
+                questions={generatedQuestions}
+                onAddToQB={handleAddToQB}
+                onRegenerate={handleRegenerate}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
