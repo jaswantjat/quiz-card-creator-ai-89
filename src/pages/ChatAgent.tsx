@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -42,17 +43,6 @@ const ChatAgent = () => {
         {/* Main Chat Card */}
         <div className="relative bg-white/95 backdrop-blur-xl rounded-[2rem] p-6 sm:p-10 shadow-2xl shadow-orange-500/8 overflow-hidden border border-orange-100/60 transition-all duration-500 hover:shadow-3xl hover:shadow-orange-500/12">
           
-          {/* Credits Display - Top Right */}
-          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-xl rounded-lg px-3 py-2 shadow-lg shadow-orange-500/10 border border-orange-200/40 flex items-center gap-2 z-20">
-            <div className="w-5 h-5 bg-gradient-to-r from-orange-500 to-orange-600 rounded-md p-1 shadow-md">
-              <CreditCard className="w-full h-full text-white" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-600 font-medium">Credits</p>
-              <p className="text-sm font-bold text-slate-800">{credits}</p>
-            </div>
-          </div>
-
           {/* Enhanced gradient overlay with subtle animation */}
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/40 via-transparent to-amber-100/30 pointer-events-none animate-pulse opacity-60" />
           <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-orange-200/20 to-transparent rounded-full blur-3xl pointer-events-none" />
@@ -70,11 +60,24 @@ const ChatAgent = () => {
           {/* Enhanced Question Generation Form */}
           <div className="relative z-10 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-xl rounded-3xl p-8 border border-orange-200/40 shadow-xl shadow-orange-500/5">
             
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-2xl p-3 shadow-xl shadow-orange-500/15 border border-orange-200/40 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/25 hover:scale-110">
-                <img src="/lovable-uploads/4a7eb61d-f2d1-4530-ae72-abaccb971ba2.png" alt="Company Logo" className="w-full h-full object-contain" />
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-2xl p-3 shadow-xl shadow-orange-500/15 border border-orange-200/40 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/25 hover:scale-110">
+                  <img src="/lovable-uploads/4a7eb61d-f2d1-4530-ae72-abaccb971ba2.png" alt="Company Logo" className="w-full h-full object-contain" />
+                </div>
+                <h3 className="text-2xl font-semibold text-slate-800 tracking-tight">Generate Questions</h3>
               </div>
-              <h3 className="text-2xl font-semibold text-slate-800 tracking-tight">Generate Questions</h3>
+              
+              {/* Credits Display - Right aligned with title */}
+              <div className="bg-white/90 backdrop-blur-xl rounded-lg px-3 py-2 shadow-lg shadow-orange-500/10 border border-orange-200/40 flex items-center gap-2">
+                <div className="w-5 h-5 bg-gradient-to-r from-orange-500 to-orange-600 rounded-md p-1 shadow-md">
+                  <CreditCard className="w-full h-full text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-600 font-medium">Credits</p>
+                  <p className="text-sm font-bold text-slate-800">{credits}</p>
+                </div>
+              </div>
             </div>
             
             {/* Enhanced Context Text Box */}
