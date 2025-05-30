@@ -58,23 +58,12 @@ const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplay
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-700">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <BookOpen className="w-6 h-6 text-orange-500" />
-          <h3 className="text-2xl font-semibold text-slate-800">Generated Questions</h3>
-          <Badge variant="outline" className="text-slate-600">
-            {questions.length} Question{questions.length !== 1 ? 's' : ''}
-          </Badge>
-        </div>
-        
-        <Button
-          onClick={onRegenerate}
-          variant="outline"
-          className="border-orange-200 text-orange-600 hover:bg-orange-50"
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Regenerate
-        </Button>
+      <div className="flex items-center gap-3">
+        <BookOpen className="w-6 h-6 text-orange-500" />
+        <h3 className="text-2xl font-semibold text-slate-800">Generated Questions</h3>
+        <Badge variant="outline" className="text-slate-600">
+          {questions.length} Question{questions.length !== 1 ? 's' : ''}
+        </Badge>
       </div>
 
       {/* Questions */}
@@ -160,8 +149,17 @@ const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplay
                 </div>
               )}
 
-              {/* Action Button */}
-              <div className="flex justify-end">
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center">
+                <Button
+                  onClick={onRegenerate}
+                  variant="outline"
+                  className="border-orange-200 text-orange-600 hover:bg-orange-50"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Regenerate
+                </Button>
+                
                 <Button
                   onClick={() => handleAddToQB(question.id)}
                   className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
