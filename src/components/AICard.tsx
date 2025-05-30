@@ -1,14 +1,17 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import QuestionGenerator from "./QuestionGenerator";
 import { useToast } from "@/hooks/use-toast";
+
 const AICard = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [questions, setQuestions] = useState<string[]>([]);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
   const topics = ["Business & AI", "Technology & Innovation", "Education & Learning", "Health & Wellness", "Science & Research", "Marketing & Sales", "Leadership & Management", "Creative Writing", "Philosophy & Ethics", "Environment & Sustainability"];
+  
   const generateQuestionsForTopic = (topic: string) => {
     const questionSets = {
       "Business & AI": ["What are the key factors to consider when implementing AI in business?", "How can machine learning improve customer experience?", "What ethical considerations should guide AI development in business?", "How do you measure the ROI of AI implementations?", "What are the emerging trends in artificial intelligence for business?"],
@@ -25,6 +28,7 @@ const AICard = () => {
     const topicQuestions = questionSets[topic as keyof typeof questionSets] || questionSets["Business & AI"];
     return topicQuestions.sort(() => 0.5 - Math.random()).slice(0, 3);
   };
+
   const handleGenerateQuestions = async () => {
     setIsGenerating(true);
     try {
@@ -49,7 +53,13 @@ const AICard = () => {
       setIsGenerating(false);
     }
   };
-  return <div className="relative w-full font-inter">
+
+  const handleSignUpClick = () => {
+    navigate('/chat-agent');
+  };
+
+  return (
+    <div className="relative w-full font-inter">
       {/* Main Card */}
       <div className="relative bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 rounded-3xl p-10 shadow-2xl overflow-hidden border border-orange-200/20">
         
@@ -99,6 +109,12 @@ const AICard = () => {
               </h1>
             </div>
             
+            <Button 
+              onClick={handleSignUpClick}
+              className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] border border-white/30 font-inter"
+            >
+              Sign Up
+            </Button>
           </div>
           
           {/* Subtitle */}
@@ -123,6 +139,8 @@ const AICard = () => {
       {questions.length > 0 && <div className="mt-6">
           <QuestionGenerator questions={questions} />
         </div>}
-    </div>;
+    </div>
+  );
 };
+
 export default AICard;
