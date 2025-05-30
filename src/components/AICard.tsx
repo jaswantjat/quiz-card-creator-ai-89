@@ -1,9 +1,7 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import QuestionGenerator from "./QuestionGenerator";
 import { useToast } from "@/hooks/use-toast";
-
 const AICard = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [questions, setQuestions] = useState<string[]>([]);
@@ -100,9 +98,7 @@ const AICard = () => {
                 iQube
               </h1>
             </div>
-            <Button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-2 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] border border-white/30 font-inter">
-              Sign Up
-            </Button>
+            
           </div>
           
           {/* Subtitle */}
@@ -129,5 +125,4 @@ const AICard = () => {
         </div>}
     </div>;
 };
-
 export default AICard;
