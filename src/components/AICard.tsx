@@ -1,39 +1,131 @@
 
 import { useState } from "react";
-import { Sparkles, MessageCircle } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import QuestionGenerator from "./QuestionGenerator";
 import { useToast } from "@/hooks/use-toast";
 
 const AICard = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [questions, setQuestions] = useState<string[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<string>("");
   const { toast } = useToast();
 
+  const topics = [
+    "Business & AI",
+    "Technology & Innovation", 
+    "Education & Learning",
+    "Health & Wellness",
+    "Science & Research",
+    "Marketing & Sales",
+    "Leadership & Management",
+    "Creative Writing",
+    "Philosophy & Ethics",
+    "Environment & Sustainability"
+  ];
+
+  const generateQuestionsForTopic = (topic: string) => {
+    const questionSets = {
+      "Business & AI": [
+        "What are the key factors to consider when implementing AI in business?",
+        "How can machine learning improve customer experience?",
+        "What ethical considerations should guide AI development in business?",
+        "How do you measure the ROI of AI implementations?",
+        "What are the emerging trends in artificial intelligence for business?"
+      ],
+      "Technology & Innovation": [
+        "How is emerging technology reshaping traditional industries?",
+        "What role does innovation play in competitive advantage?",
+        "How can organizations foster a culture of technological innovation?",
+        "What are the challenges of digital transformation?",
+        "How do you balance innovation with security concerns?"
+      ],
+      "Education & Learning": [
+        "How can technology enhance personalized learning experiences?",
+        "What are the most effective methods for skill development?",
+        "How do you create engaging educational content?",
+        "What role does feedback play in the learning process?",
+        "How can we measure learning effectiveness?"
+      ],
+      "Health & Wellness": [
+        "What are the key components of a holistic wellness approach?",
+        "How can technology improve healthcare accessibility?",
+        "What role does mental health play in overall wellness?",
+        "How can we promote preventive healthcare practices?",
+        "What are the challenges in healthcare innovation?"
+      ],
+      "Science & Research": [
+        "What methodologies ensure research reliability and validity?",
+        "How do you approach interdisciplinary research collaboration?",
+        "What are the ethical considerations in scientific research?",
+        "How can research findings be effectively communicated to the public?",
+        "What role does peer review play in scientific advancement?"
+      ],
+      "Marketing & Sales": [
+        "How has digital marketing transformed customer engagement?",
+        "What are the key metrics for measuring marketing success?",
+        "How do you build authentic brand relationships?",
+        "What role does data analytics play in sales strategies?",
+        "How can businesses adapt to changing consumer behaviors?"
+      ],
+      "Leadership & Management": [
+        "What qualities define effective leadership in the modern workplace?",
+        "How do you manage and motivate remote teams?",
+        "What are the challenges of organizational change management?",
+        "How can leaders foster innovation within their teams?",
+        "What role does emotional intelligence play in leadership?"
+      ],
+      "Creative Writing": [
+        "What techniques help develop compelling characters?",
+        "How do you maintain consistency in world-building?",
+        "What are effective methods for overcoming writer's block?",
+        "How do you balance plot development with character growth?",
+        "What role does research play in creative writing?"
+      ],
+      "Philosophy & Ethics": [
+        "How do ethical frameworks guide decision-making?",
+        "What is the relationship between individual rights and collective good?",
+        "How do cultural perspectives influence ethical reasoning?",
+        "What are the philosophical implications of artificial intelligence?",
+        "How do we navigate moral dilemmas in complex situations?"
+      ],
+      "Environment & Sustainability": [
+        "What are the most effective strategies for environmental conservation?",
+        "How can businesses integrate sustainability into their operations?",
+        "What role does individual action play in environmental protection?",
+        "How do we balance economic growth with environmental responsibility?",
+        "What are the challenges of implementing renewable energy solutions?"
+      ]
+    };
+
+    const topicQuestions = questionSets[topic as keyof typeof questionSets] || questionSets["Business & AI"];
+    return topicQuestions.sort(() => 0.5 - Math.random()).slice(0, 3);
+  };
+
   const handleGenerateQuestions = async () => {
+    if (!selectedTopic) {
+      toast({
+        title: "Please select a topic",
+        description: "Choose a topic to generate relevant questions.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     
     try {
       // Simulate AI generation with realistic delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const sampleQuestions = [
-        "What are the key factors to consider when implementing AI in business?",
-        "How can machine learning improve customer experience?",
-        "What ethical considerations should guide AI development?",
-        "How do you measure the ROI of AI implementations?",
-        "What are the emerging trends in artificial intelligence?"
-      ];
-      
-      const randomQuestions = sampleQuestions
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3);
-      
+      const randomQuestions = generateQuestionsForTopic(selectedTopic);
       setQuestions(randomQuestions);
       
       toast({
         title: "Questions Generated! ✨",
-        description: "AI has generated thoughtful questions for you.",
+        description: `AI has generated thoughtful questions about ${selectedTopic}.`,
       });
     } catch (error) {
       toast({
@@ -95,8 +187,27 @@ const AICard = () => {
           
           {/* Subtitle */}
           <p className="text-white/90 text-lg mb-8 leading-relaxed font-inter font-medium">
-            Generates intelligent questions for various languages and topics.
+            Generates intelligent questions for various topics.
           </p>
+
+          {/* Topic Selection */}
+          <div className="mb-6">
+            <Label htmlFor="topic" className="text-white/90 text-sm font-medium mb-2 block">
+              Select Topic
+            </Label>
+            <Select value={selectedTopic} onValueChange={setSelectedTopic}>
+              <SelectTrigger className="bg-white/20 backdrop-blur-sm border-white/30 text-white placeholder:text-white/70 focus:bg-white/30">
+                <SelectValue placeholder="Choose a topic..." />
+              </SelectTrigger>
+              <SelectContent>
+                {topics.map((topic) => (
+                  <SelectItem key={topic} value={topic}>
+                    {topic}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Generate Button */}
           <Button
