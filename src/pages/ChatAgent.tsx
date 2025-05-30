@@ -40,22 +40,20 @@ const ChatAgent = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-amber-50/20 p-4 sm:p-6 font-inter">
       <div className="w-full max-w-6xl mx-auto">
-        {/* Credits Display */}
-        <div className="mb-6 flex justify-center">
-          <div className="bg-white/95 backdrop-blur-xl rounded-2xl px-6 py-4 shadow-xl shadow-orange-500/10 border border-orange-200/40 flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-2 shadow-lg">
-              <CreditCard className="w-full h-full text-white" />
-            </div>
-            <div>
-              <p className="text-sm text-slate-600 font-medium">Available Credits</p>
-              <p className="text-2xl font-bold text-slate-800">{credits}</p>
-            </div>
-          </div>
-        </div>
-
         {/* Main Chat Card */}
         <div className="relative bg-white/95 backdrop-blur-xl rounded-[2rem] p-6 sm:p-10 shadow-2xl shadow-orange-500/8 overflow-hidden border border-orange-100/60 transition-all duration-500 hover:shadow-3xl hover:shadow-orange-500/12">
           
+          {/* Credits Display - Top Right */}
+          <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-xl rounded-xl px-4 py-2 shadow-lg shadow-orange-500/10 border border-orange-200/40 flex items-center gap-2 z-20">
+            <div className="w-6 h-6 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-1 shadow-md">
+              <CreditCard className="w-full h-full text-white" />
+            </div>
+            <div>
+              <p className="text-xs text-slate-600 font-medium">Credits</p>
+              <p className="text-lg font-bold text-slate-800">{credits}</p>
+            </div>
+          </div>
+
           {/* Enhanced gradient overlay with subtle animation */}
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/40 via-transparent to-amber-100/30 pointer-events-none animate-pulse opacity-60" />
           <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-orange-200/20 to-transparent rounded-full blur-3xl pointer-events-none" />
