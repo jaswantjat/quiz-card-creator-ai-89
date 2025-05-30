@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Zap, Brain, Sparkles, Star, Loader2 } from "lucide-react";
+import { Zap, Brain, Sparkles, Star, Loader2, Lightbulb, Target, CheckCircle } from "lucide-react";
 import ChatAgentHeader from "./ChatAgentHeader";
 import DifficultySelector from "./DifficultySelector";
 
@@ -42,11 +42,20 @@ const QuestionGenerationForm = ({
 }: QuestionGenerationFormProps) => {
   const totalQuestions = easyCount + mediumCount + hardCount;
 
+  // Story sequence for loading animation
+  const storySteps = [
+    { icon: Lightbulb, text: "Analyzing your topic...", delay: 0 },
+    { icon: Brain, text: "Thinking deeply about content...", delay: 1000 },
+    { icon: Target, text: "Crafting perfect questions...", delay: 2000 },
+    { icon: Sparkles, text: "Adding final touches...", delay: 3000 },
+    { icon: CheckCircle, text: "Almost ready!", delay: 4000 }
+  ];
+
   return (
     <div className="relative z-10 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-xl rounded-3xl p-8 border border-orange-200/40 shadow-xl shadow-orange-500/5">
       <ChatAgentHeader credits={credits} />
       
-      {/* Enhanced Context Text Box */}
+      {/* Context Text Box */}
       <div className="mb-8">
         <Label htmlFor="context" className="text-slate-700 font-semibold mb-4 block text-base flex items-center gap-2">
           Context
@@ -58,7 +67,7 @@ const QuestionGenerationForm = ({
             placeholder="Provide context for question generation. This helps create more targeted and relevant questions..." 
             value={context} 
             onChange={e => setContext(e.target.value)} 
-            className="w-full min-h-[120px] bg-white/90 backdrop-blur-sm border-orange-200/60 focus:border-orange-400 focus:ring-orange-200/50 rounded-2xl resize-none text-base leading-relaxed transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5" 
+            className="w-full min-h-[120px] bg-white/90 backdrop-blur-sm border-orange-200/60 focus:border-orange-400 focus:ring-orange-200/50 rounded-2xl resize-none text-base leading-relaxed transition-all duration-300" 
           />
           <div className="absolute bottom-4 right-4 text-xs text-slate-400">
             {context.length}/500
@@ -66,7 +75,7 @@ const QuestionGenerationForm = ({
         </div>
       </div>
 
-      {/* Enhanced Topic Name */}
+      {/* Topic Name */}
       <div className="mb-8">
         <Label htmlFor="topic" className="text-slate-700 font-semibold mb-4 block text-base">
           Topic Name
@@ -77,7 +86,7 @@ const QuestionGenerationForm = ({
           placeholder="Enter topic name (e.g., Machine Learning, History, Biology)..." 
           value={topicName} 
           onChange={e => setTopicName(e.target.value)} 
-          className="w-full bg-white/90 backdrop-blur-sm border-orange-200/60 focus:border-orange-400 focus:ring-orange-200/50 rounded-2xl py-4 text-base transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5" 
+          className="w-full bg-white/90 backdrop-blur-sm border-orange-200/60 focus:border-orange-400 focus:ring-orange-200/50 rounded-2xl py-4 text-base transition-all duration-300" 
         />
       </div>
 
@@ -109,123 +118,137 @@ const QuestionGenerationForm = ({
           <Button 
             onClick={onGenerate} 
             disabled={credits < totalQuestions || totalQuestions === 0 || isGenerating}
-            className={`relative overflow-hidden bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-4 px-10 rounded-2xl shadow-xl shadow-orange-500/30 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/40 text-lg font-semibold group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${isGenerating ? 'animate-pulse' : 'hover:animate-bounce'}`}
+            className={`relative overflow-hidden bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl shadow-xl shadow-orange-500/30 transition-all duration-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
+              isGenerating 
+                ? 'py-6 px-16 text-lg scale-110 shadow-2xl shadow-orange-500/50' 
+                : 'py-4 px-10 text-lg hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/40'
+            }`}
           >
-            {/* Enhanced Loading Animation Overlay */}
+            {/* Story-based Loading Animation */}
             {isGenerating && (
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 animate-pulse">
-                {/* Animated Lightning Background */}
-                <div className="absolute inset-0 overflow-hidden">
-                  {/* Electric current lines */}
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500">
+                {/* Expanding ripple effect */}
+                <div className="absolute inset-0 rounded-2xl">
+                  <div className="absolute inset-0 bg-white/20 rounded-2xl animate-ping"></div>
+                  <div className="absolute inset-2 bg-white/10 rounded-xl animate-pulse"></div>
+                  <div className="absolute inset-4 bg-white/5 rounded-lg animate-bounce"></div>
+                </div>
+
+                {/* Floating story elements */}
+                <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                  {/* Floating dots that represent ideas */}
+                  {[...Array(6)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-2 h-2 bg-white/60 rounded-full animate-bounce"
+                      style={{
+                        left: `${15 + i * 12}%`,
+                        top: `${30 + (i % 2) * 40}%`,
+                        animationDelay: `${i * 0.3}s`,
+                        animationDuration: `${1.5 + i * 0.2}s`
+                      }}
+                    />
+                  ))}
+                  
+                  {/* Connecting lines between ideas */}
                   <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 200 80">
                     <path 
-                      d="M10,40 Q30,20 50,40 T90,40 Q110,60 130,40 T170,40 Q190,20 200,40" 
+                      d="M20,40 Q60,20 100,40 T180,40" 
                       stroke="white" 
                       strokeWidth="2" 
                       fill="none" 
+                      strokeDasharray="5 5"
                       className="animate-pulse"
-                      strokeDasharray="10 5"
-                      strokeDashoffset="0"
-                    />
-                    <path 
-                      d="M10,30 Q30,50 50,30 T90,30 Q110,10 130,30 T170,30 Q190,50 200,30" 
-                      stroke="white" 
-                      strokeWidth="1.5" 
-                      fill="none" 
-                      className="animate-pulse"
-                      strokeDasharray="8 3"
-                      strokeDashoffset="0"
-                    />
-                    <path 
-                      d="M10,50 Q30,30 50,50 T90,50 Q110,70 130,50 T170,50 Q190,30 200,50" 
-                      stroke="white" 
-                      strokeWidth="1" 
-                      fill="none" 
-                      className="animate-pulse"
-                      strokeDasharray="6 4"
-                      strokeDashoffset="0"
                     />
                   </svg>
                 </div>
 
-                {/* Morphing Energy Orbs */}
-                <div className="absolute inset-0 overflow-hidden">
-                  <div className="absolute top-1/2 left-4 w-3 h-3 bg-white/70 rounded-full animate-bounce transform -translate-y-1/2"></div>
-                  <div className="absolute top-1/2 left-12 w-4 h-4 bg-white/50 rounded-full animate-pulse transform -translate-y-1/2"></div>
-                  <div className="absolute top-1/2 right-4 w-2 h-2 bg-white/80 rounded-full animate-bounce transform -translate-y-1/2"></div>
-                  <div className="absolute top-1/2 right-12 w-3.5 h-3.5 bg-white/60 rounded-full animate-pulse transform -translate-y-1/2"></div>
-                </div>
-
-                {/* Rotating Neural Network */}
+                {/* Central spinning brain/processing icon */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative w-16 h-16">
-                    <div className="absolute inset-0 border-2 border-white/20 rounded-full animate-spin"></div>
-                    <div className="absolute inset-2 border-2 border-white/30 rounded-full animate-spin animate-reverse"></div>
-                    <div className="absolute inset-4 border-2 border-white/40 rounded-full animate-spin"></div>
-                    
-                    {/* Connecting nodes */}
-                    <div className="absolute top-2 left-1/2 w-1 h-1 bg-white/70 rounded-full animate-ping transform -translate-x-1/2"></div>
-                    <div className="absolute bottom-2 left-1/2 w-1 h-1 bg-white/70 rounded-full animate-ping transform -translate-x-1/2"></div>
-                    <div className="absolute left-2 top-1/2 w-1 h-1 bg-white/70 rounded-full animate-ping transform -translate-y-1/2"></div>
-                    <div className="absolute right-2 top-1/2 w-1 h-1 bg-white/70 rounded-full animate-ping transform -translate-y-1/2"></div>
+                  <div className="relative">
+                    <Brain className="w-8 h-8 text-white animate-spin" />
+                    <div className="absolute -top-1 -right-1">
+                      <Sparkles className="w-4 h-4 text-white animate-ping" />
+                    </div>
                   </div>
-                </div>
-
-                {/* Cascading Energy Waves */}
-                <div className="absolute inset-0">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse transform skew-x-12"></div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-pulse transform -skew-x-12"></div>
-                </div>
-
-                {/* Floating Intelligence Particles */}
-                <div className="absolute inset-0 overflow-hidden">
-                  {[...Array(8)].map((_, i) => (
-                    <div
-                      key={i}
-                      className={`absolute w-1 h-1 bg-white/60 rounded-full animate-bounce`}
-                      style={{
-                        left: `${10 + i * 10}%`,
-                        top: `${20 + (i % 3) * 20}%`,
-                        animationDelay: `${i * 0.2}s`,
-                      }}
-                    />
-                  ))}
                 </div>
               </div>
             )}
 
-            {/* Enhanced Button Content */}
-            <div className="relative z-10 flex items-center">
+            {/* Button Content with Story Progression */}
+            <div className="relative z-10 flex items-center justify-center">
               {isGenerating ? (
-                <>
-                  <div className="relative mr-3">
-                    <Brain className="w-6 h-6 animate-spin" />
-                    <div className="absolute -top-1 -right-1">
-                      <Sparkles className="w-4 h-4 animate-ping" />
-                    </div>
-                    <div className="absolute -bottom-1 -left-1">
-                      <Star className="w-3 h-3 animate-bounce" />
-                    </div>
+                <div className="flex flex-col items-center gap-2">
+                  {/* Dynamic story text that changes */}
+                  <div className="text-center min-h-[24px]">
+                    {storySteps.map((step, index) => {
+                      const StepIcon = step.icon;
+                      return (
+                        <div 
+                          key={index}
+                          className={`flex items-center gap-2 transition-all duration-500 ${
+                            // Show each step sequentially with fade in/out
+                            index === 0 ? 'animate-pulse' : 
+                            index === 1 ? 'opacity-0 animate-[fadeIn_0.5s_ease-in-out_1s_forwards]' :
+                            index === 2 ? 'opacity-0 animate-[fadeIn_0.5s_ease-in-out_2s_forwards]' :
+                            index === 3 ? 'opacity-0 animate-[fadeIn_0.5s_ease-in-out_3s_forwards]' :
+                            'opacity-0 animate-[fadeIn_0.5s_ease-in-out_4s_forwards]'
+                          }`}
+                          style={{
+                            position: index === 0 ? 'relative' : 'absolute',
+                            top: index === 0 ? 'auto' : '50%',
+                            left: index === 0 ? 'auto' : '50%',
+                            transform: index === 0 ? 'none' : 'translate(-50%, -50%)'
+                          }}
+                        >
+                          <StepIcon className="w-5 h-5 animate-bounce" style={{ animationDelay: `${index * 0.2}s` }} />
+                          <span className="text-sm font-medium animate-pulse">
+                            {step.text}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <span className="animate-pulse">
-                    Crafting Brilliant Questions...
-                  </span>
-                </>
+                  
+                  {/* Progress indicators */}
+                  <div className="flex gap-1 mt-2">
+                    {storySteps.map((_, index) => (
+                      <div 
+                        key={index}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                          index <= 0 ? 'bg-white animate-pulse' : 'bg-white/30'
+                        }`}
+                        style={{
+                          animationDelay: `${index * 1000}ms`
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
               ) : (
-                <>
-                  <div className="relative mr-3 group-hover:animate-bounce">
-                    <Zap className="w-6 h-6 group-hover:animate-pulse transition-all duration-300" />
-                    <div className="absolute inset-0 bg-white/20 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-300"></div>
-                  </div>
-                  <span className="group-hover:animate-pulse">
-                    Generate Questions
-                  </span>
-                </>
+                <div className="flex items-center gap-3">
+                  <Zap className="w-6 h-6" />
+                  <span>Generate Questions</span>
+                </div>
               )}
             </div>
           </Button>
         </div>
       </div>
+
+      {/* Custom keyframes for fade animation */}
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.8);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 };
