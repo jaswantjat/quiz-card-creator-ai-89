@@ -171,22 +171,21 @@ const QuestionGenerationForm = ({
               ))}
             </div>
 
-            {/* Coffee cup animation */}
+            {/* Coffee shop scene */}
             <div className="flex items-center justify-center mb-6">
               <div className="relative">
                 {/* Coffee cup */}
                 <div className="w-20 h-20 bg-gradient-to-b from-amber-100 to-amber-200 rounded-b-3xl border-4 border-amber-400 relative overflow-hidden">
-                  {/* Coffee liquid with brewing animation */}
+                  {/* Coffee liquid with animated fill */}
                   <div 
-                    className="absolute bottom-0 w-full bg-gradient-to-t from-amber-800 to-amber-600 transition-all duration-1000 rounded-b-2xl"
+                    className="absolute bottom-0 w-full bg-gradient-to-t from-amber-800 to-amber-600 transition-all duration-1000 rounded-b-2xl animate-pulse"
                     style={{
-                      height: `${(brewingStage + 1) * 16}%`,
-                      animation: 'coffee-bubble 2s ease-in-out infinite'
+                      height: `${(brewingStage + 1) * 16}%`
                     }}
                   />
                   
                   {/* Floating coffee bubbles */}
-                  {isGenerating && [...Array(3)].map((_, i) => (
+                  {[...Array(3)].map((_, i) => (
                     <div
                       key={i}
                       className="absolute w-2 h-2 bg-amber-300/60 rounded-full animate-ping"
@@ -239,7 +238,7 @@ const QuestionGenerationForm = ({
               {[...Array(6)].map((_, i) => (
                 <div
                   key={i}
-                  className="absolute w-2 h-2 bg-orange-300/30 rounded-full animate-float"
+                  className="absolute w-2 h-2 bg-orange-300/30 rounded-full animate-bounce"
                   style={{
                     left: `${Math.random() * 100}%`,
                     top: `${Math.random() * 100}%`,
@@ -302,19 +301,6 @@ const QuestionGenerationForm = ({
           </Button>
         </div>
       </div>
-
-      {/* CSS for coffee brewing animation */}
-      <style jsx>{`
-        @keyframes coffee-bubble {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-2px); }
-        }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-10px) rotate(180deg); }
-        }
-      `}</style>
     </div>
   );
 };
