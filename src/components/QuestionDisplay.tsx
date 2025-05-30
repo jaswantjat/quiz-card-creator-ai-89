@@ -1,9 +1,8 @@
 
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Plus, CheckCircle, XCircle, BookOpen } from "lucide-react";
+import { RefreshCw, Plus, CheckCircle, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface MCQQuestion {
@@ -22,21 +21,7 @@ interface QuestionDisplayProps {
 }
 
 const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplayProps) => {
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
-  const [showAnswers, setShowAnswers] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
-
-  const handleOptionSelect = (questionId: string, optionIndex: number) => {
-    setSelectedAnswers(prev => ({
-      ...prev,
-      [questionId]: optionIndex
-    }));
-    
-    setShowAnswers(prev => ({
-      ...prev,
-      [questionId]: true
-    }));
-  };
 
   const handleAddToQB = (questionId: string) => {
     onAddToQB(questionId);
@@ -90,45 +75,33 @@ const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplay
                 </div>
               </div>
 
-              {/* Options */}
+              {/* Options - Creator View */}
               <div className="space-y-3 mb-6">
                 {question.options.map((option, optionIndex) => {
-                  const isSelected = selectedAnswers[question.id] === optionIndex;
                   const isCorrect = optionIndex === question.correctAnswer;
-                  const showResult = showAnswers[question.id];
                   
-                  let optionClass = "p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md ";
+                  let optionClass = "p-4 rounded-xl border-2 transition-all duration-200 ";
                   
-                  if (showResult) {
-                    if (isCorrect) {
-                      optionClass += "bg-green-50 border-green-300 text-green-800";
-                    } else if (isSelected && !isCorrect) {
-                      optionClass += "bg-red-50 border-red-300 text-red-800";
-                    } else {
-                      optionClass += "bg-gray-50 border-gray-200 text-gray-600";
-                    }
+                  if (isCorrect) {
+                    optionClass += "bg-green-50 border-green-300 text-green-800";
                   } else {
-                    optionClass += isSelected 
-                      ? "bg-orange-50 border-orange-300 text-orange-800" 
-                      : "bg-white border-gray-200 text-gray-700 hover:border-orange-200 hover:bg-orange-50/50";
+                    optionClass += "bg-gray-50 border-gray-200 text-gray-700";
                   }
 
                   return (
-                    <div
-                      key={optionIndex}
-                      className={optionClass}
-                      onClick={() => !showAnswers[question.id] && handleOptionSelect(question.id, optionIndex)}
-                    >
+                    <div key={optionIndex} className={optionClass}>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-current/10 text-current font-semibold text-sm">
                           {String.fromCharCode(65 + optionIndex)}
                         </div>
                         <span className="flex-1">{option}</span>
-                        {showResult && isCorrect && (
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                        )}
-                        {showResult && isSelected && !isCorrect && (
-                          <XCircle className="w-5 h-5 text-red-600" />
+                        {isCorrect && (
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                              Correct Answer
+                            </Badge>
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          </div>
                         )}
                       </div>
                     </div>
@@ -136,18 +109,16 @@ const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplay
                 })}
               </div>
 
-              {/* Answer Explanation */}
-              {showAnswers[question.id] && (
-                <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-4 mb-6 animate-in fade-in-50 duration-300">
-                  <div className="flex items-start gap-2">
-                    <BookOpen className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h5 className="font-semibold text-blue-800 mb-1">Explanation</h5>
-                      <p className="text-blue-700 leading-relaxed">{question.explanation}</p>
-                    </div>
+              {/* Explanation */}
+              <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-4 mb-6">
+                <div className="flex items-start gap-2">
+                  <BookOpen className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h5 className="font-semibold text-blue-800 mb-1">Explanation</h5>
+                    <p className="text-blue-700 leading-relaxed">{question.explanation}</p>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* Action Buttons */}
               <div className="flex justify-between items-center">
