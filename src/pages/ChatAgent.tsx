@@ -97,7 +97,7 @@ const ChatAgent = () => {
             </div>
 
             {/* Generate Button */}
-            <Button onClick={handleGenerate} className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02]">
+            <Button onClick={handleGenerate} className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-3 px-8 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] text-base font-semibold text-center">
               <Zap className="w-5 h-5 mr-2" />
               Generate Questions
             </Button>
