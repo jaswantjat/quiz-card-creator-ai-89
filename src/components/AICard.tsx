@@ -43,6 +43,9 @@ const AICard = () => {
         title: "Questions Generated! ✨",
         description: `AI has generated thoughtful questions about ${randomTopic}.`
       });
+      
+      // Navigate to chat agent after generating questions
+      navigate('/chat-agent');
     } catch (error) {
       toast({
         title: "Generation Failed",
@@ -52,10 +55,6 @@ const AICard = () => {
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const handleSignUpClick = () => {
-    navigate('/chat-agent');
   };
 
   return (
@@ -100,21 +99,12 @@ const AICard = () => {
         
         {/* Content */}
         <div className="relative z-10">
-          {/* Logo, Title and Sign Up Button */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <img src="/lovable-uploads/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png" alt="iQube Logo" className="w-20 h-20 object-contain" />
-              <h1 className="font-space text-5xl font-bold text-white leading-tight tracking-tight mx--6 px-0 my-0">
-                iQube
-              </h1>
-            </div>
-            
-            <Button 
-              onClick={handleSignUpClick}
-              className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] border border-white/30 font-inter"
-            >
-              Sign Up
-            </Button>
+          {/* Logo and Title */}
+          <div className="flex items-center gap-3 mb-4">
+            <img src="/lovable-uploads/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png" alt="iQube Logo" className="w-20 h-20 object-contain" />
+            <h1 className="font-space text-5xl font-bold text-white leading-tight tracking-tight mx--6 px-0 my-0">
+              iQube
+            </h1>
           </div>
           
           {/* Subtitle */}
