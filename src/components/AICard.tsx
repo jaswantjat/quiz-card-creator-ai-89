@@ -51,49 +51,46 @@ const AICard = () => {
       {/* Main Card */}
       <div className="relative bg-white rounded-3xl p-8 shadow-2xl overflow-hidden border border-orange-100">
         
-        {/* Orange Gradient Background Effect */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-orange-100 to-orange-200 opacity-30"></div>
+        {/* Subtle Background Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-orange-100/30 to-orange-200/40"></div>
         
-        {/* Orange Glow Effect */}
-        <div className="absolute -inset-4 bg-gradient-to-r from-orange-400 via-orange-500 to-red-500 rounded-3xl blur-xl opacity-20 animate-pulse"></div>
-        
-        {/* Floating Decorative Elements */}
+        {/* Floating Decorative Elements with Elegant Animations */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Floating Stars */}
-          <div className="absolute top-8 right-12 w-3 h-3 bg-orange-400/60 rounded-full animate-pulse" />
-          <div className="absolute top-16 right-24 w-2 h-2 bg-orange-300/50 rounded-full animate-pulse delay-300" />
-          <div className="absolute top-12 right-8 w-1.5 h-1.5 bg-orange-500/40 rounded-full animate-pulse delay-700" />
+          {/* Floating Stars with Smooth Movement */}
+          <div className="absolute top-8 right-12 w-3 h-3 bg-orange-400/40 rounded-full animate-[float_6s_ease-in-out_infinite]" />
+          <div className="absolute top-16 right-24 w-2 h-2 bg-orange-300/35 rounded-full animate-[float_8s_ease-in-out_infinite_1s]" />
+          <div className="absolute top-12 right-8 w-1.5 h-1.5 bg-orange-500/30 rounded-full animate-[float_7s_ease-in-out_infinite_2s]" />
           
-          {/* Star Shapes */}
-          <div className="absolute top-10 right-16 text-orange-400/50 animate-pulse delay-500">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          {/* Star Shapes with Elegant Rotation */}
+          <div className="absolute top-10 right-16 text-orange-400/35 animate-[rotate_20s_linear_infinite]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="transform-gpu">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
           </div>
           
-          <div className="absolute top-20 right-32 text-orange-300/40 animate-pulse delay-1000">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <div className="absolute top-20 right-32 text-orange-300/30 animate-[rotate_25s_linear_infinite_reverse]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="transform-gpu">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
           </div>
 
-          {/* Large Star */}
-          <div className="absolute top-16 right-20 text-orange-200/30 animate-pulse delay-800">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+          {/* Large Star with Subtle Scale Animation */}
+          <div className="absolute top-16 right-20 text-orange-200/25 animate-[breathe_4s_ease-in-out_infinite]">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" className="transform-gpu">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
           </div>
 
-          {/* Additional floating dots */}
-          <div className="absolute top-24 right-14 w-2 h-2 bg-orange-300/40 rounded-full animate-bounce delay-400" />
-          <div className="absolute top-28 right-28 w-1.5 h-1.5 bg-orange-400/50 rounded-full animate-bounce delay-600" />
+          {/* Additional floating dots with gentle drift */}
+          <div className="absolute top-24 right-14 w-2 h-2 bg-orange-300/30 rounded-full animate-[drift_10s_ease-in-out_infinite]" />
+          <div className="absolute top-28 right-28 w-1.5 h-1.5 bg-orange-400/35 rounded-full animate-[drift_12s_ease-in-out_infinite_3s]" />
         </div>
         
         {/* Content */}
         <div className="relative z-10">
           {/* Main Title */}
           <h1 className="text-4xl font-bold text-gray-900 mb-3 leading-tight">
-            AI Question Generator
+            iQube
           </h1>
           
           {/* Subtitle */}
