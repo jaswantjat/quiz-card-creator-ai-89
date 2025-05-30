@@ -1,5 +1,5 @@
+
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import QuestionGenerator from "./QuestionGenerator";
 import { useToast } from "@/hooks/use-toast";
@@ -132,8 +132,12 @@ const AICard = () => {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                Generate AI Questions
+                <img 
+                  src="/lovable-uploads/2d10c74e-3a04-4e16-adec-d4b95a85bc81.png" 
+                  alt="AI Icon" 
+                  className="w-5 h-5"
+                />
+                Generate Questions with AI
               </div>
             )}
           </Button>
