@@ -1,8 +1,10 @@
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Zap, Brain, Sparkles, Star, Loader2, Lightbulb, Target, CheckCircle } from "lucide-react";
+import { Zap, Brain, Sparkles, Target } from "lucide-react";
+import { useState, useEffect } from "react";
 import ChatAgentHeader from "./ChatAgentHeader";
 import DifficultySelector from "./DifficultySelector";
 
@@ -40,13 +42,29 @@ const QuestionGenerationForm = ({
   onGenerate
 }: QuestionGenerationFormProps) => {
   const totalQuestions = easyCount + mediumCount + hardCount;
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
-  // Simplified story sequence
+  // Story sequence with icons and text
   const storySteps = [
-    { icon: Brain, text: "Analyzing your topic...", delay: 0 },
-    { icon: Target, text: "Crafting questions...", delay: 2000 },
-    { icon: Sparkles, text: "Almost ready!", delay: 4000 }
+    { icon: Brain, text: "Analyzing your topic..." },
+    { icon: Target, text: "Crafting questions..." },
+    { icon: Sparkles, text: "Almost ready!" }
   ];
+
+  // Cycle through steps when generating
+  useEffect(() => {
+    if (isGenerating) {
+      setCurrentStepIndex(0);
+      const interval = setInterval(() => {
+        setCurrentStepIndex((prev) => (prev + 1) % storySteps.length);
+      }, 2000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [isGenerating]);
+
+  const currentStep = storySteps[currentStepIndex];
+  const CurrentIcon = currentStep.icon;
 
   return (
     <div className="relative z-10 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-xl rounded-3xl p-8 border border-orange-200/40 shadow-xl shadow-orange-500/5">
@@ -117,76 +135,18 @@ const QuestionGenerationForm = ({
             disabled={credits < totalQuestions || totalQuestions === 0 || isGenerating}
             className={`relative overflow-hidden bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl shadow-xl shadow-orange-500/30 transition-all duration-500 font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
               isGenerating 
-                ? 'py-6 px-16 text-lg scale-110 shadow-2xl shadow-orange-500/50' 
+                ? 'py-6 px-16 text-lg scale-105 shadow-2xl shadow-orange-500/50' 
                 : 'py-4 px-10 text-lg hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/40'
             }`}
           >
-            {/* Smooth Loading Animation */}
-            {isGenerating && (
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500">
-                {/* Simple expanding ripple */}
-                <div className="absolute inset-0 rounded-2xl">
-                  <div className="absolute inset-0 bg-white/10 rounded-2xl animate-ping opacity-60"></div>
-                  <div className="absolute inset-2 bg-white/5 rounded-xl animate-pulse"></div>
-                </div>
-
-                {/* Clean floating particles */}
-                <div className="absolute inset-0 overflow-hidden rounded-2xl">
-                  {[...Array(3)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute w-1.5 h-1.5 bg-white/70 rounded-full"
-                      style={{
-                        left: `${25 + i * 25}%`,
-                        top: '50%',
-                        animation: `bounce 1.5s ease-in-out ${i * 0.3}s infinite`
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* Central icon with smooth rotation */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-white animate-spin" style={{ animationDuration: '2s' }} />
-                </div>
-              </div>
-            )}
-
             {/* Button Content */}
             <div className="relative z-10 flex items-center justify-center">
               {isGenerating ? (
-                <div className="flex flex-col items-center gap-2">
-                  {/* Sequential story text */}
-                  <div className="text-center min-h-[20px] relative">
-                    {storySteps.map((step, index) => {
-                      const StepIcon = step.icon;
-                      const isActive = index === 0 || (index === 1 && Date.now() % 6000 > 2000) || (index === 2 && Date.now() % 6000 > 4000);
-                      
-                      return (
-                        <div 
-                          key={index}
-                          className={`absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ${
-                            isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-                          }`}
-                        >
-                          <span className="text-sm font-medium whitespace-nowrap">
-                            {step.text}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Simple progress dots */}
-                  <div className="flex gap-1 mt-1">
-                    {storySteps.map((_, index) => (
-                      <div 
-                        key={index}
-                        className="w-1.5 h-1.5 bg-white/40 rounded-full animate-pulse"
-                        style={{ animationDelay: `${index * 0.5}s` }}
-                      />
-                    ))}
-                  </div>
+                <div className="flex items-center gap-3">
+                  <CurrentIcon className="w-5 h-5 animate-pulse" />
+                  <span className="text-sm font-medium">
+                    {currentStep.text}
+                  </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
@@ -195,23 +155,14 @@ const QuestionGenerationForm = ({
                 </div>
               )}
             </div>
+
+            {/* Background Animation for Loading State */}
+            {isGenerating && (
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 animate-pulse opacity-20 rounded-2xl"></div>
+            )}
           </Button>
         </div>
       </div>
-
-      {/* Custom keyframes for fade animation */}
-      <style>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0.8);
-          }
-          to {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-          }
-        }
-      `}</style>
     </div>
   );
 };
