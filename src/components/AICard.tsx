@@ -1,21 +1,14 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import QuestionGenerator from "./QuestionGenerator";
 import { useToast } from "@/hooks/use-toast";
-
 const AICard = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [questions, setQuestions] = useState<string[]>([]);
-  const { toast } = useToast();
-
-  const topics = [
-    "Business & AI", "Technology & Innovation", "Education & Learning", 
-    "Health & Wellness", "Science & Research", "Marketing & Sales", 
-    "Leadership & Management", "Creative Writing", "Philosophy & Ethics", 
-    "Environment & Sustainability"
-  ];
-
+  const {
+    toast
+  } = useToast();
+  const topics = ["Business & AI", "Technology & Innovation", "Education & Learning", "Health & Wellness", "Science & Research", "Marketing & Sales", "Leadership & Management", "Creative Writing", "Philosophy & Ethics", "Environment & Sustainability"];
   const generateQuestionsForTopic = (topic: string) => {
     const questionSets = {
       "Business & AI": ["What are the key factors to consider when implementing AI in business?", "How can machine learning improve customer experience?", "What ethical considerations should guide AI development in business?", "How do you measure the ROI of AI implementations?", "What are the emerging trends in artificial intelligence for business?"],
@@ -29,22 +22,19 @@ const AICard = () => {
       "Philosophy & Ethics": ["How do ethical frameworks guide decision-making?", "What is the relationship between individual rights and collective good?", "How do cultural perspectives influence ethical reasoning?", "What are the philosophical implications of artificial intelligence?", "How do we navigate moral dilemmas in complex situations?"],
       "Environment & Sustainability": ["What are the most effective strategies for environmental conservation?", "How can businesses integrate sustainability into their operations?", "What role does individual action play in environmental protection?", "How do we balance economic growth with environmental responsibility?", "What are the challenges of implementing renewable energy solutions?"]
     };
-    
     const topicQuestions = questionSets[topic as keyof typeof questionSets] || questionSets["Business & AI"];
     return topicQuestions.sort(() => 0.5 - Math.random()).slice(0, 3);
   };
-
   const handleGenerateQuestions = async () => {
     setIsGenerating(true);
     try {
       // Simulate AI generation with realistic delay
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // Pick a random topic and generate questions
       const randomTopic = topics[Math.floor(Math.random() * topics.length)];
       const randomQuestions = generateQuestionsForTopic(randomTopic);
       setQuestions(randomQuestions);
-      
       toast({
         title: "Questions Generated! ✨",
         description: `AI has generated thoughtful questions about ${randomTopic}.`
@@ -59,9 +49,7 @@ const AICard = () => {
       setIsGenerating(false);
     }
   };
-
-  return (
-    <div className="relative w-full font-inter">
+  return <div className="relative w-full font-inter">
       {/* Main Card */}
       <div className="relative bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 rounded-3xl p-10 shadow-2xl overflow-hidden border border-orange-200/20">
         
@@ -104,12 +92,8 @@ const AICard = () => {
         <div className="relative z-10">
           {/* Logo and Title */}
           <div className="flex items-center gap-3 mb-4">
-            <img 
-              src="/lovable-uploads/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png" 
-              alt="iQube Logo" 
-              className="w-20 h-20 object-contain"
-            />
-            <h1 className="font-space text-5xl font-bold text-white leading-tight tracking-tight">
+            <img src="/lovable-uploads/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png" alt="iQube Logo" className="w-20 h-20 object-contain" />
+            <h1 className="font-space text-5xl font-bold text-white leading-tight tracking-tight mx--6 px-0 my-0">
               iQube
             </h1>
           </div>
@@ -120,38 +104,22 @@ const AICard = () => {
           </p>
 
           {/* Generate Button */}
-          <Button 
-            onClick={handleGenerateQuestions} 
-            disabled={isGenerating}
-            className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border border-white/30 font-inter"
-          >
-            {isGenerating ? (
-              <div className="flex items-center gap-2">
+          <Button onClick={handleGenerateQuestions} disabled={isGenerating} className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border border-white/30 font-inter">
+            {isGenerating ? <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Generating Questions...
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <img 
-                  src="/lovable-uploads/2d10c74e-3a04-4e16-adec-d4b95a85bc81.png" 
-                  alt="AI Icon" 
-                  className="w-6 h-6"
-                />
+              </div> : <div className="flex items-center gap-2">
+                <img src="/lovable-uploads/2d10c74e-3a04-4e16-adec-d4b95a85bc81.png" alt="AI Icon" className="w-6 h-6" />
                 Generate Questions with AI
-              </div>
-            )}
+              </div>}
           </Button>
         </div>
       </div>
 
       {/* Question Generator Results */}
-      {questions.length > 0 && (
-        <div className="mt-6">
+      {questions.length > 0 && <div className="mt-6">
           <QuestionGenerator questions={questions} />
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
-
 export default AICard;
