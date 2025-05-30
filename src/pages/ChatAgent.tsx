@@ -34,19 +34,14 @@ const ChatAgent = () => {
           {/* Header */}
           <div className="mb-8">
             <h2 className="text-orange-500 font-semibold text-sm uppercase tracking-wider mb-2">
-              CHAT AGENT
+              QUESTION GENERATOR
             </h2>
             <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              Good afternoon, Jeff!
+              Ready to create questions?
             </h1>
             <p className="text-2xl text-gray-700">
-              May I help you with anything?
+              Generate customized questions for any topic with ease.
             </p>
-          </div>
-
-          {/* Search Bar */}
-          <div className="relative mb-8">
-            
           </div>
 
           {/* Question Generation Form */}
@@ -166,9 +161,10 @@ const ChatAgent = () => {
             
           </div>
 
-          {/* Top right icon */}
+          {/* Top right logo placeholder */}
           <div className="absolute top-6 right-6">
             <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-red-400 rounded-lg flex items-center justify-center">
+              {/* Replace this placeholder with your logo */}
               <div className="w-4 h-4 bg-white rounded-sm"></div>
             </div>
           </div>
