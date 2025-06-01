@@ -20,6 +20,17 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Railway health check - respond immediately
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    message: 'iQube Backend API is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    port: PORT
+  });
+});
+
 // Security middleware
 app.use(helmet());
 
@@ -48,15 +59,7 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    message: 'iQube Backend API is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
+// Health check endpoint moved to top for Railway
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -75,14 +78,31 @@ app.use('*', (req, res) => {
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 iQube Backend API running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+
+  // Test database connection after server starts (non-blocking)
   if (process.env.NODE_ENV === 'production') {
-    console.log(`🔗 Health check: https://your-app.railway.app/health`);
-  } else {
-    console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+    setTimeout(async () => {
+      try {
+        const { getPool } = await import('./config/database.js');
+        await getPool();
+        console.log('✅ Database connection verified');
+      } catch (error) {
+        console.log('⚠️ Database connection failed:', error.message);
+      }
+    }, 5000);
   }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+  });
 });
 
 export default app;

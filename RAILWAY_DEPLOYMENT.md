@@ -16,23 +16,22 @@
 ### Step 2: Configure Environment Variables
 In Railway dashboard, add these environment variables:
 
-#### Database Configuration
+#### Required Environment Variables
 ```
+NODE_ENV=production
+PORT=${{RAILWAY_PORT}}
 DB_SERVER=iqube-sql-jaswant.database.windows.net
 DB_DATABASE=iqube_db
 DB_USER=CloudSAaf673f5f
 DB_PASSWORD=Mh15ga2226
-```
-
-#### Security Configuration
-```
 JWT_SECRET=your-super-secure-jwt-secret-for-production-make-it-very-long-and-random
-```
-
-#### CORS Configuration
-```
 FRONTEND_URL=https://your-frontend-domain.com
 ```
+
+#### Important Notes:
+- `PORT=${{RAILWAY_PORT}}` - Railway will automatically set this
+- Generate a strong JWT_SECRET for production
+- Update FRONTEND_URL with your actual frontend domain
 
 ### Step 3: Deploy
 1. Railway will automatically detect the Dockerfile
