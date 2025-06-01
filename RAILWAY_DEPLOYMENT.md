@@ -34,16 +34,24 @@ FRONTEND_URL=https://your-frontend-domain.com
 - Update FRONTEND_URL with your actual frontend domain
 
 ### Step 3: Deploy
-1. Railway will automatically detect the Dockerfile
-2. It will build the Docker container with backend dependencies
-3. The app will start automatically with proper dependency installation
-4. Health check endpoint: `/health`
+Railway is now configured to use Nixpacks with explicit subdirectory handling:
 
-### Alternative: If Docker fails, use Nixpacks
-If you prefer Nixpacks over Docker:
-1. Delete the `Dockerfile`
-2. Update `railway.toml` to use `builder = "nixpacks"`
-3. Use the `nixpacks.toml` configuration
+1. **Build Process**: `cd backend && npm ci --only=production`
+2. **Dependency Verification**: Automatic verification of critical packages
+3. **Start Command**: `cd backend && npm start`
+4. **Health Check**: `/health` endpoint with immediate response
+
+### Troubleshooting ERR_MODULE_NOT_FOUND
+If you encounter "Cannot find package 'express'" errors:
+
+1. **Check Build Logs**: Verify `npm ci` runs in `/backend` directory
+2. **Dependency Verification**: Look for "✅ express - Found" in logs
+3. **Manual Verification**: Use Railway terminal to run `npm run verify`
+
+### Alternative: Docker Deployment
+If Nixpacks fails, switch to Docker:
+1. Update `railway.toml`: `builder = "dockerfile"`
+2. The Dockerfile handles subdirectory dependencies automatically
 
 ### Step 4: Initialize Database
 After deployment, run the database initialization:
