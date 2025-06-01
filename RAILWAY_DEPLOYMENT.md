@@ -35,10 +35,16 @@ FRONTEND_URL=https://your-frontend-domain.com
 ```
 
 ### Step 3: Deploy
-1. Railway will automatically detect the Node.js app
-2. It will use the `railway.toml` configuration
-3. The app will start with `cd backend && npm start`
+1. Railway will automatically detect the Dockerfile
+2. It will build the Docker container with backend dependencies
+3. The app will start automatically with proper dependency installation
 4. Health check endpoint: `/health`
+
+### Alternative: If Docker fails, use Nixpacks
+If you prefer Nixpacks over Docker:
+1. Delete the `Dockerfile`
+2. Update `railway.toml` to use `builder = "nixpacks"`
+3. Use the `nixpacks.toml` configuration
 
 ### Step 4: Initialize Database
 After deployment, run the database initialization:
