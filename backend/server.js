@@ -20,13 +20,24 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Railway health check - respond immediately
+// CRITICAL: Health check MUST be first - no middleware before this
 app.get('/health', (req, res) => {
+  console.log('🏥 Health check requested');
   res.status(200).json({
     status: 'OK',
     message: 'iQube Backend API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
+    port: PORT,
+    uptime: process.uptime()
+  });
+});
+
+// Root endpoint for debugging
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'iQube Backend API',
+    health: '/health',
     port: PORT
   });
 });
@@ -77,13 +88,25 @@ app.use('*', (req, res) => {
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Start server
+// Start server - CRITICAL: Bind to 0.0.0.0 for Railway
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 iQube Backend API running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔗 Health check: http://0.0.0.0:${PORT}/health`);
+  console.log(`🔗 Root endpoint: http://0.0.0.0:${PORT}/`);
 
-  // Test database connection after server starts (non-blocking)
+  // Immediate health check test
+  console.log('🧪 Testing health endpoint...');
+  import('http').then(http => {
+    const req = http.get(`http://localhost:${PORT}/health`, (res) => {
+      console.log(`✅ Health check test: ${res.statusCode}`);
+    });
+    req.on('error', (err) => {
+      console.log(`❌ Health check test failed: ${err.message}`);
+    });
+  });
+
+  // Database connection (non-blocking, after server is ready)
   if (process.env.NODE_ENV === 'production') {
     setTimeout(async () => {
       try {
@@ -91,9 +114,9 @@ const server = app.listen(PORT, '0.0.0.0', () => {
         await getPool();
         console.log('✅ Database connection verified');
       } catch (error) {
-        console.log('⚠️ Database connection failed:', error.message);
+        console.log('⚠️ Database connection failed (non-critical):', error.message);
       }
-    }, 5000);
+    }, 10000); // Increased delay
   }
 });
 

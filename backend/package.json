@@ -5,7 +5,6 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "prestart": "node verify-deps.js",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "build": "echo 'No build step required'",

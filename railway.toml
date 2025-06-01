@@ -1,13 +1,13 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cd backend && npm ci --only=production"
+buildCommand = "cd backend && npm install"
 
 [deploy]
 startCommand = "cd backend && npm start"
 healthcheckPath = "/health"
-healthcheckTimeout = 300
+healthcheckTimeout = 120
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 5
+restartPolicyMaxRetries = 3
 
 [environments.production]
 variables = { NODE_ENV = "production" }
