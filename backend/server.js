@@ -88,12 +88,12 @@ app.use('*', (req, res) => {
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Start server - CRITICAL: Bind to 0.0.0.0 for Railway
-const server = app.listen(PORT, '0.0.0.0', () => {
+// Start server - CRITICAL: Bind to :: for Railway IPv6 compatibility
+const server = app.listen(PORT, '::', () => {
   console.log(`🚀 iQube Backend API running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://0.0.0.0:${PORT}/health`);
-  console.log(`🔗 Root endpoint: http://0.0.0.0:${PORT}/`);
+  console.log(`🔗 Server running at http://[::]:${PORT}`);
+  console.log(`🔗 Health check: http://[::]:${PORT}/health`);
 
   // Immediate health check test
   console.log('🧪 Testing health endpoint...');
@@ -116,7 +116,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
       } catch (error) {
         console.log('⚠️ Database connection failed (non-critical):', error.message);
       }
-    }, 10000); // Increased delay
+    }, 15000); // Increased delay for Railway
   }
 });
 

@@ -1,13 +1,20 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cd backend && npm install"
+workingDirectory = "backend"
+buildCommand = "npm install --omit=dev"
 
 [deploy]
-startCommand = "cd backend && npm start"
+startCommand = "node --experimental-specifier-resolution=node server.js"
 healthcheckPath = "/health"
-healthcheckTimeout = 120
+healthcheckTimeout = 60
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
+
+[healthcheck]
+path = "/health"
+interval = 10
+timeout = 5
+threshold = 3
 
 [environments.production]
 variables = { NODE_ENV = "production" }

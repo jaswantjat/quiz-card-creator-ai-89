@@ -34,24 +34,40 @@ FRONTEND_URL=https://your-frontend-domain.com
 - Update FRONTEND_URL with your actual frontend domain
 
 ### Step 3: Deploy
-Railway is now configured to use Nixpacks with explicit subdirectory handling:
+Railway is now configured with definitive fixes for subdirectory deployment:
 
-1. **Build Process**: `cd backend && npm ci --only=production`
-2. **Dependency Verification**: Automatic verification of critical packages
-3. **Start Command**: `cd backend && npm start`
-4. **Health Check**: `/health` endpoint with immediate response
+#### **Automatic Configuration**:
+1. **Working Directory**: Set to `backend` in `railway.toml`
+2. **Build Process**: `npm install --omit=dev` (resolves npm warnings)
+3. **Start Command**: `node --experimental-specifier-resolution=node server.js`
+4. **IPv6 Binding**: Server binds to `::` for Railway compatibility
+5. **Health Check**: Optimized `/health` endpoint with 10s intervals
 
-### Troubleshooting ERR_MODULE_NOT_FOUND
-If you encounter "Cannot find package 'express'" errors:
+#### **Manual Railway Dashboard Settings**:
+If automatic config fails, set manually:
+- **Settings → Build → Root Directory**: `backend`
+- **Settings → Deploy → Start Command**: `npm run railway:start`
 
-1. **Check Build Logs**: Verify `npm ci` runs in `/backend` directory
-2. **Dependency Verification**: Look for "✅ express - Found" in logs
-3. **Manual Verification**: Use Railway terminal to run `npm run verify`
+### Troubleshooting Guide
 
-### Alternative: Docker Deployment
-If Nixpacks fails, switch to Docker:
-1. Update `railway.toml`: `builder = "dockerfile"`
-2. The Dockerfile handles subdirectory dependencies automatically
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `ERR_MODULE_NOT_FOUND: express` | npm install not in backend dir | Verify Root Directory = `backend` |
+| `service unavailable` | IPv4/IPv6 binding mismatch | Server now binds to `::` (IPv6) |
+| `Address already in use` | PORT conflict | Railway sets PORT automatically |
+| `Healthcheck timeout` | Slow startup | Increased timeout to 60s |
+
+### Post-Deployment Verification
+```bash
+# Check dependency installation
+railway run npm ls express
+
+# Test health endpoint
+curl -I https://your-app.railway.app/health
+
+# Verify IPv6 binding
+railway run netstat -tuln | grep $PORT
+```
 
 ### Step 4: Initialize Database
 After deployment, run the database initialization:
