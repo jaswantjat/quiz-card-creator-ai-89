@@ -22,3 +22,22 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+backend/.env
+backend/.env.local
+backend/.env.development
+
+# Railway
+.railway
+
+# Database
+*.db
+*.sqlite
+
+# Test files
+backend/test-server.js

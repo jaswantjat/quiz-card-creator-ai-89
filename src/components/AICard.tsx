@@ -1,12 +1,26 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { questionsAPI } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import QuestionGenerator from "./QuestionGenerator";
+
+interface GeneratedQuestion {
+  id: string;
+  question: string;
+  topic: string;
+  difficulty: string;
+  questionType: string;
+  generated: boolean;
+}
 
 const AICard = () => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [questions, setQuestions] = useState<string[]>([]);
+  const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<string>("");
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const topics = ["Business & AI", "Technology & Innovation", "Education & Learning", "Health & Wellness", "Science & Research", "Marketing & Sales", "Leadership & Management", "Creative Writing", "Philosophy & Ethics", "Environment & Sustainability"];
   
@@ -27,17 +41,44 @@ const AICard = () => {
     return topicQuestions.sort(() => 0.5 - Math.random()).slice(0, 3);
   };
 
-  const handleGenerateQuestions = () => {
+  const handleGenerateQuestions = async () => {
+    setIsGenerating(true);
     try {
       // Pick a random topic and generate questions
       const randomTopic = topics[Math.floor(Math.random() * topics.length)];
-      const randomQuestions = generateQuestionsForTopic(randomTopic);
-      setQuestions(randomQuestions);
-      
-      // Navigate to chat agent immediately
-      navigate('/chat-agent');
-    } catch (error) {
+      setSelectedTopic(randomTopic);
+
+      // Call backend API to generate questions
+      const response = await questionsAPI.generate({
+        topicName: randomTopic,
+        count: 3,
+        difficulty: 'medium',
+        questionType: 'text'
+      });
+
+      setQuestions(response.questions);
+      toast.success(`Generated ${response.questions.length} questions for ${randomTopic}`);
+
+      // Navigate to chat agent with generated questions
+      navigate('/chat-agent', { state: { questions: response.questions, topic: randomTopic } });
+    } catch (error: any) {
       console.error('Generation failed:', error);
+      toast.error(error.response?.data?.message || 'Failed to generate questions. Please try again.');
+
+      // Fallback to local generation if API fails
+      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+      const fallbackQuestions = generateQuestionsForTopic(randomTopic).map((q, index) => ({
+        id: `fallback-${index}`,
+        question: q,
+        topic: randomTopic,
+        difficulty: 'medium',
+        questionType: 'text',
+        generated: true
+      }));
+      setQuestions(fallbackQuestions);
+      setSelectedTopic(randomTopic);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
