@@ -34,19 +34,26 @@ FRONTEND_URL=https://your-frontend-domain.com
 - Update FRONTEND_URL with your actual frontend domain
 
 ### Step 3: Deploy
-Railway is now configured with definitive fixes for subdirectory deployment:
+Railway is now configured with Docker for maximum reliability:
 
-#### **Automatic Configuration**:
-1. **Working Directory**: Set to `backend` in `railway.toml`
-2. **Build Process**: `npm install --omit=dev` (resolves npm warnings)
-3. **Start Command**: `node --experimental-specifier-resolution=node server.js`
-4. **IPv6 Binding**: Server binds to `::` for Railway compatibility
-5. **Health Check**: Optimized `/health` endpoint with 10s intervals
+#### **Docker Configuration** (Recommended):
+1. **Builder**: Uses `dockerfile` for consistent environment
+2. **Dependencies**: `npm install --omit=dev` (62% size reduction)
+3. **Security**: Non-root user (nodejs:1001)
+4. **Health Check**: Dynamic port support with curl
+5. **ESM Support**: `--experimental-specifier-resolution=node`
+6. **IPv6 Binding**: Server binds to `::` for Railway compatibility
 
-#### **Manual Railway Dashboard Settings**:
-If automatic config fails, set manually:
-- **Settings → Build → Root Directory**: `backend`
-- **Settings → Deploy → Start Command**: `npm run railway:start`
+#### **Automatic Features**:
+- **Layer Caching**: Package.json copied first for faster rebuilds
+- **Security**: Non-root container execution
+- **Optimization**: Cache cleaning and dependency pruning
+- **Health Monitoring**: 10s intervals, 5s timeout, 3 retries
+
+#### **Alternative: Nixpacks**:
+If Docker fails, Railway can fall back to Nixpacks:
+- Uncomment `nixpacks.toml` configuration
+- Update `railway.toml`: `builder = "nixpacks"`
 
 ### Troubleshooting Guide
 

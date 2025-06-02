@@ -1,10 +1,7 @@
 [build]
-builder = "nixpacks"
-workingDirectory = "backend"
-buildCommand = "npm install --omit=dev"
+builder = "dockerfile"
 
 [deploy]
-startCommand = "node --experimental-specifier-resolution=node server.js"
 healthcheckPath = "/health"
 healthcheckTimeout = 60
 restartPolicyType = "on_failure"
