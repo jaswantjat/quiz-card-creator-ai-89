@@ -47,7 +47,7 @@ const QuestionGenerationForm = memo(({
 
 
   return (
-    <div className="relative z-10 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-xl rounded-3xl p-8 border border-orange-200/40 shadow-xl shadow-orange-500/5">
+    <div className="relative z-10 bg-gradient-to-br from-white/85 to-white/70 backdrop-blur-sm rounded-3xl p-8 border border-orange-200/40 shadow-xl shadow-orange-500/5">
       <ChatAgentHeader credits={credits} />
       
       {/* Context Text Box */}

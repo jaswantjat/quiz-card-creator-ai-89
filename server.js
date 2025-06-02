@@ -382,7 +382,36 @@ app.use((req, res, next) => {
 
 // Serve static files with proper caching headers for performance
 if (process.env.NODE_ENV === 'production') {
-  // Serve static files BEFORE any other routes to prevent conflicts
+  // CRITICAL: Serve static files BEFORE API routes to prevent conflicts
+
+  // Serve images with proper MIME types - HIGHEST PRIORITY
+  app.use('/lovable-uploads', express.static(path.join(__dirname, 'dist', 'lovable-uploads'), {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+      console.log(`🖼️ Serving image: ${filePath}`);
+      const ext = path.extname(filePath).slice(1).toLowerCase();
+      if (ext === 'png') {
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
+      } else if (ext === 'jpg' || ext === 'jpeg') {
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      } else if (ext === 'gif') {
+        res.setHeader('Content-Type', 'image/gif');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      } else if (ext === 'svg') {
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      } else if (ext === 'ico') {
+        res.setHeader('Content-Type', 'image/x-icon');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      }
+    }
+  }));
+
+  // Serve JS/CSS assets
   app.use('/assets', express.static(path.join(__dirname, 'dist', 'assets'), {
     maxAge: '1y',
     etag: true,
@@ -394,28 +423,6 @@ if (process.env.NODE_ENV === 'production') {
       }
       if (filePath.endsWith('.css')) {
         res.setHeader('Content-Type', 'text/css');
-      }
-    }
-  }));
-
-  // Serve images with proper MIME types
-  app.use('/lovable-uploads', express.static(path.join(__dirname, 'dist', 'lovable-uploads'), {
-    maxAge: '1d',
-    etag: true,
-    lastModified: true,
-    setHeaders: (res, filePath) => {
-      console.log(`🖼️ Serving image: ${filePath}`);
-      const ext = path.extname(filePath).slice(1).toLowerCase();
-      if (ext === 'png') {
-        res.setHeader('Content-Type', 'image/png');
-      } else if (ext === 'jpg' || ext === 'jpeg') {
-        res.setHeader('Content-Type', 'image/jpeg');
-      } else if (ext === 'gif') {
-        res.setHeader('Content-Type', 'image/gif');
-      } else if (ext === 'svg') {
-        res.setHeader('Content-Type', 'image/svg+xml');
-      } else if (ext === 'ico') {
-        res.setHeader('Content-Type', 'image/x-icon');
       }
     }
   }));
@@ -531,9 +538,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/questions', questionRoutes); // Database-dependent routes
 app.use('/api/users', authenticateToken, userRoutes);
 
-// Catch-all handler for React Router (must be after API routes and exclude static files)
+// Catch-all handler for React Router (must be after API routes and static files)
 app.get('*', (req, res) => {
-  // Don't intercept static file requests - let express.static handle them
+  // Skip static file requests - they should have been handled by express.static middleware above
+  // If we reach here for a static file, it means the file doesn't exist
   if (req.url.startsWith('/assets/') ||
       req.url.startsWith('/lovable-uploads/') ||
       req.url.endsWith('.ico') ||
@@ -546,8 +554,8 @@ app.get('*', (req, res) => {
       req.url.endsWith('.js') ||
       req.url.endsWith('.txt') ||
       req.url.endsWith('.xml')) {
-    console.log(`🚫 Static file request bypassed catch-all: ${req.url}`);
-    return res.status(404).json({ error: 'Static file not found', url: req.url });
+    console.log(`❌ Static file not found: ${req.url}`);
+    return res.status(404).send('File not found');
   }
 
   if (process.env.NODE_ENV === 'production') {
