@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iQube - AI Question Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .switch-mode {
+            margin-top: 20px;
+            color: #666;
+        }
+        
+        .switch-mode a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .api-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: left;
+        }
+        
+        .api-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .api-info code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">iQ</div>
+        <h1>Welcome to iQube</h1>
+        <p class="subtitle">AI-Powered Question Generator for iMocha</p>
+        
+        <form id="authForm">
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" name="firstName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" name="lastName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn">Sign Up</button>
+        </form>
+        
+        <div class="switch-mode">
+            Already have an account? <a href="#" onclick="switchToLogin()">Sign In</a>
+        </div>
+        
+        <div class="api-info">
+            <h3>API Endpoints</h3>
+            <p><strong>Generate Questions:</strong> <code>POST /api/questions/generate</code></p>
+            <p><strong>Health Check:</strong> <code>GET /health</code></p>
+            <p><strong>Register:</strong> <code>POST /api/auth/register</code></p>
+            <p><strong>Login:</strong> <code>POST /api/auth/login</code></p>
+        </div>
+    </div>
+
+    <script>
+        let isLoginMode = false;
+        
+        function switchToLogin() {
+            isLoginMode = !isLoginMode;
+            const form = document.getElementById('authForm');
+            const firstNameGroup = document.querySelector('[for="firstName"]').parentElement;
+            const lastNameGroup = document.querySelector('[for="lastName"]').parentElement;
+            const submitBtn = document.querySelector('.btn');
+            const switchText = document.querySelector('.switch-mode');
+            
+            if (isLoginMode) {
+                firstNameGroup.style.display = 'none';
+                lastNameGroup.style.display = 'none';
+                submitBtn.textContent = 'Sign In';
+                switchText.innerHTML = 'Don\'t have an account? <a href="#" onclick="switchToLogin()">Sign Up</a>';
+            } else {
+                firstNameGroup.style.display = 'block';
+                lastNameGroup.style.display = 'block';
+                submitBtn.textContent = 'Sign Up';
+                switchText.innerHTML = 'Already have an account? <a href="#" onclick="switchToLogin()">Sign In</a>';
+            }
+        }
+        
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+            const payload = isLoginMode ? 
+                { email: data.email, password: data.password } :
+                { firstName: data.firstName, lastName: data.lastName, email: data.email, password: data.password };
+            
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert(`${isLoginMode ? 'Login' : 'Registration'} successful!`);
+                    console.log('Auth result:', result);
+                    // Store token and redirect to your frontend app
+                    if (result.token) {
+                        localStorage.setItem('authToken', result.token);
+                        localStorage.setItem('user', JSON.stringify(result.user));
+                    }
+                } else {
+                    alert(`Error: ${result.message || 'Authentication failed'}`);
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+                console.error('Auth error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

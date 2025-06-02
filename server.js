@@ -33,13 +33,34 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Root endpoint for debugging
+// Serve static files from public directory
+app.use(express.static('public'));
+
+// Root endpoint - serve frontend or redirect to signup
 app.get('/', (req, res) => {
-  res.status(200).json({
-    message: 'iQube Backend API',
-    health: '/health',
-    port: PORT
-  });
+  // Check if we have a frontend build
+  const path = './public/index.html';
+  try {
+    res.sendFile(path, { root: '.' });
+  } catch (error) {
+    // Fallback: redirect to a signup page or show API info
+    res.status(200).json({
+      message: 'iQube Backend API',
+      frontend: 'Please deploy your frontend to access the signup page',
+      api: {
+        health: '/health',
+        auth: {
+          register: 'POST /api/auth/register',
+          login: 'POST /api/auth/login'
+        },
+        questions: {
+          generate: 'POST /api/questions/generate',
+          topics: 'GET /api/questions/topics'
+        }
+      },
+      port: PORT
+    });
+  }
 });
 
 // Security middleware
@@ -74,7 +95,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/questions', authenticateToken, questionRoutes);
+app.use('/api/questions', questionRoutes); // Remove auth requirement for question generation
 app.use('/api/users', authenticateToken, userRoutes);
 
 // 404 handler

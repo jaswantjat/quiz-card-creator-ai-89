@@ -3,6 +3,7 @@ import Joi from 'joi';
 import { getPool } from '../config/database.js';
 import sql from 'mssql';
 import { v4 as uuidv4 } from 'uuid';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -171,8 +172,8 @@ router.post('/generate', async (req, res, next) => {
   }
 });
 
-// Save question to database
-router.post('/save', async (req, res, next) => {
+// Save question to database (requires authentication)
+router.post('/save', authenticateToken, async (req, res, next) => {
   try {
     // Validate input
     const { error, value } = saveQuestionSchema.validate(req.body);
@@ -248,8 +249,8 @@ router.post('/save', async (req, res, next) => {
   }
 });
 
-// Get user's saved questions
-router.get('/saved', async (req, res, next) => {
+// Get user's saved questions (requires authentication)
+router.get('/saved', authenticateToken, async (req, res, next) => {
   try {
     const userId = req.user.id;
     const page = parseInt(req.query.page) || 1;
