@@ -1,25 +1,23 @@
-# Nixpacks configuration for monorepo backend deployment
-# This configuration ensures dependencies are installed in the backend directory
+# Nixpacks configuration for backend deployment
+# Backend files are now in root directory
 
 [phases.setup]
 nixPkgs = ["nodejs-18_x"]
 
 [phases.install]
 cmds = [
-  "cd backend",
   "npm install --omit=dev",
   "npm cache clean --force"
 ]
 
 [phases.build]
 cmds = [
-  "cd backend",
   "npm prune --omit=dev",
   "echo 'Build complete - dependencies optimized'"
 ]
 
 [start]
-cmd = "cd backend && npm run railway:start"
+cmd = "npm run railway:start"
 
 [variables]
 NODE_ENV = "production"

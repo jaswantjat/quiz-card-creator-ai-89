@@ -7,8 +7,8 @@ RUN apk add --no-cache curl bash
 # Set working directory
 WORKDIR /app
 
-# Copy backend package files first for better caching
-COPY backend/package*.json ./
+# Copy package files first for better caching
+COPY package*.json ./
 
 # Debug: Show what files we copied
 RUN echo "=== Package files copied ===" && ls -la
@@ -19,8 +19,8 @@ RUN npm install --omit=dev --verbose && npm cache clean --force
 # Debug: Show installed packages
 RUN echo "=== Dependencies installed ===" && npm list --depth=0
 
-# Copy backend source code
-COPY backend/ ./
+# Copy source code
+COPY . ./
 
 # Debug: Show final directory structure
 RUN echo "=== Final app structure ===" && ls -la

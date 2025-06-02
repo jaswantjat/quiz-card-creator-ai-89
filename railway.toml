@@ -1,16 +1,15 @@
-# Railway configuration for monorepo structure
-# Works with both Docker and Nixpacks
+# Railway configuration for backend deployment
+# Backend files are now in root directory
 
 [build]
 builder = "nixpacks"
-watchPatterns = ["backend/**"]
 
 [deploy]
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-startCommand = "cd backend && npm install --omit=dev && npm run railway:start"
+startCommand = "npm run railway:start"
 
 [healthcheck]
 path = "/health"

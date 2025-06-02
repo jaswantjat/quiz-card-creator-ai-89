@@ -8,11 +8,10 @@ tailwind.config.ts
 postcss.config.js
 components.json
 eslint.config.js
-
-# Root package files (use backend package.json instead)
-package.json
-package-lock.json
 bun.lockb
+
+# Backend subdirectory (files are now in root)
+backend/
 
 # Development files
 *.log
