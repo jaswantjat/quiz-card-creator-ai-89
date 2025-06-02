@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import QuestionGenerationForm from "@/components/QuestionGenerationForm";
 import QuestionDisplay from "@/components/QuestionDisplay";
 
@@ -12,7 +12,7 @@ interface MCQQuestion {
   difficulty: 'easy' | 'medium' | 'hard';
 }
 
-const ChatAgent = () => {
+const ChatAgent = memo(() => {
   const [inputValue, setInputValue] = useState("");
   const [context, setContext] = useState("");
   const [topicName, setTopicName] = useState("");
@@ -69,7 +69,7 @@ const ChatAgent = () => {
     }
   ];
 
-  const handleGenerate = async () => {
+  const handleGenerate = useCallback(async () => {
     if (credits < totalQuestions) {
       console.log("Not enough credits. Need:", totalQuestions, "Have:", credits);
       return;
@@ -86,25 +86,25 @@ const ChatAgent = () => {
     // Start generation immediately
     setIsGenerating(true);
 
-    // Increased simulation time from 2500ms to 6000ms for better loading experience
+    // Reduced simulation time from 6000ms to 3000ms for better performance
     setTimeout(() => {
       setIsGenerating(false);
       setGeneratedQuestions(sampleQuestions.slice(0, totalQuestions || 3));
-      
+
       // Consume credits
       setCredits(prevCredits => prevCredits - (totalQuestions || 3));
-    }, 6000);
-  };
+    }, 3000);
+  }, [credits, totalQuestions, context, topicName, easyCount, mediumCount, hardCount, sampleQuestions]);
 
-  const handleRegenerate = () => {
+  const handleRegenerate = useCallback(() => {
     setGeneratedQuestions([]);
     handleGenerate();
-  };
+  }, [handleGenerate]);
 
-  const handleAddToQB = (questionId: string) => {
+  const handleAddToQB = useCallback((questionId: string) => {
     console.log("Adding question to QB:", questionId);
     // TODO: Add to question bank functionality
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-amber-50/20 p-4 sm:p-6 font-inter">
@@ -154,6 +154,8 @@ const ChatAgent = () => {
       </div>
     </div>
   );
-};
+});
+
+ChatAgent.displayName = 'ChatAgent';
 
 export default ChatAgent;

@@ -382,24 +382,57 @@ app.use((req, res, next) => {
 
 // Serve static files with proper caching headers for performance
 if (process.env.NODE_ENV === 'production') {
-  // Primary static file serving for all assets
-  app.use(express.static(path.join(__dirname, 'dist'), {
-    maxAge: '1h', // Shorter cache for debugging
+  // Serve static files BEFORE any other routes to prevent conflicts
+  app.use('/assets', express.static(path.join(__dirname, 'dist', 'assets'), {
+    maxAge: '1y',
     etag: true,
     lastModified: true,
-    index: false, // Don't serve index.html for directories
     setHeaders: (res, filePath) => {
-      // Set proper Content-Type for images
-      if (filePath.match(/\.(png|jpg|jpeg|gif|svg|ico)$/)) {
-        const ext = path.extname(filePath).slice(1);
-        res.setHeader('Content-Type', `image/${ext === 'svg' ? 'svg+xml' : ext}`);
-      }
-      // Set proper Content-Type for JS/CSS
+      console.log(`📁 Serving asset: ${filePath}`);
       if (filePath.endsWith('.js')) {
         res.setHeader('Content-Type', 'application/javascript');
       }
       if (filePath.endsWith('.css')) {
         res.setHeader('Content-Type', 'text/css');
+      }
+    }
+  }));
+
+  // Serve images with proper MIME types
+  app.use('/lovable-uploads', express.static(path.join(__dirname, 'dist', 'lovable-uploads'), {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+      console.log(`🖼️ Serving image: ${filePath}`);
+      const ext = path.extname(filePath).slice(1).toLowerCase();
+      if (ext === 'png') {
+        res.setHeader('Content-Type', 'image/png');
+      } else if (ext === 'jpg' || ext === 'jpeg') {
+        res.setHeader('Content-Type', 'image/jpeg');
+      } else if (ext === 'gif') {
+        res.setHeader('Content-Type', 'image/gif');
+      } else if (ext === 'svg') {
+        res.setHeader('Content-Type', 'image/svg+xml');
+      } else if (ext === 'ico') {
+        res.setHeader('Content-Type', 'image/x-icon');
+      }
+    }
+  }));
+
+  // Serve other static files (favicon, robots.txt, etc.)
+  app.use(express.static(path.join(__dirname, 'dist'), {
+    maxAge: '1h',
+    etag: true,
+    lastModified: true,
+    index: false, // Don't serve index.html for directories
+    setHeaders: (res, filePath) => {
+      console.log(`📄 Serving static file: ${filePath}`);
+      if (filePath.endsWith('.ico')) {
+        res.setHeader('Content-Type', 'image/x-icon');
+      }
+      if (filePath.endsWith('.txt')) {
+        res.setHeader('Content-Type', 'text/plain');
       }
     }
   }));
