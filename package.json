@@ -12,7 +12,7 @@
     "backend:start": "cd backend && npm start",
     "backend:dev": "cd backend && npm run dev",
     "backend:init-db": "cd backend && npm run init-db",
-    "start": "cd backend && npm install && npm start",
+    "start": "cd backend && npm install --omit=dev && npm start",
     "postinstall": "cd backend && npm install"
   },
   "dependencies": {
