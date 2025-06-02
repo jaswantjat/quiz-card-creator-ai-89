@@ -11,8 +11,8 @@
     "build": "vite build",
     "build:frontend": "vite build",
     "build:backend": "echo 'Backend build complete'",
-    "start": "node --experimental-specifier-resolution=node server.js",
-    "start:prod": "NODE_ENV=production node --experimental-specifier-resolution=node server.js",
+    "start": "node server.js",
+    "start:prod": "NODE_ENV=production node server.js",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "echo 'No tests specified'",
@@ -20,7 +20,7 @@
     "verify": "node verify-deps.js",
     "verify-deployment": "node verify-deployment.js",
     "railway:build": "npm run build:frontend && npm run build:backend",
-    "railway:start": "node --experimental-specifier-resolution=node server.js"
+    "railway:start": "NODE_ENV=production node server.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

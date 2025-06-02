@@ -1,12 +1,13 @@
 # Nixpacks configuration for full-stack deployment
-# React frontend + Express backend
+# React frontend + Express backend with optimized build process
 
 [phases.setup]
 nixPkgs = ["nodejs-18_x"]
 
 [phases.install]
 cmds = [
-  "npm install",
+  "npm ci --omit=dev --prefer-offline",
+  "npm install --only=dev",
   "npm cache clean --force"
 ]
 
@@ -14,6 +15,7 @@ cmds = [
 cmds = [
   "npm run railway:build",
   "npm prune --omit=dev",
+  "npm cache clean --force",
   "echo 'Full-stack build complete - React frontend built and dependencies optimized'"
 ]
 
@@ -22,3 +24,4 @@ cmd = "npm run railway:start"
 
 [variables]
 NODE_ENV = "production"
+RAILWAY_DEPLOYMENT = "true"

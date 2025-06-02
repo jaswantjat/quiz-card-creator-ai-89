@@ -42,24 +42,70 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Database status endpoint
+// Database status endpoint with detailed debugging information
 app.get('/api/status/database', async (req, res) => {
   try {
     const { getPool } = await import('./config/database.js');
-    await getPool();
+    const pool = await getPool();
+
+    // Test actual query
+    const request = pool.request();
+    const result = await request.query('SELECT 1 as test, GETDATE() as server_time');
+
     res.json({
       status: 'connected',
       message: 'Database connection is working',
+      server_info: {
+        server: process.env.DB_SERVER,
+        database: process.env.DB_DATABASE,
+        server_time: result.recordset[0].server_time,
+        test_query: result.recordset[0].test
+      },
+      client_info: {
+        railway_ip: req.ip,
+        user_agent: req.get('User-Agent'),
+        forwarded_for: req.get('X-Forwarded-For'),
+        real_ip: req.get('X-Real-IP')
+      },
       timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error('Database status check failed:', error.message);
+
+    // Determine if it's a firewall issue
+    const isFirewallError = error.message.includes('not allowed to access') ||
+                           error.message.includes('firewall') ||
+                           error.message.includes('IP address');
+
     res.status(503).json({
       status: 'disconnected',
       message: 'Database connection failed',
       error: error.message,
+      error_type: error.code || 'UNKNOWN',
+      is_firewall_issue: isFirewallError,
+      client_info: {
+        railway_ip: req.ip,
+        user_agent: req.get('User-Agent'),
+        forwarded_for: req.get('X-Forwarded-For'),
+        real_ip: req.get('X-Real-IP')
+      },
+      server_config: {
+        server: process.env.DB_SERVER,
+        database: process.env.DB_DATABASE,
+        port: process.env.DB_PORT || '1433'
+      },
       timestamp: new Date().toISOString(),
-      suggestion: 'Check Azure SQL firewall rules and ensure Railway IP is allowed'
+      suggestions: isFirewallError ? [
+        'Add Railway IP to Azure SQL firewall rules',
+        `Current Railway IP appears to be: ${req.ip}`,
+        'Check Azure Portal → SQL servers → iqube-sql-jaswant → Networking → Firewall rules',
+        'Add firewall rule with Railway IP address'
+      ] : [
+        'Check database credentials',
+        'Verify server name and database name',
+        'Check network connectivity',
+        'Review connection string configuration'
+      ]
     });
   }
 });
@@ -278,6 +324,9 @@ app.get('/', (req, res) => {
   }
 });
 
+// Trust proxy for Railway deployment (must be before rate limiting)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
@@ -289,13 +338,17 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Rate limiting
+// Rate limiting with proper proxy trust configuration
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
   message: {
     error: 'Too many requests from this IP, please try again later.'
-  }
+  },
+  // Properly handle Railway's proxy setup
+  trustProxy: true,
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 app.use(limiter);
 

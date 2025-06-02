@@ -1,0 +1,203 @@
+{
+  "mcpServers": {
+    "iqube-azure-sql": {
+      "command": "python",
+      "args": ["iqube_azure_mcp_server.py"],
+      "cwd": "./azure-mcp-iqube",
+      "env": {
+        "AZURE_SQL_SERVER": "iqube-sql-jaswant.database.windows.net",
+        "AZURE_SQL_DATABASE": "iqube_db",
+        "AZURE_SQL_USERNAME": "CloudSAaf673f5f",
+        "AZURE_SQL_PASSWORD": "Mh15ga2226",
+        "AZURE_SQL_PORT": "1433",
+        "MCP_SERVER_NAME": "iqube-azure-sql",
+        "MCP_SERVER_VERSION": "1.0.0",
+        "LOG_LEVEL": "INFO",
+        "DEBUG_MODE": "true",
+        "IQUBE_JWT_SECRET": "iqube-super-secure-jwt-secret-for-production-2024-mcp",
+        "IQUBE_BCRYPT_ROUNDS": "12"
+      },
+      "capabilities": {
+        "resources": true,
+        "tools": true,
+        "prompts": true
+      },
+      "description": "Azure SQL Database MCP server for iQube application - provides direct database access for authentication, user management, and question operations"
+    }
+  },
+  "tools": [
+    {
+      "name": "test_database_connection",
+      "description": "Test connectivity to iQube Azure SQL Database",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "check_user_exists",
+      "description": "Check if a user exists in the iQube database",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email address to check"
+          }
+        },
+        "required": ["email"]
+      }
+    },
+    {
+      "name": "authenticate_user",
+      "description": "Authenticate user login credentials",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email address"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password"
+          }
+        },
+        "required": ["email", "password"]
+      }
+    },
+    {
+      "name": "register_user",
+      "description": "Register a new user in the iQube database",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email address"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "User first name"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "User last name"
+          }
+        },
+        "required": ["email", "password", "firstName", "lastName"]
+      }
+    },
+    {
+      "name": "get_question_topics",
+      "description": "Get available question topics for iQube",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "save_user_question",
+      "description": "Save a generated question for a user",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "User ID"
+          },
+          "questionData": {
+            "type": "object",
+            "description": "Question data to save",
+            "properties": {
+              "question": {
+                "type": "string",
+                "description": "Question text"
+              },
+              "topic": {
+                "type": "string",
+                "description": "Question topic"
+              },
+              "difficulty": {
+                "type": "string",
+                "description": "Question difficulty level"
+              },
+              "questionType": {
+                "type": "string",
+                "description": "Type of question"
+              }
+            },
+            "required": ["question", "topic"]
+          }
+        },
+        "required": ["userId", "questionData"]
+      }
+    },
+    {
+      "name": "get_user_questions",
+      "description": "Get saved questions for a user",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "description": "User ID"
+          }
+        },
+        "required": ["userId"]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "iqube://database/status",
+      "name": "Database Status",
+      "description": "Current status of the iQube Azure SQL Database connection"
+    },
+    {
+      "uri": "iqube://users/count",
+      "name": "User Count",
+      "description": "Total number of registered users in iQube"
+    },
+    {
+      "uri": "iqube://questions/topics",
+      "name": "Question Topics",
+      "description": "Available question topics in iQube"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "debug_railway_auth",
+      "description": "Debug Railway authentication issues by comparing with direct database access",
+      "arguments": [
+        {
+          "name": "email",
+          "description": "User email to test authentication",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "test_database_operations",
+      "description": "Test all database operations to verify connectivity and functionality",
+      "arguments": []
+    },
+    {
+      "name": "compare_railway_vs_direct",
+      "description": "Compare Railway API responses with direct database queries",
+      "arguments": [
+        {
+          "name": "operation",
+          "description": "Operation to compare (login, register, topics, etc.)",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

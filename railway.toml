@@ -17,4 +17,8 @@ timeout = 5
 threshold = 3
 
 [environments.production]
-variables = { NODE_ENV = "production" }
+variables = {
+  NODE_ENV = "production",
+  RAILWAY_DEPLOYMENT = "true",
+  PORT = "8080"
+}
