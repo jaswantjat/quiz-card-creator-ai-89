@@ -1,19 +1,20 @@
-# Nixpacks configuration for backend deployment
-# Backend files are now in root directory
+# Nixpacks configuration for full-stack deployment
+# React frontend + Express backend
 
 [phases.setup]
 nixPkgs = ["nodejs-18_x"]
 
 [phases.install]
 cmds = [
-  "npm install --omit=dev",
+  "npm install",
   "npm cache clean --force"
 ]
 
 [phases.build]
 cmds = [
+  "npm run railway:build",
   "npm prune --omit=dev",
-  "echo 'Build complete - dependencies optimized'"
+  "echo 'Full-stack build complete - React frontend built and dependencies optimized'"
 ]
 
 [start]

@@ -1,5 +1,5 @@
-# Railway configuration for backend deployment
-# Backend files are now in root directory - FORCE NIXPACKS
+# Railway configuration for full-stack deployment
+# React frontend + Express backend in single deployment
 
 [build]
 builder = "nixpacks"

@@ -4,6 +4,12 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -36,12 +42,23 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Serve static files from public directory
-app.use(express.static('public'));
+// Serve static files from React build (production) or public directory (development)
+if (process.env.NODE_ENV === 'production') {
+  // Serve React build files in production
+  app.use(express.static('dist'));
+} else {
+  // Serve public directory in development
+  app.use(express.static('public'));
+}
 
-// Root endpoint - serve the beautiful signup/login page
+// Root endpoint - serve React app in production, fallback HTML in development
 app.get('/', (req, res) => {
-  res.setHeader('Content-Type', 'text/html');
+  if (process.env.NODE_ENV === 'production') {
+    // Serve React app index.html in production
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  } else {
+    // Serve fallback HTML in development
+    res.setHeader('Content-Type', 'text/html');
     // Create the HTML content directly if file doesn't exist
     const htmlContent = `
 <!DOCTYPE html>
@@ -245,6 +262,7 @@ app.get('/', (req, res) => {
 </html>`;
 
     res.send(htmlContent);
+  }
 });
 
 // Security middleware
@@ -351,12 +369,19 @@ app.use('/api/auth', authRoutes);
 app.use('/api/questions', questionRoutes); // Database-dependent routes
 app.use('/api/users', authenticateToken, userRoutes);
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Route not found',
-    message: `The requested route ${req.originalUrl} does not exist.`
-  });
+// Catch-all handler for React Router (must be after API routes)
+app.get('*', (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    // Serve React app for all non-API routes in production
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  } else {
+    // 404 for non-API routes in development
+    res.status(404).json({
+      error: 'Route not found',
+      message: `The requested route ${req.originalUrl} does not exist.`,
+      note: 'In development mode. In production, this would serve the React app.'
+    });
+  }
 });
 
 // Error handling middleware (must be last)
