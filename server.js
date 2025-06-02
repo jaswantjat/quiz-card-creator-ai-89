@@ -371,49 +371,38 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Debug middleware to log static file requests
+// Debug middleware to log requests (but don't interfere with static files)
 app.use((req, res, next) => {
-  if (req.url.includes('/lovable-uploads/') || req.url.includes('/assets/') || req.url.includes('.png') || req.url.includes('.jpg') || req.url.includes('.svg')) {
-    console.log(`🖼️ Static file request: ${req.method} ${req.url}`);
+  // Only log non-static file requests to reduce noise
+  if (!req.url.includes('/assets/') && !req.url.includes('/lovable-uploads/') && !req.url.includes('.css') && !req.url.includes('.js') && !req.url.includes('.png') && !req.url.includes('.jpg') && !req.url.includes('.svg') && !req.url.includes('.ico')) {
+    console.log(`📡 Request: ${req.method} ${req.url}`);
   }
   next();
 });
 
 // Serve static files with proper caching headers for performance
 if (process.env.NODE_ENV === 'production') {
-  // Serve React build files in production with caching
+  // Primary static file serving for all assets
   app.use(express.static(path.join(__dirname, 'dist'), {
-    maxAge: '1d', // Reduced cache time for debugging
+    maxAge: '1h', // Shorter cache for debugging
     etag: true,
     lastModified: true,
     index: false, // Don't serve index.html for directories
-    setHeaders: (res, filePath, stat) => {
-      console.log(`📁 Serving static file: ${filePath}`);
-      // Cache HTML files for shorter time
-      if (filePath.endsWith('.html')) {
-        res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour
-      }
-      // Cache JS/CSS files for longer
-      if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
-        res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
-      }
-      // Cache images for medium time
-      if (filePath.match(/\.(png|jpg|jpeg|gif|svg|ico)$/)) {
-        res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
-        res.setHeader('Content-Type', 'image/' + path.extname(filePath).slice(1));
-      }
-    }
-  }));
-
-  // Additional static middleware specifically for images (fallback)
-  app.use('/lovable-uploads', express.static(path.join(__dirname, 'dist', 'lovable-uploads'), {
-    maxAge: '1d',
     setHeaders: (res, filePath) => {
-      console.log(`🖼️ Serving image: ${filePath}`);
-      res.setHeader('Content-Type', 'image/' + path.extname(filePath).slice(1));
+      // Set proper Content-Type for images
+      if (filePath.match(/\.(png|jpg|jpeg|gif|svg|ico)$/)) {
+        const ext = path.extname(filePath).slice(1);
+        res.setHeader('Content-Type', `image/${ext === 'svg' ? 'svg+xml' : ext}`);
+      }
+      // Set proper Content-Type for JS/CSS
+      if (filePath.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      }
+      if (filePath.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+      }
     }
   }));
-
 } else {
   // Serve public directory in development
   app.use(express.static('public'));
