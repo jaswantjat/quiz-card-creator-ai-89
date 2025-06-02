@@ -2,12 +2,15 @@
 
 ## 🚨 Current Issue
 
-Railway deployment logs show:
+Railway deployment shows authentication API failures:
 ```
-❌ Database connection failed: Failed to connect to iqube-sql-jaswant.database.windows.net:1433 in 15000ms
+❌ 500 Internal Server Error on /api/auth/login and /api/auth/register
+❌ Database connection failed: Failed to connect to iqube-sql-jaswant.database.windows.net:1433
 ```
 
-**Root Cause**: Railway's IP address `208.77.244.3` is not allowed in Azure SQL Server firewall rules.
+**Root Cause**: Railway's IP address is not allowed in Azure SQL Server firewall rules.
+
+**Current Railway IP**: Check `/api/status/database` endpoint for current IP address in error message.
 
 ## 🔧 Solution: Add Railway IP to Azure SQL Firewall
 

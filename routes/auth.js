@@ -37,7 +37,18 @@ router.post('/register', async (req, res, next) => {
 
     const { email, password, firstName, lastName } = value;
 
-    const pool = await getPool();
+    // Try to get database connection
+    let pool;
+    try {
+      pool = await getPool();
+    } catch (dbError) {
+      console.error('Database connection failed during registration:', dbError.message);
+      return res.status(503).json({
+        error: 'Service temporarily unavailable',
+        message: 'Database connection is currently unavailable. Please try the question generation features without logging in, or contact support if this issue persists.',
+        code: 'DATABASE_UNAVAILABLE'
+      });
+    }
 
     // Check if user already exists
     const existingUser = await pool.request()
@@ -106,7 +117,18 @@ router.post('/login', async (req, res, next) => {
 
     const { email, password } = value;
 
-    const pool = await getPool();
+    // Try to get database connection
+    let pool;
+    try {
+      pool = await getPool();
+    } catch (dbError) {
+      console.error('Database connection failed during login:', dbError.message);
+      return res.status(503).json({
+        error: 'Service temporarily unavailable',
+        message: 'Database connection is currently unavailable. Please try the question generation features without logging in, or contact support if this issue persists.',
+        code: 'DATABASE_UNAVAILABLE'
+      });
+    }
 
     // Find user
     const result = await pool.request()

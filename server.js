@@ -42,6 +42,28 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Database status endpoint
+app.get('/api/status/database', async (req, res) => {
+  try {
+    const { getPool } = await import('./config/database.js');
+    await getPool();
+    res.json({
+      status: 'connected',
+      message: 'Database connection is working',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Database status check failed:', error.message);
+    res.status(503).json({
+      status: 'disconnected',
+      message: 'Database connection failed',
+      error: error.message,
+      timestamp: new Date().toISOString(),
+      suggestion: 'Check Azure SQL firewall rules and ensure Railway IP is allowed'
+    });
+  }
+});
+
 // Serve static files from React build (production) or public directory (development)
 if (process.env.NODE_ENV === 'production') {
   // Serve React build files in production

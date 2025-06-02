@@ -86,15 +86,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error: any) {
       console.error('Login error:', error);
 
-      // Check if it's a database connection issue
-      if (error.code === 'NETWORK_ERROR' || error.message?.includes('Database connection')) {
+      // Handle specific error responses from backend
+      if (error.response?.status === 503) {
+        // Database unavailable
         throw new Error(
-          'Database is currently unavailable. Please try the question generation features without logging in.'
+          error.response.data?.message || 'Database is currently unavailable. Please try the question generation features without logging in.'
         );
       }
 
+      if (error.response?.status === 401) {
+        // Authentication failed
+        throw new Error(
+          error.response.data?.message || 'Invalid email or password. Please check your credentials and try again.'
+        );
+      }
+
+      if (error.response?.status === 400) {
+        // Validation error
+        const details = error.response.data?.details;
+        if (details && details.length > 0) {
+          throw new Error(details.map((d: any) => d.message).join(', '));
+        }
+        throw new Error(error.response.data?.message || 'Please check your input and try again.');
+      }
+
+      // Network or other errors
+      if (!error.response) {
+        throw new Error('Network error. Please check your connection and try again.');
+      }
+
       throw new Error(
-        error.response?.data?.message || 'Login failed. Please check your credentials and try again.'
+        error.response?.data?.message || 'Login failed. Please try again later.'
       );
     }
   };
@@ -117,8 +139,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(newUser));
     } catch (error: any) {
       console.error('Registration error:', error);
+
+      // Handle specific error responses from backend
+      if (error.response?.status === 503) {
+        // Database unavailable
+        throw new Error(
+          error.response.data?.message || 'Database is currently unavailable. Please try the question generation features without logging in.'
+        );
+      }
+
+      if (error.response?.status === 409) {
+        // User already exists
+        throw new Error(
+          error.response.data?.message || 'An account with this email already exists. Please try logging in instead.'
+        );
+      }
+
+      if (error.response?.status === 400) {
+        // Validation error
+        const details = error.response.data?.details;
+        if (details && details.length > 0) {
+          throw new Error(details.map((d: any) => d.message).join(', '));
+        }
+        throw new Error(error.response.data?.message || 'Please check your input and try again.');
+      }
+
+      // Network or other errors
+      if (!error.response) {
+        throw new Error('Network error. Please check your connection and try again.');
+      }
+
       throw new Error(
-        error.response?.data?.message || 'Registration failed. Please try again.'
+        error.response?.data?.message || 'Registration failed. Please try again later.'
       );
     }
   };
