@@ -14,9 +14,13 @@ cmds = [
 [phases.build]
 cmds = [
   "npm run railway:build",
+  "echo '🔍 Checking if images were copied:'",
+  "ls -la dist/ || echo 'No dist directory'",
+  "ls -la dist/lovable-uploads/ || echo 'No dist/lovable-uploads directory'",
+  "ls -la public/lovable-uploads/ || echo 'No public/lovable-uploads directory'",
   "npm prune --omit=dev",
   "npm cache clean --force",
-  "echo 'Full-stack build complete - React frontend built and dependencies optimized'"
+  "echo '✅ Full-stack build complete - React frontend built and dependencies optimized'"
 ]
 
 [start]

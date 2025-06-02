@@ -13,6 +13,10 @@ bun.lockb
 # Keep dist/ directory for production assets
 # Keep public/lovable-uploads/ for image assets
 
+# CRITICAL: Explicitly include image directories
+!public/lovable-uploads/
+!dist/lovable-uploads/
+
 # Backend subdirectory (files are now in root)
 backend/
 

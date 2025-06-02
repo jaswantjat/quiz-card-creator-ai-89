@@ -20,7 +20,7 @@
     "init-db": "node scripts/init-db.js",
     "verify": "node verify-deps.js",
     "verify-deployment": "node verify-deployment.js",
-    "railway:build": "npm run build:frontend && npm run build:backend",
+    "railway:build": "npm run build:frontend && npm run copy-images && npm run build:backend",
     "railway:start": "NODE_ENV=production node server.js"
   },
   "dependencies": {
