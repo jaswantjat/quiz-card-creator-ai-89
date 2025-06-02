@@ -474,6 +474,17 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   // Serve public directory in development
   app.use(express.static('public'));
+
+  // Also serve images from public/lovable-uploads in development
+  app.use('/lovable-uploads', express.static(path.join(__dirname, 'public', 'lovable-uploads'), {
+    setHeaders: (res, filePath) => {
+      console.log(`🖼️ Serving image from public (dev): ${filePath}`);
+      const ext = path.extname(filePath).slice(1).toLowerCase();
+      if (ext === 'png') {
+        res.setHeader('Content-Type', 'image/png');
+      }
+    }
+  }));
 }
 
 // Health check endpoint moved to top for Railway

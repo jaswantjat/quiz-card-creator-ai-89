@@ -3,7 +3,7 @@
 
 [build]
 builder = "nixpacks"
-buildCommand = "npm run build"
+buildCommand = "./railway-build.sh"
 
 [deploy]
 healthcheckPath = "/health"

@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { copyFileSync, mkdirSync, existsSync, readdirSync } from "fs";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -24,6 +25,31 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
+    // Custom plugin to copy images during build
+    {
+      name: 'copy-images',
+      writeBundle() {
+        const sourceDir = 'public/lovable-uploads';
+        const targetDir = 'dist/lovable-uploads';
+
+        if (existsSync(sourceDir)) {
+          if (!existsSync(targetDir)) {
+            mkdirSync(targetDir, { recursive: true });
+          }
+
+          const files = readdirSync(sourceDir);
+          files.forEach(file => {
+            const sourcePath = path.join(sourceDir, file);
+            const targetPath = path.join(targetDir, file);
+            copyFileSync(sourcePath, targetPath);
+            console.log(`📸 Copied image: ${file}`);
+          });
+          console.log(`✅ Copied ${files.length} images to dist/lovable-uploads/`);
+        } else {
+          console.log('❌ Source directory public/lovable-uploads not found');
+        }
+      }
+    }
   ],
   resolve: {
     alias: {
