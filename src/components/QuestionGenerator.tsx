@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, MessageCircle } from "lucide-react";
@@ -8,20 +8,20 @@ interface QuestionGeneratorProps {
   questions: string[];
 }
 
-const QuestionGenerator = ({ questions }: QuestionGeneratorProps) => {
+const QuestionGenerator = memo(({ questions }: QuestionGeneratorProps) => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  const copyToClipboard = async (text: string, index: number) => {
+  const copyToClipboard = useCallback(async (text: string, index: number) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedIndex(index);
       console.log('Question copied to clipboard');
-      
+
       setTimeout(() => setCopiedIndex(null), 2000);
     } catch (error) {
       console.error('Copy failed:', error);
     }
-  };
+  }, []);
 
   return (
     <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
@@ -54,6 +54,8 @@ const QuestionGenerator = ({ questions }: QuestionGeneratorProps) => {
       ))}
     </div>
   );
-};
+});
+
+QuestionGenerator.displayName = 'QuestionGenerator';
 
 export default QuestionGenerator;

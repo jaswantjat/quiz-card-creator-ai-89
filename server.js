@@ -371,28 +371,49 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Debug middleware to log static file requests
+app.use((req, res, next) => {
+  if (req.url.includes('/lovable-uploads/') || req.url.includes('/assets/') || req.url.includes('.png') || req.url.includes('.jpg') || req.url.includes('.svg')) {
+    console.log(`🖼️ Static file request: ${req.method} ${req.url}`);
+  }
+  next();
+});
+
 // Serve static files with proper caching headers for performance
 if (process.env.NODE_ENV === 'production') {
   // Serve React build files in production with caching
-  app.use(express.static('dist', {
-    maxAge: '1y', // Cache static assets for 1 year
+  app.use(express.static(path.join(__dirname, 'dist'), {
+    maxAge: '1d', // Reduced cache time for debugging
     etag: true,
     lastModified: true,
-    setHeaders: (res, path) => {
+    index: false, // Don't serve index.html for directories
+    setHeaders: (res, filePath, stat) => {
+      console.log(`📁 Serving static file: ${filePath}`);
       // Cache HTML files for shorter time
-      if (path.endsWith('.html')) {
+      if (filePath.endsWith('.html')) {
         res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour
       }
       // Cache JS/CSS files for longer
-      if (path.endsWith('.js') || path.endsWith('.css')) {
+      if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
         res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
       }
       // Cache images for medium time
-      if (path.match(/\.(png|jpg|jpeg|gif|svg|ico)$/)) {
+      if (filePath.match(/\.(png|jpg|jpeg|gif|svg|ico)$/)) {
         res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
+        res.setHeader('Content-Type', 'image/' + path.extname(filePath).slice(1));
       }
     }
   }));
+
+  // Additional static middleware specifically for images (fallback)
+  app.use('/lovable-uploads', express.static(path.join(__dirname, 'dist', 'lovable-uploads'), {
+    maxAge: '1d',
+    setHeaders: (res, filePath) => {
+      console.log(`🖼️ Serving image: ${filePath}`);
+      res.setHeader('Content-Type', 'image/' + path.extname(filePath).slice(1));
+    }
+  }));
+
 } else {
   // Serve public directory in development
   app.use(express.static('public'));
@@ -400,10 +421,12 @@ if (process.env.NODE_ENV === 'production') {
 
 // Health check endpoint moved to top for Railway
 
-// Simple question generation endpoint (no database required)
+// Simple question generation endpoint (no database required) with performance monitoring
 app.post('/api/questions/generate', (req, res) => {
+  const startTime = Date.now();
   try {
     const { topicName = "Business & AI", count = 3, difficulty = "medium" } = req.body;
+    console.log(`🤖 Question generation request: topic=${topicName}, count=${count}, difficulty=${difficulty}`);
 
     const questionSets = {
       "Business & AI": [
@@ -442,16 +465,28 @@ app.post('/api/questions/generate', (req, res) => {
         generated: true
       }));
 
+    const duration = Date.now() - startTime;
+    console.log(`✅ Question generation completed in ${duration}ms`);
+
     res.json({
       message: 'Questions generated successfully',
       questions: selectedQuestions,
       topic: topicName,
-      count: selectedQuestions.length
+      count: selectedQuestions.length,
+      performance: {
+        generation_time_ms: duration,
+        questions_per_second: Math.round((selectedQuestions.length / duration) * 1000)
+      }
     });
   } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`❌ Question generation failed after ${duration}ms:`, error.message);
     res.status(500).json({
       error: 'Generation failed',
-      message: error.message
+      message: error.message,
+      performance: {
+        failed_after_ms: duration
+      }
     });
   }
 });

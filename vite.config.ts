@@ -27,9 +27,11 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
-          ui: ['@radix-ui/react-slot', '@radix-ui/react-dialog'],
+          ui: ['@radix-ui/react-slot', '@radix-ui/react-dialog', '@radix-ui/react-accordion', '@radix-ui/react-alert-dialog'],
           forms: ['react-hook-form', '@hookform/resolvers'],
-          utils: ['clsx', 'tailwind-merge', 'class-variance-authority']
+          utils: ['clsx', 'tailwind-merge', 'class-variance-authority'],
+          query: ['@tanstack/react-query'],
+          icons: ['lucide-react']
         },
         // Optimize chunk file names
         chunkFileNames: 'assets/[name]-[hash].js',
@@ -41,6 +43,10 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 1000,
     // Optimize asset handling
     assetsInlineLimit: 4096, // Inline assets smaller than 4kb
+    // Enable CSS code splitting
+    cssCodeSplit: true,
+    // Optimize CSS
+    cssMinify: true,
   },
   // Optimize dependencies
   optimizeDeps: {
