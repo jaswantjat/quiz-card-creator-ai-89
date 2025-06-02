@@ -7,6 +7,20 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      // Proxy image requests to backend server
+      '/lovable-uploads': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false
+      },
+      // Proxy API requests to backend server
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
   plugins: [
     react(),

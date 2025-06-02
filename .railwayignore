@@ -1,6 +1,6 @@
-# Frontend files (not needed for backend deployment)
+# Frontend source files (not needed for backend deployment)
 src/
-public/
+# public/ - REMOVED: We need public/lovable-uploads for images
 index.html
 vite.config.ts
 tsconfig*.json
@@ -9,6 +9,9 @@ postcss.config.js
 components.json
 eslint.config.js
 bun.lockb
+
+# Keep dist/ directory for production assets
+# Keep public/lovable-uploads/ for image assets
 
 # Backend subdirectory (files are now in root)
 backend/

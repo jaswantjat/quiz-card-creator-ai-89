@@ -385,16 +385,44 @@ if (process.env.NODE_ENV === 'production') {
   // CRITICAL: Serve static files BEFORE API routes to prevent conflicts
 
   // Serve images with proper MIME types - HIGHEST PRIORITY
+  // Serve from dist/lovable-uploads first (built images)
   app.use('/lovable-uploads', express.static(path.join(__dirname, 'dist', 'lovable-uploads'), {
     maxAge: '1d',
     etag: true,
     lastModified: true,
     setHeaders: (res, filePath) => {
-      console.log(`🖼️ Serving image: ${filePath}`);
+      console.log(`🖼️ Serving image from dist: ${filePath}`);
       const ext = path.extname(filePath).slice(1).toLowerCase();
       if (ext === 'png') {
         res.setHeader('Content-Type', 'image/png');
-        res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      } else if (ext === 'jpg' || ext === 'jpeg') {
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      } else if (ext === 'gif') {
+        res.setHeader('Content-Type', 'image/gif');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      } else if (ext === 'svg') {
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      } else if (ext === 'ico') {
+        res.setHeader('Content-Type', 'image/x-icon');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      }
+    }
+  }));
+
+  // Fallback to public/lovable-uploads if not found in dist
+  app.use('/lovable-uploads', express.static(path.join(__dirname, 'public', 'lovable-uploads'), {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+      console.log(`🖼️ Serving image from public: ${filePath}`);
+      const ext = path.extname(filePath).slice(1).toLowerCase();
+      if (ext === 'png') {
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
       } else if (ext === 'jpg' || ext === 'jpeg') {
         res.setHeader('Content-Type', 'image/jpeg');
         res.setHeader('Cache-Control', 'public, max-age=86400');

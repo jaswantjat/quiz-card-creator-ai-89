@@ -35,7 +35,7 @@ const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplay
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-700">
+    <div className="space-y-6 animate-in fade-in-50 duration-500">
       {/* Header */}
       <div className="flex items-center gap-3">
         <BookOpen className="w-6 h-6 text-orange-500" />
@@ -45,13 +45,12 @@ const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplay
         </Badge>
       </div>
 
-      {/* Questions */}
+      {/* Questions - Optimized animations */}
       <div className="space-y-6">
         {questions.map((question, index) => (
           <Card
             key={question.id}
-            className="bg-white/90 backdrop-blur-sm border-orange-200/60 shadow-lg hover:shadow-xl transition-all duration-300 animate-in slide-in-from-bottom-4"
-            style={{ animationDelay: `${index * 200}ms` }}
+            className="bg-white/95 border-orange-200/60 shadow-lg hover:shadow-xl transition-shadow duration-200"
           >
             <CardContent className="p-6">
               {/* Question Header */}

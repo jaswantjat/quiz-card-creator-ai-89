@@ -23,6 +23,7 @@ interface QuestionGenerationFormProps {
   credits: number;
   isGenerating: boolean;
   showAnimation: boolean;
+  totalQuestions: number; // Pass memoized value from parent
   onGenerate: () => void;
 }
 
@@ -40,9 +41,10 @@ const QuestionGenerationForm = memo(({
   credits,
   isGenerating,
   showAnimation,
+  totalQuestions, // Use memoized value from parent
   onGenerate
 }: QuestionGenerationFormProps) => {
-  const totalQuestions = easyCount + mediumCount + hardCount;
+  // Remove local calculation to prevent unnecessary re-renders
 
 
 

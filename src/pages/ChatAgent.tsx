@@ -138,6 +138,7 @@ const ChatAgent = memo(() => {
             credits={credits}
             isGenerating={isGenerating}
             showAnimation={showAnimation}
+            totalQuestions={totalQuestions}
             onGenerate={handleGenerate}
           />
 
