@@ -1,8 +1,8 @@
 # Use Node.js 18 LTS
 FROM node:18-alpine
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+# Install curl for health checks and debugging tools
+RUN apk add --no-cache curl bash
 
 # Set working directory
 WORKDIR /app
@@ -10,11 +10,20 @@ WORKDIR /app
 # Copy backend package files first for better caching
 COPY backend/package*.json ./
 
-# Install production dependencies only
-RUN npm install --omit=dev && npm cache clean --force
+# Debug: Show what files we copied
+RUN echo "=== Package files copied ===" && ls -la
+
+# Install production dependencies only with verbose logging
+RUN npm install --omit=dev --verbose && npm cache clean --force
+
+# Debug: Show installed packages
+RUN echo "=== Dependencies installed ===" && npm list --depth=0
 
 # Copy backend source code
 COPY backend/ ./
+
+# Debug: Show final directory structure
+RUN echo "=== Final app structure ===" && ls -la
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \

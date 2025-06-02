@@ -1,21 +1,27 @@
-[phases.setup]
-nixPkgs = ["nodejs-18_x"]
+# Nixpacks configuration (DISABLED - using Dockerfile instead)
+# Uncomment this file only if Dockerfile deployment fails
+# and you need to fall back to Nixpacks
 
-[phases.install]
-cmds = [
-  "npm install --omit=dev",
-  "npm cache clean --force"
-]
+# [phases.setup]
+# nixPkgs = ["nodejs-18_x"]
 
-[phases.build]
-cmds = [
-  "npm prune --omit=dev",
-  "echo 'Build complete - dependencies optimized'"
-]
+# [phases.install]
+# cmds = [
+#   "cd backend",
+#   "npm install --omit=dev",
+#   "npm cache clean --force"
+# ]
 
-[start]
-cmd = "npm run railway:start"
+# [phases.build]
+# cmds = [
+#   "cd backend",
+#   "npm prune --omit=dev",
+#   "echo 'Build complete - dependencies optimized'"
+# ]
 
-[variables]
-NODE_ENV = "production"
-PORT = "3001"
+# [start]
+# cmd = "cd backend && npm run railway:start"
+
+# [variables]
+# NODE_ENV = "production"
+# PORT = "3001"

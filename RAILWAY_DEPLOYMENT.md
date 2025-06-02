@@ -1,6 +1,6 @@
-# Railway Deployment Guide
+# Railway Deployment Guide - UPDATED
 
-## 🚀 Deploy to Railway
+## 🚀 Deploy to Railway (Fixed for Monorepo Structure)
 
 ### Prerequisites
 - Railway account (https://railway.app)
@@ -13,7 +13,16 @@
 3. Select "Deploy from GitHub repo"
 4. Choose this repository
 
-### Step 2: Configure Environment Variables
+### Step 2: Configure Railway Service Settings
+**CRITICAL**: Set the root directory to backend subdirectory:
+1. In Railway dashboard, go to your service
+2. Click "Settings" tab
+3. Under "Build & Deploy", set:
+   - **Root Directory**: `backend`
+   - **Build Command**: (leave empty - Docker will handle this)
+   - **Start Command**: (leave empty - Docker will handle this)
+
+### Step 3: Configure Environment Variables
 In Railway dashboard, add these environment variables:
 
 #### Required Environment Variables
@@ -57,12 +66,40 @@ If Docker fails, Railway can fall back to Nixpacks:
 
 ### Troubleshooting Guide
 
+#### Common Issues and Solutions:
+
 | Error | Cause | Solution |
 |-------|-------|----------|
-| `ERR_MODULE_NOT_FOUND: express` | npm install not in backend dir | Verify Root Directory = `backend` |
-| `service unavailable` | IPv4/IPv6 binding mismatch | Server now binds to `::` (IPv6) |
+| `Cannot find package 'express'` | Wrong root directory or Nixpacks used | 1. Set Root Directory = `backend`<br>2. Ensure nixpacks.toml is commented out<br>3. Force redeploy |
+| `Nixpacks detected instead of Docker` | nixpacks.toml file present | Comment out nixpacks.toml content |
+| `service unavailable` | IPv4/IPv6 binding mismatch | Server binds to `::` (IPv6) - fixed in server.js |
 | `Address already in use` | PORT conflict | Railway sets PORT automatically |
 | `Healthcheck timeout` | Slow startup | Increased timeout to 60s |
+| `Build fails with dependency errors` | Cache issues | Clear Railway build cache and redeploy |
+
+#### Step-by-Step Troubleshooting:
+
+1. **If Railway uses Nixpacks instead of Docker:**
+   ```bash
+   # Ensure nixpacks.toml is commented out (already done)
+   # Force Railway to use Dockerfile by setting in railway.toml:
+   # builder = "dockerfile"
+   # dockerfilePath = "Dockerfile"
+   ```
+
+2. **If dependencies are not found:**
+   ```bash
+   # Check Railway service settings:
+   # Root Directory MUST be set to: backend
+   # This ensures Docker runs from the correct directory
+   ```
+
+3. **If build succeeds but app won't start:**
+   ```bash
+   # Check Railway logs for specific error
+   # Verify environment variables are set
+   # Test locally with: cd backend && npm run verify-deployment
+   ```
 
 ### Post-Deployment Verification
 ```bash
