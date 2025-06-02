@@ -20,6 +20,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust proxy for Railway deployment (fixes rate limiting)
+app.set('trust proxy', true);
+
 // CRITICAL: Health check MUST be first - no middleware before this
 app.get('/health', (req, res) => {
   console.log('🏥 Health check requested');
@@ -93,9 +96,78 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint moved to top for Railway
 
+// Simple question generation endpoint (no database required)
+app.post('/api/questions/generate', (req, res) => {
+  try {
+    const { topicName = "Business & AI", count = 3, difficulty = "medium" } = req.body;
+
+    const questionSets = {
+      "Business & AI": [
+        "What are the key factors to consider when implementing AI in business?",
+        "How can machine learning improve customer experience?",
+        "What ethical considerations should guide AI development in business?",
+        "How do you measure the ROI of AI implementations?",
+        "What are the emerging trends in artificial intelligence for business?"
+      ],
+      "Technology & Innovation": [
+        "How is emerging technology reshaping traditional industries?",
+        "What role does innovation play in competitive advantage?",
+        "How can organizations foster a culture of technological innovation?",
+        "What are the challenges of digital transformation?",
+        "How do you balance innovation with security concerns?"
+      ],
+      "Education & Learning": [
+        "How can technology enhance personalized learning experiences?",
+        "What are the most effective methods for skill development?",
+        "How do you create engaging educational content?",
+        "What role does feedback play in the learning process?",
+        "How can we measure learning effectiveness?"
+      ]
+    };
+
+    const topicQuestions = questionSets[topicName] || questionSets["Business & AI"];
+    const selectedQuestions = topicQuestions
+      .sort(() => 0.5 - Math.random())
+      .slice(0, count)
+      .map((questionText, index) => ({
+        id: `q-${Date.now()}-${index}`,
+        question: questionText,
+        topic: topicName,
+        difficulty: difficulty,
+        questionType: 'text',
+        generated: true
+      }));
+
+    res.json({
+      message: 'Questions generated successfully',
+      questions: selectedQuestions,
+      topic: topicName,
+      count: selectedQuestions.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Generation failed',
+      message: error.message
+    });
+  }
+});
+
+// Simple topics endpoint (no database required)
+app.get('/api/questions/topics', (req, res) => {
+  const topics = [
+    { id: 1, name: "Business & AI", description: "AI applications in business" },
+    { id: 2, name: "Technology & Innovation", description: "Emerging technologies and innovation" },
+    { id: 3, name: "Education & Learning", description: "Educational technology and learning methods" },
+    { id: 4, name: "Health & Wellness", description: "Healthcare and wellness topics" },
+    { id: 5, name: "Science & Research", description: "Scientific research and methodologies" }
+  ];
+
+  res.json({ topics });
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/questions', questionRoutes); // Remove auth requirement for question generation
+app.use('/api/questions', questionRoutes); // Database-dependent routes
 app.use('/api/users', authenticateToken, userRoutes);
 
 // 404 handler
@@ -127,18 +199,22 @@ const server = app.listen(PORT, '::', () => {
     });
   });
 
-  // Database connection (non-blocking, after server is ready)
-  if (process.env.NODE_ENV === 'production') {
-    setTimeout(async () => {
-      try {
+  // Database connection (optional, non-blocking)
+  setTimeout(async () => {
+    try {
+      // Only try to connect if we have database environment variables
+      if (process.env.DB_SERVER && process.env.DB_DATABASE) {
         const { getPool } = await import('./config/database.js');
         await getPool();
         console.log('✅ Database connection verified');
-      } catch (error) {
-        console.log('⚠️ Database connection failed (non-critical):', error.message);
+      } else {
+        console.log('ℹ️ Database environment variables not set - running in standalone mode');
       }
-    }, 15000); // Increased delay for Railway
-  }
+    } catch (error) {
+      console.log('⚠️ Database connection failed (non-critical):', error.message);
+      console.log('ℹ️ App will continue running without database features');
+    }
+  }, 5000); // Reduced delay
 });
 
 // Graceful shutdown
