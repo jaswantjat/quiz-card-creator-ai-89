@@ -111,23 +111,39 @@
             font-weight: 600;
         }
         
-        .api-info {
+        .test-section {
             margin-top: 30px;
             padding: 20px;
             background: #f8f9fa;
             border-radius: 10px;
             text-align: left;
         }
-        
-        .api-info h3 {
+
+        .test-section h3 {
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
-        
-        .api-info code {
+
+        .test-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: 600;
+        }
+
+        .test-btn:hover {
+            background: #218838;
+        }
+
+        .result {
+            margin-top: 10px;
+            padding: 10px;
             background: #e9ecef;
-            padding: 2px 6px;
-            border-radius: 4px;
+            border-radius: 5px;
             font-size: 14px;
         }
     </style>
@@ -165,13 +181,12 @@
         <div class="switch-mode">
             Already have an account? <a href="#" onclick="switchToLogin()">Sign In</a>
         </div>
-        
-        <div class="api-info">
-            <h3>API Endpoints</h3>
-            <p><strong>Generate Questions:</strong> <code>POST /api/questions/generate</code></p>
-            <p><strong>Health Check:</strong> <code>GET /health</code></p>
-            <p><strong>Register:</strong> <code>POST /api/auth/register</code></p>
-            <p><strong>Login:</strong> <code>POST /api/auth/login</code></p>
+
+        <div class="test-section">
+            <h3>🚀 Test API Endpoints</h3>
+            <button class="test-btn" onclick="testQuestionGeneration()">Test Question Generation</button>
+            <button class="test-btn" onclick="testTopics()">Test Topics</button>
+            <div id="testResult" class="result" style="display:none;"></div>
         </div>
     </div>
 
@@ -198,44 +213,55 @@
                 switchText.innerHTML = 'Already have an account? <a href="#" onclick="switchToLogin()">Sign In</a>';
             }
         }
-        
-        document.getElementById('authForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData);
-            
-            const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
-            const payload = isLoginMode ? 
-                { email: data.email, password: data.password } :
-                { firstName: data.firstName, lastName: data.lastName, email: data.email, password: data.password };
-            
+
+        async function testQuestionGeneration() {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Testing question generation...';
+
             try {
-                const response = await fetch(endpoint, {
+                const response = await fetch('/api/questions/generate', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        topicName: 'Business & AI',
+                        count: 2,
+                        difficulty: 'medium'
+                    })
                 });
-                
+
                 const result = await response.json();
-                
                 if (response.ok) {
-                    alert(`${isLoginMode ? 'Login' : 'Registration'} successful!`);
-                    console.log('Auth result:', result);
-                    // Store token and redirect to your frontend app
-                    if (result.token) {
-                        localStorage.setItem('authToken', result.token);
-                        localStorage.setItem('user', JSON.stringify(result.user));
-                    }
+                    resultDiv.innerHTML = `<strong>✅ Success!</strong><br>Generated ${result.questions.length} questions:<br>${result.questions.map(q => '• ' + q.question).join('<br>')}`;
                 } else {
-                    alert(`Error: ${result.message || 'Authentication failed'}`);
+                    resultDiv.innerHTML = `<strong>❌ Error:</strong> ${result.message}`;
                 }
             } catch (error) {
-                alert('Network error. Please try again.');
-                console.error('Auth error:', error);
+                resultDiv.innerHTML = `<strong>❌ Network Error:</strong> ${error.message}`;
             }
+        }
+
+        async function testTopics() {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Testing topics endpoint...';
+
+            try {
+                const response = await fetch('/api/questions/topics');
+                const result = await response.json();
+                if (response.ok) {
+                    resultDiv.innerHTML = `<strong>✅ Success!</strong><br>Available topics:<br>${result.topics.map(t => '• ' + t.name).join('<br>')}`;
+                } else {
+                    resultDiv.innerHTML = `<strong>❌ Error:</strong> ${result.message}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>❌ Network Error:</strong> ${error.message}`;
+            }
+        }
+
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            alert('🎉 Welcome to iQube! Authentication endpoints require database setup. Use the test buttons above to try the working question generation features!');
         });
     </script>
 </body>
