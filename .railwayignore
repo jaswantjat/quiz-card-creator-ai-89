@@ -1,0 +1,58 @@
+# Frontend files (not needed for backend deployment)
+src/
+public/
+index.html
+vite.config.ts
+tsconfig*.json
+tailwind.config.ts
+postcss.config.js
+components.json
+eslint.config.js
+
+# Root package files (use backend package.json instead)
+package.json
+package-lock.json
+bun.lockb
+
+# Development files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Test files
+*.test.js
+*.test.ts
+test/
+tests/
+__tests__/
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/

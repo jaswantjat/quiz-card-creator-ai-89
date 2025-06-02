@@ -1,14 +1,13 @@
 # Railway configuration for monorepo structure
-# This file forces Railway to use Docker and build from backend directory
+# FORCE Docker usage - disable Nixpacks completely
 
 [build]
 builder = "dockerfile"
-dockerfilePath = "backend/Dockerfile"
-watchPatterns = ["backend/**"]
+dockerfilePath = "Dockerfile"
 
 [deploy]
 healthcheckPath = "/health"
-healthcheckTimeout = 60
+healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 
