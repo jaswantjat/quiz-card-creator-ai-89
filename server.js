@@ -64,15 +64,6 @@ app.get('/api/status/database', async (req, res) => {
   }
 });
 
-// Serve static files from React build (production) or public directory (development)
-if (process.env.NODE_ENV === 'production') {
-  // Serve React build files in production
-  app.use(express.static('dist'));
-} else {
-  // Serve public directory in development
-  app.use(express.static('public'));
-}
-
 // Root endpoint - serve React app in production, fallback HTML in development
 app.get('/', (req, res) => {
   if (process.env.NODE_ENV === 'production') {
@@ -308,12 +299,51 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Performance monitoring middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    if (duration > 1000) { // Log slow requests (>1s)
+      console.log(`⚠️ Slow request: ${req.method} ${req.url} took ${duration}ms`);
+    }
+  });
+  next();
+});
+
 // Logging
 app.use(morgan('combined'));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files with proper caching headers for performance
+if (process.env.NODE_ENV === 'production') {
+  // Serve React build files in production with caching
+  app.use(express.static('dist', {
+    maxAge: '1y', // Cache static assets for 1 year
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, path) => {
+      // Cache HTML files for shorter time
+      if (path.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour
+      }
+      // Cache JS/CSS files for longer
+      if (path.endsWith('.js') || path.endsWith('.css')) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
+      }
+      // Cache images for medium time
+      if (path.match(/\.(png|jpg|jpeg|gif|svg|ico)$/)) {
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
+      }
+    }
+  }));
+} else {
+  // Serve public directory in development
+  app.use(express.static('public'));
+}
 
 // Health check endpoint moved to top for Railway
 
