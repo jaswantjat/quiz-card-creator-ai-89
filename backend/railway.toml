@@ -1,16 +1,13 @@
-# Railway configuration for monorepo structure
-# This file forces Railway to use Docker and build from backend directory
-
 [build]
 builder = "dockerfile"
-dockerfilePath = "backend/Dockerfile"
-watchPatterns = ["backend/**"]
+dockerfilePath = "../Dockerfile"
 
 [deploy]
 healthcheckPath = "/health"
 healthcheckTimeout = 60
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
+startCommand = "npm run railway:start"
 
 [healthcheck]
 path = "/health"
