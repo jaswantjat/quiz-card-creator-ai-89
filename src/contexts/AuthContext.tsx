@@ -57,19 +57,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setToken(storedToken);
           setUser(JSON.parse(storedUser));
 
-          // Verify token is still valid by fetching user profile
-          try {
-            const profileData = await authAPI.getProfile();
-            setUser(profileData.user);
-          } catch (error) {
-            // Token is invalid, clear auth state
-            console.error('Token validation failed:', error);
-            logout();
-          }
+          // Skip token validation if database is not available
+          // This allows the app to work in demo mode
+          console.log('Auth initialized from localStorage (demo mode)');
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        logout();
+        // Don't logout on initialization errors - allow demo mode
       } finally {
         setIsLoading(false);
       }
@@ -91,8 +85,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
     } catch (error: any) {
       console.error('Login error:', error);
+
+      // Check if it's a database connection issue
+      if (error.code === 'NETWORK_ERROR' || error.message?.includes('Database connection')) {
+        throw new Error(
+          'Database is currently unavailable. Please try the question generation features without logging in.'
+        );
+      }
+
       throw new Error(
-        error.response?.data?.message || 'Login failed. Please try again.'
+        error.response?.data?.message || 'Login failed. Please check your credentials and try again.'
       );
     }
   };

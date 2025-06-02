@@ -1,7 +1,9 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginForm from '@/components/auth/LoginForm';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -34,8 +36,27 @@ const Login: React.FC = () => {
             Sign in to access your question generation dashboard
           </p>
         </div>
-        
+
         <LoginForm onSuccess={handleLoginSuccess} />
+
+        {/* Demo Mode Notice */}
+        <Card className="mt-6 border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h3 className="font-semibold text-blue-900 mb-2">Try iQube Without Logging In</h3>
+              <p className="text-sm text-blue-700 mb-4">
+                Experience our AI question generation features without creating an account.
+              </p>
+              <Button
+                variant="outline"
+                className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                onClick={() => navigate('/')}
+              >
+                Try Demo Mode
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
