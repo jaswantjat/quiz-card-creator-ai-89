@@ -531,10 +531,28 @@ app.use('/api/auth', authRoutes);
 app.use('/api/questions', questionRoutes); // Database-dependent routes
 app.use('/api/users', authenticateToken, userRoutes);
 
-// Catch-all handler for React Router (must be after API routes)
+// Catch-all handler for React Router (must be after API routes and exclude static files)
 app.get('*', (req, res) => {
+  // Don't intercept static file requests - let express.static handle them
+  if (req.url.startsWith('/assets/') ||
+      req.url.startsWith('/lovable-uploads/') ||
+      req.url.endsWith('.ico') ||
+      req.url.endsWith('.png') ||
+      req.url.endsWith('.jpg') ||
+      req.url.endsWith('.jpeg') ||
+      req.url.endsWith('.gif') ||
+      req.url.endsWith('.svg') ||
+      req.url.endsWith('.css') ||
+      req.url.endsWith('.js') ||
+      req.url.endsWith('.txt') ||
+      req.url.endsWith('.xml')) {
+    console.log(`🚫 Static file request bypassed catch-all: ${req.url}`);
+    return res.status(404).json({ error: 'Static file not found', url: req.url });
+  }
+
   if (process.env.NODE_ENV === 'production') {
-    // Serve React app for all non-API routes in production
+    // Serve React app for all non-API, non-static routes in production
+    console.log(`📱 Serving React app for: ${req.url}`);
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   } else {
     // 404 for non-API routes in development
