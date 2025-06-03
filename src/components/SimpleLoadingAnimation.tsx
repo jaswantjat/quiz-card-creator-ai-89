@@ -1,5 +1,7 @@
 import { memo, useEffect, useState } from 'react';
 import { Coffee, Brain, Sparkles, Zap } from 'lucide-react';
+import LottieAnimation from './LottieAnimation';
+import { loadingAnimationData } from '@/assets/animations/loadingAnimation';
 
 interface SimpleLoadingAnimationProps {
   isGenerating: boolean;
@@ -8,12 +10,26 @@ interface SimpleLoadingAnimationProps {
 const SimpleLoadingAnimation = memo(({ isGenerating }: SimpleLoadingAnimationProps) => {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   const steps = [
     { icon: Brain, text: "Analyzing context...", duration: 800 },
     { icon: Zap, text: "Processing requirements...", duration: 1000 },
     { icon: Sparkles, text: "Generating questions...", duration: 1200 }
   ];
+
+  // Check for reduced motion preference
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   useEffect(() => {
     if (!isGenerating) {
@@ -61,22 +77,35 @@ const SimpleLoadingAnimation = memo(({ isGenerating }: SimpleLoadingAnimationPro
         {/* Animated background pulse */}
         <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-amber-400/5 to-orange-600/5 animate-pulse" />
 
-        {/* Enhanced animated icon */}
+        {/* Lottie Animation with Enhanced Background */}
         <div className="flex items-center justify-center mb-6 relative z-10">
           <div className="relative">
-            {/* Pulsing background circle */}
-            <div className="absolute inset-0 w-24 h-24 bg-gradient-to-br from-orange-200/50 to-amber-200/50 rounded-full animate-ping" />
-            <div className="absolute inset-2 w-20 h-20 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full" />
+            {/* Pulsing background circle for visual enhancement */}
+            <div className="absolute inset-0 w-32 h-32 bg-gradient-to-br from-orange-200/30 to-amber-200/30 rounded-full animate-pulse" />
+            <div className="absolute inset-2 w-28 h-28 bg-gradient-to-br from-orange-100/50 to-amber-100/50 rounded-full" />
 
-            {/* Dynamic icon with smooth transitions */}
-            <div className="relative w-24 h-24 flex items-center justify-center">
-              <CurrentIcon className="w-12 h-12 text-orange-600 transition-all duration-500 ease-in-out transform hover:scale-110" />
+            {/* Lottie Animation Container */}
+            <div className="relative w-32 h-32 flex items-center justify-center">
+              <LottieAnimation
+                animationData={loadingAnimationData}
+                width={120}
+                height={120}
+                loop={!prefersReducedMotion}
+                autoplay={isGenerating && !prefersReducedMotion}
+                className="gpu-accelerated"
+              />
+
+              {/* Fallback icon if Lottie fails to load or reduced motion is preferred */}
+              <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${prefersReducedMotion ? 'opacity-100' : 'opacity-0'}`}>
+                <CurrentIcon className="w-12 h-12 text-orange-600 transition-all duration-500 ease-in-out" />
+              </div>
             </div>
 
-            {/* Floating particles */}
+            {/* Enhanced floating particles */}
             <div className="absolute -top-2 -right-2 w-3 h-3 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
             <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
             <div className="absolute top-1/2 -right-4 w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '1s' }} />
+            <div className="absolute top-0 left-1/2 w-2 h-2 bg-orange-300 rounded-full animate-bounce" style={{ animationDelay: '1.5s' }} />
           </div>
         </div>
 

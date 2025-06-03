@@ -68,6 +68,7 @@
     "input-otp": "^1.4.2",
     "joi": "^17.11.0",
     "jsonwebtoken": "^9.0.2",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^0.220.0",
     "morgan": "^1.10.0",
     "mssql": "^10.0.1",
