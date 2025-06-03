@@ -76,7 +76,13 @@ export default defineConfig(({ mode }) => ({
         // Optimize chunk file names
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        assetFileNames: (assetInfo) => {
+          // Keep image files with original names for easier debugging
+          if (assetInfo.name && /\.(png|jpe?g|gif|svg)$/i.test(assetInfo.name)) {
+            return 'assets/images/[name].[ext]';
+          }
+          return 'assets/[name]-[hash].[ext]';
+        }
       }
     },
     // Increase chunk size warning limit

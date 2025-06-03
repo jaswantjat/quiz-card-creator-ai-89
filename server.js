@@ -439,7 +439,7 @@ if (process.env.NODE_ENV === 'production') {
     }
   }));
 
-  // Serve JS/CSS assets
+  // Serve JS/CSS/Image assets from dist/assets
   app.use('/assets', express.static(path.join(__dirname, 'dist', 'assets'), {
     maxAge: '1y',
     etag: true,
@@ -448,9 +448,20 @@ if (process.env.NODE_ENV === 'production') {
       console.log(`📁 Serving asset: ${filePath}`);
       if (filePath.endsWith('.js')) {
         res.setHeader('Content-Type', 'application/javascript');
-      }
-      if (filePath.endsWith('.css')) {
+      } else if (filePath.endsWith('.css')) {
         res.setHeader('Content-Type', 'text/css');
+      } else if (filePath.endsWith('.png')) {
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year for images
+      } else if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+      } else if (filePath.endsWith('.gif')) {
+        res.setHeader('Content-Type', 'image/gif');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+      } else if (filePath.endsWith('.svg')) {
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
       }
     }
   }));

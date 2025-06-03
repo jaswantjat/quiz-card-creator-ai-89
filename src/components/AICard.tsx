@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import iQubeLogo from '@/assets/images/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png';
+import aiIcon from '@/assets/images/2d10c74e-3a04-4e16-adec-d4b95a85bc81.png';
 import { questionsAPI } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -126,7 +128,7 @@ const AICard = () => {
         <div className="relative z-10">
           {/* Logo and Title */}
           <div className="flex items-center gap-3 mb-4">
-            <img src="/lovable-uploads/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png" alt="iQube Logo" className="w-20 h-20 object-contain" />
+            <img src={iQubeLogo} alt="iQube Logo" className="w-20 h-20 object-contain" />
             <h1 className="font-space text-5xl font-bold text-white leading-tight tracking-tight mx--6 px-0 my-0">
               iQube
             </h1>
@@ -143,7 +145,7 @@ const AICard = () => {
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Generating Questions...
               </div> : <div className="flex items-center gap-2">
-                <img src="/lovable-uploads/2d10c74e-3a04-4e16-adec-d4b95a85bc81.png" alt="AI Icon" className="w-6 h-6" />
+                <img src={aiIcon} alt="AI Icon" className="w-6 h-6" />
                 Generate Questions with AI
               </div>}
           </Button>
