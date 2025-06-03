@@ -1,4 +1,5 @@
 
+import { memo, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,20 +20,22 @@ interface QuestionDisplayProps {
   onRegenerate: () => void;
 }
 
-const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplayProps) => {
-  const handleAddToQB = (questionId: string) => {
+const QuestionDisplay = memo(({ questions, onAddToQB, onRegenerate }: QuestionDisplayProps) => {
+  const handleAddToQB = useCallback((questionId: string) => {
     onAddToQB(questionId);
     console.log('Question added to QB:', questionId);
-  };
+  }, [onAddToQB]);
 
-  const getDifficultyColor = (difficulty: string) => {
+  const getDifficultyColor = useCallback((difficulty: string) => {
     switch (difficulty) {
       case 'easy': return 'bg-green-100 text-green-800 border-green-200';
       case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'hard': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
-  };
+  }, []);
+
+  const questionsCount = useMemo(() => questions.length, [questions.length]);
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-500">
@@ -41,7 +44,7 @@ const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplay
         <BookOpen className="w-6 h-6 text-orange-500" />
         <h3 className="text-2xl font-semibold text-slate-800">Generated Questions</h3>
         <Badge variant="outline" className="text-slate-600">
-          {questions.length} Question{questions.length !== 1 ? 's' : ''}
+          {questionsCount} Question{questionsCount !== 1 ? 's' : ''}
         </Badge>
       </div>
 
@@ -50,7 +53,7 @@ const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplay
         {questions.map((question, index) => (
           <Card
             key={question.id}
-            className="bg-white/95 border-orange-200/60 shadow-lg hover:shadow-xl transition-shadow duration-200"
+            className="bg-white/95 border-orange-200/60 shadow-lg hover:shadow-xl transition-all duration-200 hover-lift gpu-accelerated smooth-scale"
           >
             <CardContent className="p-6">
               {/* Question Header */}
@@ -126,9 +129,9 @@ const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplay
                 
                 <Button
                   onClick={() => handleAddToQB(question.id)}
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95 gpu-accelerated"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:rotate-90" />
                   Add to QB
                 </Button>
               </div>
@@ -138,6 +141,8 @@ const QuestionDisplay = ({ questions, onAddToQB, onRegenerate }: QuestionDisplay
       </div>
     </div>
   );
-};
+});
+
+QuestionDisplay.displayName = 'QuestionDisplay';
 
 export default QuestionDisplay;

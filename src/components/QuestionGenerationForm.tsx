@@ -114,25 +114,33 @@ const QuestionGenerationForm = memo(({
           </div>
         )}
         
-        <div className="relative">
+        <div className="relative group">
+          {/* Button glow effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-25 group-hover:opacity-75 transition duration-300 group-hover:duration-200 animate-pulse" />
+
           <Button
             onClick={onGenerate}
             disabled={credits < totalQuestions || totalQuestions === 0 || isGenerating}
-            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl shadow-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed py-3 px-8 text-base hover:shadow-xl transition-all duration-300"
+            className="relative bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl shadow-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed py-3 px-8 text-base hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95 will-change-transform"
           >
             <div className="flex items-center justify-center gap-2">
               {isGenerating ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Generating...</span>
+                  <span className="animate-pulse">Generating...</span>
                 </>
               ) : (
                 <>
-                  <Zap className="w-5 h-5" />
-                  <span>Generate Questions</span>
-                  <Sparkles className="w-4 h-4" />
+                  <Zap className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                  <span className="transition-all duration-200">Generate Questions</span>
+                  <Sparkles className="w-4 h-4 transition-transform duration-200 group-hover:rotate-12" />
                 </>
               )}
+            </div>
+
+            {/* Ripple effect on click */}
+            <div className="absolute inset-0 rounded-xl overflow-hidden">
+              <div className="absolute inset-0 bg-white/20 transform scale-0 group-active:scale-100 transition-transform duration-300 rounded-xl" />
             </div>
           </Button>
         </div>

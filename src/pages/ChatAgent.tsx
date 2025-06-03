@@ -87,12 +87,14 @@ const ChatAgent = memo(() => {
       hardCount
     });
 
-    // Start generation immediately
+    // Start generation immediately with smooth animation
     setIsGenerating(true);
+    setShowAnimation(true);
 
-    // Reduced simulation time from 6000ms to 3000ms for better performance
+    // Optimized simulation time for better UX
     setTimeout(() => {
       setIsGenerating(false);
+      setShowAnimation(false);
       setGeneratedQuestions(SAMPLE_QUESTIONS.slice(0, totalQuestions || 3));
 
       // Consume credits
@@ -114,14 +116,14 @@ const ChatAgent = memo(() => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-amber-50/20 p-4 sm:p-6 font-inter">
       <div className="w-full max-w-6xl mx-auto">
         {/* Main Chat Card - Optimized for performance */}
-        <div className="relative bg-white/95 backdrop-blur-sm rounded-[2rem] p-6 sm:p-10 shadow-xl shadow-orange-500/8 overflow-hidden border border-orange-100/60 transition-shadow duration-300 hover:shadow-2xl">
+        <div className="relative bg-white/95 backdrop-blur-sm rounded-[2rem] p-6 sm:p-10 shadow-xl shadow-orange-500/8 overflow-hidden border border-orange-100/60 transition-all duration-200 hover:shadow-2xl will-change-transform">
 
           {/* Simplified gradient overlay - reduced complexity for better performance */}
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 via-transparent to-amber-100/20 pointer-events-none" />
 
-          {/* Animation Overlay - Simplified */}
+          {/* Enhanced Animation Overlay with smooth transitions */}
           {showAnimation && (
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/15 via-amber-400/15 to-orange-600/15 z-50 rounded-[2rem] border border-orange-400/30" />
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-amber-400/10 to-orange-600/10 z-50 rounded-[2rem] border border-orange-400/20 animate-pulse" />
           )}
 
           <QuestionGenerationForm

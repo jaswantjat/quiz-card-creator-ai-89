@@ -1,4 +1,5 @@
 
+import { memo, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -11,7 +12,7 @@ interface DifficultySelectorProps {
   setHardCount: (count: number) => void;
 }
 
-const DifficultySelector = ({
+const DifficultySelector = memo(({
   easyCount,
   mediumCount,
   hardCount,
@@ -19,7 +20,8 @@ const DifficultySelector = ({
   setMediumCount,
   setHardCount
 }: DifficultySelectorProps) => {
-  const difficultyOptions = [
+  // Memoize difficulty options to prevent recreation on every render
+  const difficultyOptions = useMemo(() => [
     {
       id: "easy",
       label: "Easy Questions",
@@ -44,7 +46,7 @@ const DifficultySelector = ({
       color: "from-red-500 to-red-600",
       bgColor: "bg-red-50/80"
     }
-  ];
+  ], [easyCount, mediumCount, hardCount, setEasyCount, setMediumCount, setHardCount]);
 
   return (
     <div className="mb-10">
@@ -53,27 +55,29 @@ const DifficultySelector = ({
       </Label>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {difficultyOptions.map(item => (
-          <div key={item.id} className={`${item.bgColor} backdrop-blur-sm rounded-2xl p-6 border border-orange-200/30 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/10 hover:scale-105 group`}>
+          <div key={item.id} className={`${item.bgColor} backdrop-blur-sm rounded-2xl p-6 border border-orange-200/30 transition-all duration-200 hover:shadow-lg hover:shadow-orange-500/10 hover:scale-[1.02] group will-change-transform`}>
             <div className="flex items-center gap-3 mb-3">
               <div className={`w-3 h-3 bg-gradient-to-r ${item.color} rounded-full`}></div>
-              <Label htmlFor={item.id} className="text-slate-700 text-base font-semibold group-hover:text-slate-800 transition-colors">
+              <Label htmlFor={item.id} className="text-slate-700 text-base font-semibold group-hover:text-slate-800 transition-colors duration-200">
                 {item.label}
               </Label>
             </div>
-            <Input 
-              id={item.id} 
-              type="number" 
-              min="0" 
-              placeholder="0" 
-              value={item.value} 
-              onChange={e => item.setter(Number(e.target.value))} 
-              className="w-full bg-white/90 border-orange-200/50 focus:border-orange-400 focus:ring-orange-200/50 rounded-xl text-lg font-medium text-center transition-all duration-300" 
+            <Input
+              id={item.id}
+              type="number"
+              min="0"
+              placeholder="0"
+              value={item.value}
+              onChange={e => item.setter(Number(e.target.value))}
+              className="w-full bg-white/90 border-orange-200/50 focus:border-orange-400 focus:ring-orange-200/50 rounded-xl text-lg font-medium text-center transition-all duration-200"
             />
           </div>
         ))}
       </div>
     </div>
   );
-};
+});
+
+DifficultySelector.displayName = 'DifficultySelector';
 
 export default DifficultySelector;
