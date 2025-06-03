@@ -6,6 +6,8 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
+import { imageMap, imageCache, preloadImages } from './imageData.js';
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -22,6 +24,9 @@ import { authenticateToken } from './middleware/auth.js';
 
 // Load environment variables
 dotenv.config();
+
+// Pre-load images into memory for Railway deployment
+preloadImages();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -431,33 +436,20 @@ if (process.env.NODE_ENV === 'production') {
     }
   }));
 
-  // Strategy 4: Direct file serving for specific images (emergency fallback)
-  const imageMap = {
-    '5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png': 'iQube Logo',
-    '2d10c74e-3a04-4e16-adec-d4b95a85bc81.png': 'AI Icon',
-    '4a7eb61d-f2d1-4530-ae72-abaccb971ba2.png': 'Company Logo',
-    '435cd307-815a-46db-ab2d-6b8c9843ed4c.png': 'Additional Logo'
-  };
-
+  // ULTIMATE SOLUTION: Memory-based image serving for Railway
   Object.keys(imageMap).forEach(filename => {
     app.get(`/lovable-uploads/${filename}`, (req, res) => {
-      const possiblePaths = [
-        path.join(__dirname, 'dist', 'assets', 'images', filename),
-        path.join(__dirname, 'dist', 'lovable-uploads', filename),
-        path.join(__dirname, 'public', 'lovable-uploads', filename),
-        path.join(__dirname, 'src', 'assets', 'images', filename)
-      ];
+      const imageBuffer = imageCache[filename];
 
-      for (const filePath of possiblePaths) {
-        if (fs.existsSync(filePath)) {
-          console.log(`🎯 Emergency serving ${imageMap[filename]} from: ${filePath}`);
-          res.setHeader('Content-Type', 'image/png');
-          res.setHeader('Cache-Control', 'public, max-age=86400');
-          return res.sendFile(filePath);
-        }
+      if (imageBuffer) {
+        console.log(`🎯 Serving ${imageMap[filename].name} from memory cache (${imageBuffer.length} bytes)`);
+        res.setHeader('Content-Type', imageMap[filename].contentType);
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.setHeader('Content-Length', imageBuffer.length);
+        return res.send(imageBuffer);
       }
 
-      console.log(`❌ Image not found: ${filename}`);
+      console.log(`❌ Image not found in cache: ${filename}`);
       res.status(404).send('Image not found');
     });
   });
