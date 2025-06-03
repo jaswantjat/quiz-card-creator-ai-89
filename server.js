@@ -384,60 +384,83 @@ app.use((req, res, next) => {
 if (process.env.NODE_ENV === 'production') {
   // CRITICAL: Serve static files BEFORE API routes to prevent conflicts
 
-  // Serve images with proper MIME types - HIGHEST PRIORITY
-  // Serve from dist/lovable-uploads first (built images)
+  // EMERGENCY FIX: Multiple image serving strategies for Railway
+
+  // Strategy 1: Serve from dist/assets/images (Vite processed)
+  app.use('/assets/images', express.static(path.join(__dirname, 'dist', 'assets', 'images'), {
+    maxAge: '1y',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+      console.log(`🖼️ Serving image from dist/assets/images: ${filePath}`);
+      const ext = path.extname(filePath).slice(1).toLowerCase();
+      if (ext === 'png') {
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+      }
+    }
+  }));
+
+  // Strategy 2: Serve from dist/lovable-uploads (backup copy)
   app.use('/lovable-uploads', express.static(path.join(__dirname, 'dist', 'lovable-uploads'), {
     maxAge: '1d',
     etag: true,
     lastModified: true,
     setHeaders: (res, filePath) => {
-      console.log(`🖼️ Serving image from dist: ${filePath}`);
+      console.log(`🖼️ Serving image from dist/lovable-uploads: ${filePath}`);
       const ext = path.extname(filePath).slice(1).toLowerCase();
       if (ext === 'png') {
         res.setHeader('Content-Type', 'image/png');
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-      } else if (ext === 'jpg' || ext === 'jpeg') {
-        res.setHeader('Content-Type', 'image/jpeg');
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-      } else if (ext === 'gif') {
-        res.setHeader('Content-Type', 'image/gif');
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-      } else if (ext === 'svg') {
-        res.setHeader('Content-Type', 'image/svg+xml');
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-      } else if (ext === 'ico') {
-        res.setHeader('Content-Type', 'image/x-icon');
         res.setHeader('Cache-Control', 'public, max-age=86400');
       }
     }
   }));
 
-  // Fallback to public/lovable-uploads if not found in dist
+  // Strategy 3: Serve from public/lovable-uploads (original location)
   app.use('/lovable-uploads', express.static(path.join(__dirname, 'public', 'lovable-uploads'), {
     maxAge: '1d',
     etag: true,
     lastModified: true,
     setHeaders: (res, filePath) => {
-      console.log(`🖼️ Serving image from public: ${filePath}`);
+      console.log(`🖼️ Serving image from public/lovable-uploads: ${filePath}`);
       const ext = path.extname(filePath).slice(1).toLowerCase();
       if (ext === 'png') {
         res.setHeader('Content-Type', 'image/png');
         res.setHeader('Cache-Control', 'public, max-age=86400');
-      } else if (ext === 'jpg' || ext === 'jpeg') {
-        res.setHeader('Content-Type', 'image/jpeg');
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-      } else if (ext === 'gif') {
-        res.setHeader('Content-Type', 'image/gif');
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-      } else if (ext === 'svg') {
-        res.setHeader('Content-Type', 'image/svg+xml');
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-      } else if (ext === 'ico') {
-        res.setHeader('Content-Type', 'image/x-icon');
-        res.setHeader('Cache-Control', 'public, max-age=86400');
       }
     }
   }));
+
+  // Strategy 4: Direct file serving for specific images (emergency fallback)
+  const imageMap = {
+    '5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png': 'iQube Logo',
+    '2d10c74e-3a04-4e16-adec-d4b95a85bc81.png': 'AI Icon',
+    '4a7eb61d-f2d1-4530-ae72-abaccb971ba2.png': 'Company Logo',
+    '435cd307-815a-46db-ab2d-6b8c9843ed4c.png': 'Additional Logo'
+  };
+
+  Object.keys(imageMap).forEach(filename => {
+    app.get(`/lovable-uploads/${filename}`, (req, res) => {
+      const possiblePaths = [
+        path.join(__dirname, 'dist', 'assets', 'images', filename),
+        path.join(__dirname, 'dist', 'lovable-uploads', filename),
+        path.join(__dirname, 'public', 'lovable-uploads', filename),
+        path.join(__dirname, 'src', 'assets', 'images', filename)
+      ];
+
+      for (const filePath of possiblePaths) {
+        if (fs.existsSync(filePath)) {
+          console.log(`🎯 Emergency serving ${imageMap[filename]} from: ${filePath}`);
+          res.setHeader('Content-Type', 'image/png');
+          res.setHeader('Cache-Control', 'public, max-age=86400');
+          return res.sendFile(filePath);
+        }
+      }
+
+      console.log(`❌ Image not found: ${filename}`);
+      res.status(404).send('Image not found');
+    });
+  });
 
   // Serve JS/CSS/Image assets from dist/assets
   app.use('/assets', express.static(path.join(__dirname, 'dist', 'assets'), {
