@@ -7,7 +7,6 @@ import { Zap, Sparkles } from "lucide-react";
 import { memo } from "react";
 import ChatAgentHeader from "./ChatAgentHeader";
 import DifficultySelector from "./DifficultySelector";
-import SimpleLoadingAnimation from "./SimpleLoadingAnimation";
 
 interface QuestionGenerationFormProps {
   context: string;
@@ -21,8 +20,6 @@ interface QuestionGenerationFormProps {
   hardCount: number;
   setHardCount: (count: number) => void;
   credits: number;
-  isGenerating: boolean;
-  showAnimation: boolean;
   totalQuestions: number; // Pass memoized value from parent
   onGenerate: () => void;
 }
@@ -39,12 +36,9 @@ const QuestionGenerationForm = memo(({
   hardCount,
   setHardCount,
   credits,
-  isGenerating,
-  showAnimation,
   totalQuestions, // Use memoized value from parent
   onGenerate
 }: QuestionGenerationFormProps) => {
-  // Remove local calculation to prevent unnecessary re-renders
 
 
 
@@ -96,10 +90,7 @@ const QuestionGenerationForm = memo(({
         setHardCount={setHardCount}
       />
 
-      {/* Simple Loading Animation */}
-      <SimpleLoadingAnimation isGenerating={isGenerating} />
-
-      {/* Credit Warning and Ultra-Premium Generate Button */}
+      {/* Credit Warning and Generate Button */}
       <div className="flex flex-col items-center gap-4">
         {totalQuestions > 0 && (
           <div className="text-center">
@@ -120,22 +111,13 @@ const QuestionGenerationForm = memo(({
 
           <Button
             onClick={onGenerate}
-            disabled={credits < totalQuestions || totalQuestions === 0 || isGenerating}
+            disabled={credits < totalQuestions || totalQuestions === 0}
             className="relative bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl shadow-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed py-3 px-8 text-base hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95 will-change-transform"
           >
             <div className="flex items-center justify-center gap-2">
-              {isGenerating ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span className="animate-pulse">Generating...</span>
-                </>
-              ) : (
-                <>
-                  <Zap className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
-                  <span className="transition-all duration-200">Generate Questions</span>
-                  <Sparkles className="w-4 h-4 transition-transform duration-200 group-hover:rotate-12" />
-                </>
-              )}
+              <Zap className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+              <span className="transition-all duration-200">Generate Questions</span>
+              <Sparkles className="w-4 h-4 transition-transform duration-200 group-hover:rotate-12" />
             </div>
 
             {/* Ripple effect on click */}

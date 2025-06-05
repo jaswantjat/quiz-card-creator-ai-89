@@ -63,8 +63,6 @@ const ChatAgent = memo(() => {
   const [mediumCount, setMediumCount] = useState(0);
   const [hardCount, setHardCount] = useState(0);
   const [credits, setCredits] = useState(10);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [showAnimation, setShowAnimation] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState<MCQQuestion[]>([]);
 
   // Memoize totalQuestions to prevent unnecessary recalculations
@@ -73,7 +71,7 @@ const ChatAgent = memo(() => {
     [easyCount, mediumCount, hardCount]
   );
 
-  const handleGenerate = useCallback(async () => {
+  const handleGenerate = useCallback(() => {
     if (credits < totalQuestions) {
       console.log("Not enough credits. Need:", totalQuestions, "Have:", credits);
       return;
@@ -87,19 +85,11 @@ const ChatAgent = memo(() => {
       hardCount
     });
 
-    // Start generation immediately with smooth animation
-    setIsGenerating(true);
-    setShowAnimation(true);
+    // Generate questions immediately
+    setGeneratedQuestions(SAMPLE_QUESTIONS.slice(0, totalQuestions || 3));
 
-    // Optimized simulation time for better UX
-    setTimeout(() => {
-      setIsGenerating(false);
-      setShowAnimation(false);
-      setGeneratedQuestions(SAMPLE_QUESTIONS.slice(0, totalQuestions || 3));
-
-      // Consume credits
-      setCredits(prevCredits => prevCredits - (totalQuestions || 3));
-    }, 3000);
+    // Consume credits
+    setCredits(prevCredits => prevCredits - (totalQuestions || 3));
   }, [credits, totalQuestions, context, topicName, easyCount, mediumCount, hardCount]);
 
   const handleRegenerate = useCallback(() => {
@@ -121,11 +111,6 @@ const ChatAgent = memo(() => {
           {/* Simplified gradient overlay - reduced complexity for better performance */}
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 via-transparent to-amber-100/20 pointer-events-none" />
 
-          {/* Enhanced Animation Overlay with smooth transitions */}
-          {showAnimation && (
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-amber-400/10 to-orange-600/10 z-50 rounded-[2rem] border border-orange-400/20 animate-pulse" />
-          )}
-
           <QuestionGenerationForm
             context={context}
             setContext={setContext}
@@ -138,8 +123,6 @@ const ChatAgent = memo(() => {
             hardCount={hardCount}
             setHardCount={setHardCount}
             credits={credits}
-            isGenerating={isGenerating}
-            showAnimation={showAnimation}
             totalQuestions={totalQuestions}
             onGenerate={handleGenerate}
           />
