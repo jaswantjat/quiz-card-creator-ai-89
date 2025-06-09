@@ -379,7 +379,7 @@ app.use(express.urlencoded({ extended: true }));
 // Debug middleware to log requests (but don't interfere with static files)
 app.use((req, res, next) => {
   // Only log non-static file requests to reduce noise
-  if (!req.url.includes('/assets/') && !req.url.includes('/lovable-uploads/') && !req.url.includes('.css') && !req.url.includes('.js') && !req.url.includes('.png') && !req.url.includes('.jpg') && !req.url.includes('.svg') && !req.url.includes('.ico')) {
+  if (!req.url.includes('/assets/') && !req.url.includes('/lovable-uploads/') && !req.url.includes('/animations/') && !req.url.includes('.css') && !req.url.includes('.js') && !req.url.includes('.png') && !req.url.includes('.jpg') && !req.url.includes('.svg') && !req.url.includes('.ico') && !req.url.includes('.json') && !req.url.includes('.lottie')) {
     console.log(`📡 Request: ${req.method} ${req.url}`);
   }
   next();
@@ -481,6 +481,22 @@ if (process.env.NODE_ENV === 'production') {
     }
   }));
 
+  // Serve animations from dist/animations
+  app.use('/animations', express.static(path.join(__dirname, 'dist', 'animations'), {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+      console.log(`🎬 Serving animation: ${filePath}`);
+      if (filePath.endsWith('.json')) {
+        res.setHeader('Content-Type', 'application/json');
+      }
+      if (filePath.endsWith('.lottie')) {
+        res.setHeader('Content-Type', 'application/zip');
+      }
+    }
+  }));
+
   // Serve other static files (favicon, robots.txt, etc.)
   app.use(express.static(path.join(__dirname, 'dist'), {
     maxAge: '1h',
@@ -500,6 +516,19 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   // Serve public directory in development
   app.use(express.static('public'));
+
+  // Serve animations from public/animations in development
+  app.use('/animations', express.static(path.join(__dirname, 'public', 'animations'), {
+    setHeaders: (res, filePath) => {
+      console.log(`🎬 Serving animation from public (dev): ${filePath}`);
+      if (filePath.endsWith('.json')) {
+        res.setHeader('Content-Type', 'application/json');
+      }
+      if (filePath.endsWith('.lottie')) {
+        res.setHeader('Content-Type', 'application/zip');
+      }
+    }
+  }));
 
   // Also serve images from public/lovable-uploads in development
   app.use('/lovable-uploads', express.static(path.join(__dirname, 'public', 'lovable-uploads'), {
@@ -609,6 +638,7 @@ app.get('*', (req, res) => {
   // If we reach here for a static file, it means the file doesn't exist
   if (req.url.startsWith('/assets/') ||
       req.url.startsWith('/lovable-uploads/') ||
+      req.url.startsWith('/animations/') ||
       req.url.endsWith('.ico') ||
       req.url.endsWith('.png') ||
       req.url.endsWith('.jpg') ||
@@ -617,6 +647,8 @@ app.get('*', (req, res) => {
       req.url.endsWith('.svg') ||
       req.url.endsWith('.css') ||
       req.url.endsWith('.js') ||
+      req.url.endsWith('.json') ||
+      req.url.endsWith('.lottie') ||
       req.url.endsWith('.txt') ||
       req.url.endsWith('.xml')) {
     console.log(`❌ Static file not found: ${req.url}`);
