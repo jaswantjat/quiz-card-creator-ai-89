@@ -1,5 +1,5 @@
 
-import { memo, useMemo } from "react";
+import { memo, useMemo, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -12,6 +12,28 @@ interface DifficultySelectorProps {
   setHardCount: (count: number) => void;
 }
 
+// Move static configuration outside component to prevent recreation
+const DIFFICULTY_CONFIG = [
+  {
+    id: "easy",
+    label: "Easy Questions",
+    color: "from-green-500 to-green-600",
+    bgColor: "bg-green-50/80"
+  },
+  {
+    id: "medium",
+    label: "Medium Questions",
+    color: "from-yellow-500 to-yellow-600",
+    bgColor: "bg-yellow-50/80"
+  },
+  {
+    id: "hard",
+    label: "Hard Questions",
+    color: "from-red-500 to-red-600",
+    bgColor: "bg-red-50/80"
+  }
+] as const;
+
 const DifficultySelector = memo(({
   easyCount,
   mediumCount,
@@ -20,33 +42,31 @@ const DifficultySelector = memo(({
   setMediumCount,
   setHardCount
 }: DifficultySelectorProps) => {
-  // Memoize difficulty options to prevent recreation on every render
-  const difficultyOptions = useMemo(() => [
-    {
-      id: "easy",
-      label: "Easy Questions",
-      value: easyCount,
-      setter: setEasyCount,
-      color: "from-green-500 to-green-600",
-      bgColor: "bg-green-50/80"
-    },
-    {
-      id: "medium",
-      label: "Medium Questions",
-      value: mediumCount,
-      setter: setMediumCount,
-      color: "from-yellow-500 to-yellow-600",
-      bgColor: "bg-yellow-50/80"
-    },
-    {
-      id: "hard",
-      label: "Hard Questions",
-      value: hardCount,
-      setter: setHardCount,
-      color: "from-red-500 to-red-600",
-      bgColor: "bg-red-50/80"
-    }
-  ], [easyCount, mediumCount, hardCount, setEasyCount, setMediumCount, setHardCount]);
+  // Create optimized handlers with useCallback
+  const handleEasyChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setEasyCount(Number(e.target.value));
+  }, [setEasyCount]);
+
+  const handleMediumChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setMediumCount(Number(e.target.value));
+  }, [setMediumCount]);
+
+  const handleHardChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setHardCount(Number(e.target.value));
+  }, [setHardCount]);
+
+  // Memoize only the dynamic values
+  const difficultyValues = useMemo(() => ({
+    easy: easyCount,
+    medium: mediumCount,
+    hard: hardCount
+  }), [easyCount, mediumCount, hardCount]);
+
+  const difficultyHandlers = useMemo(() => ({
+    easy: handleEasyChange,
+    medium: handleMediumChange,
+    hard: handleHardChange
+  }), [handleEasyChange, handleMediumChange, handleHardChange]);
 
   return (
     <div className="mb-10">
@@ -54,25 +74,31 @@ const DifficultySelector = memo(({
         Number of Questions by Difficulty
       </Label>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {difficultyOptions.map(item => (
-          <div key={item.id} className={`${item.bgColor} backdrop-blur-sm rounded-2xl p-6 border border-orange-200/30 transition-all duration-200 hover:shadow-lg hover:shadow-orange-500/10 hover:scale-[1.02] group will-change-transform`}>
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`w-3 h-3 bg-gradient-to-r ${item.color} rounded-full`}></div>
-              <Label htmlFor={item.id} className="text-slate-700 text-base font-semibold group-hover:text-slate-800 transition-colors duration-200">
-                {item.label}
-              </Label>
+        {DIFFICULTY_CONFIG.map(config => {
+          const value = difficultyValues[config.id as keyof typeof difficultyValues];
+          const handler = difficultyHandlers[config.id as keyof typeof difficultyHandlers];
+
+          return (
+            <div key={config.id} className={`${config.bgColor} backdrop-blur-sm rounded-2xl p-6 border border-orange-200/30 smooth-transition hover:shadow-lg hover:shadow-orange-500/10 hover:scale-[1.02] group gpu-accelerated`}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-3 h-3 bg-gradient-to-r ${config.color} rounded-full`}></div>
+                <Label htmlFor={config.id} className="text-slate-700 text-base font-semibold group-hover:text-slate-800 smooth-transition">
+                  {config.label}
+                </Label>
+              </div>
+              <Input
+                id={config.id}
+                type="number"
+                min="0"
+                max="50"
+                placeholder="0"
+                value={value}
+                onChange={handler}
+                className="w-full bg-white/90 border-orange-200/50 focus:border-orange-400 focus:ring-orange-200/50 rounded-xl text-lg font-medium text-center smooth-transition"
+              />
             </div>
-            <Input
-              id={item.id}
-              type="number"
-              min="0"
-              placeholder="0"
-              value={item.value}
-              onChange={e => item.setter(Number(e.target.value))}
-              className="w-full bg-white/90 border-orange-200/50 focus:border-orange-400 focus:ring-orange-200/50 rounded-xl text-lg font-medium text-center transition-all duration-200"
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

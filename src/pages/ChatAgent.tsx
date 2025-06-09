@@ -1,7 +1,9 @@
 
-import { useState, useCallback, memo, useMemo } from "react";
+import { useState, useCallback, memo, useMemo, lazy, Suspense } from "react";
 import QuestionGenerationForm from "@/components/QuestionGenerationForm";
-import QuestionDisplay from "@/components/QuestionDisplay";
+
+// Lazy load QuestionDisplay for better initial page load performance
+const QuestionDisplay = lazy(() => import("@/components/QuestionDisplay"));
 
 interface MCQQuestion {
   id: string;
@@ -56,7 +58,6 @@ const SAMPLE_QUESTIONS: MCQQuestion[] = [
 ];
 
 const ChatAgent = memo(() => {
-  const [inputValue, setInputValue] = useState("");
   const [context, setContext] = useState("");
   const [topicName, setTopicName] = useState("");
   const [easyCount, setEasyCount] = useState(0);
@@ -64,6 +65,7 @@ const ChatAgent = memo(() => {
   const [hardCount, setHardCount] = useState(0);
   const [credits, setCredits] = useState(10);
   const [generatedQuestions, setGeneratedQuestions] = useState<MCQQuestion[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Memoize totalQuestions to prevent unnecessary recalculations
   const totalQuestions = useMemo(() =>
@@ -71,70 +73,89 @@ const ChatAgent = memo(() => {
     [easyCount, mediumCount, hardCount]
   );
 
-  const handleGenerate = useCallback(() => {
+  // Memoize form props to prevent unnecessary re-renders
+  const formProps = useMemo(() => ({
+    context,
+    setContext,
+    topicName,
+    setTopicName,
+    easyCount,
+    setEasyCount,
+    mediumCount,
+    setMediumCount,
+    hardCount,
+    setHardCount,
+    credits,
+    totalQuestions
+  }), [context, topicName, easyCount, mediumCount, hardCount, credits, totalQuestions]);
+
+  const handleGenerate = useCallback(async () => {
     if (credits < totalQuestions) {
-      console.log("Not enough credits. Need:", totalQuestions, "Have:", credits);
       return;
     }
 
-    console.log("Generating questions with:", {
-      context,
-      topicName,
-      easyCount,
-      mediumCount,
-      hardCount
-    });
+    setIsGenerating(true);
+
+    // Simulate async operation for better UX
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // Generate questions immediately
     setGeneratedQuestions(SAMPLE_QUESTIONS.slice(0, totalQuestions || 3));
 
     // Consume credits
     setCredits(prevCredits => prevCredits - (totalQuestions || 3));
-  }, [credits, totalQuestions, context, topicName, easyCount, mediumCount, hardCount]);
+    setIsGenerating(false);
+  }, [credits, totalQuestions]);
 
-  const handleRegenerate = useCallback(() => {
+  const handleRegenerate = useCallback(async () => {
+    setIsGenerating(true);
     setGeneratedQuestions([]);
-    handleGenerate();
+    await handleGenerate();
   }, [handleGenerate]);
 
   const handleAddToQB = useCallback((questionId: string) => {
-    console.log("Adding question to QB:", questionId);
     // TODO: Add to question bank functionality
   }, []);
+
+  const hasQuestions = generatedQuestions.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-amber-50/20 p-4 sm:p-6 font-inter">
       <div className="w-full max-w-6xl mx-auto">
         {/* Main Chat Card - Optimized for performance */}
-        <div className="relative bg-white/95 backdrop-blur-sm rounded-[2rem] p-6 sm:p-10 shadow-xl shadow-orange-500/8 overflow-hidden border border-orange-100/60 transition-all duration-200 hover:shadow-2xl will-change-transform">
+        <div className="relative bg-white/95 backdrop-blur-sm rounded-[2rem] p-6 sm:p-10 shadow-xl shadow-orange-500/8 overflow-hidden border border-orange-100/60 smooth-transition hover:shadow-2xl gpu-accelerated">
 
           {/* Simplified gradient overlay - reduced complexity for better performance */}
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 via-transparent to-amber-100/20 pointer-events-none" />
 
           <QuestionGenerationForm
-            context={context}
-            setContext={setContext}
-            topicName={topicName}
-            setTopicName={setTopicName}
-            easyCount={easyCount}
-            setEasyCount={setEasyCount}
-            mediumCount={mediumCount}
-            setMediumCount={setMediumCount}
-            hardCount={hardCount}
-            setHardCount={setHardCount}
-            credits={credits}
-            totalQuestions={totalQuestions}
+            {...formProps}
             onGenerate={handleGenerate}
           />
 
-          {/* Generated Questions */}
-          {generatedQuestions.length > 0 && (
+          {/* Generated Questions with Lazy Loading */}
+          {hasQuestions && (
             <div className="relative z-10 mt-8">
-              <QuestionDisplay 
-                questions={generatedQuestions}
-                onAddToQB={handleAddToQB}
-                onRegenerate={handleRegenerate}
-              />
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                  <span className="ml-3 text-slate-600">Loading questions...</span>
+                </div>
+              }>
+                <QuestionDisplay
+                  questions={generatedQuestions}
+                  onAddToQB={handleAddToQB}
+                  onRegenerate={handleRegenerate}
+                />
+              </Suspense>
+            </div>
+          )}
+
+          {/* Loading state for generation */}
+          {isGenerating && (
+            <div className="relative z-10 mt-8 flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+              <span className="ml-3 text-slate-600">Generating questions...</span>
             </div>
           )}
         </div>

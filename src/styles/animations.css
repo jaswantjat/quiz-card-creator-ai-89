@@ -182,3 +182,69 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, opacity;
 }
+
+/* Performance optimizations for form inputs */
+.optimized-input {
+  contain: layout style;
+  will-change: auto;
+}
+
+.optimized-input:focus {
+  will-change: border-color, box-shadow;
+}
+
+.optimized-input:not(:focus) {
+  will-change: auto;
+}
+
+/* Optimized button animations */
+.optimized-button {
+  contain: layout style;
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.optimized-button:hover {
+  will-change: transform;
+}
+
+.optimized-button:not(:hover) {
+  will-change: auto;
+}
+
+/* Optimized card animations */
+.optimized-card {
+  contain: layout style;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.optimized-card:hover {
+  will-change: transform, box-shadow;
+}
+
+.optimized-card:not(:hover) {
+  will-change: auto;
+}
+
+/* Reduce layout thrashing */
+.layout-stable {
+  contain: layout;
+}
+
+/* Optimize text rendering */
+.text-optimized {
+  text-rendering: optimizeSpeed;
+  font-smooth: auto;
+  -webkit-font-smoothing: auto;
+}
+
+/* Optimize backdrop blur for better performance */
+.backdrop-optimized {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@supports not (backdrop-filter: blur(8px)) {
+  .backdrop-optimized {
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+}

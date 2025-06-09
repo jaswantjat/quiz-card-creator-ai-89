@@ -43,24 +43,25 @@ const QuestionGenerationForm = memo(({
 
 
   return (
-    <div className="relative z-10 bg-gradient-to-br from-white/85 to-white/70 backdrop-blur-sm rounded-3xl p-8 border border-orange-200/40 shadow-xl shadow-orange-500/5">
+    <div className="relative z-10 bg-gradient-to-br from-white/85 to-white/70 backdrop-optimized rounded-3xl p-8 border border-orange-200/40 shadow-xl shadow-orange-500/5 layout-stable">
       <ChatAgentHeader credits={credits} />
-      
+
       {/* Context Text Box */}
       <div className="mb-8">
-        <Label htmlFor="context" className="text-slate-700 font-semibold mb-4 block text-base flex items-center gap-2">
+        <Label htmlFor="context" className="text-slate-700 font-semibold mb-4 block text-base flex items-center gap-2 text-optimized">
           Context
           <span className="text-sm font-normal text-slate-500 bg-slate-100 px-2 py-1 rounded-full">(optional)</span>
         </Label>
         <div className="relative">
-          <Textarea 
-            id="context" 
-            placeholder="Provide context for question generation. This helps create more targeted and relevant questions..." 
-            value={context} 
-            onChange={e => setContext(e.target.value)} 
-            className="w-full min-h-[120px] bg-white/90 backdrop-blur-sm border-orange-200/60 focus:border-orange-400 focus:ring-orange-200/50 rounded-2xl resize-none text-base leading-relaxed transition-all duration-300" 
+          <Textarea
+            id="context"
+            placeholder="Provide context for question generation. This helps create more targeted and relevant questions..."
+            value={context}
+            onChange={e => setContext(e.target.value)}
+            className="w-full min-h-[120px] bg-white/90 backdrop-optimized border-orange-200/60 focus:border-orange-400 focus:ring-orange-200/50 rounded-2xl resize-none text-base leading-relaxed optimized-input smooth-transition"
+            maxLength={500}
           />
-          <div className="absolute bottom-4 right-4 text-xs text-slate-400">
+          <div className="absolute bottom-4 right-4 text-xs text-slate-400 text-optimized">
             {context.length}/500
           </div>
         </div>
@@ -68,16 +69,17 @@ const QuestionGenerationForm = memo(({
 
       {/* Topic Name */}
       <div className="mb-8">
-        <Label htmlFor="topic" className="text-slate-700 font-semibold mb-4 block text-base">
+        <Label htmlFor="topic" className="text-slate-700 font-semibold mb-4 block text-base text-optimized">
           Topic Name
         </Label>
-        <Input 
-          id="topic" 
-          type="text" 
-          placeholder="Enter topic name (e.g., Machine Learning, History, Biology)..." 
-          value={topicName} 
-          onChange={e => setTopicName(e.target.value)} 
-          className="w-full bg-white/90 backdrop-blur-sm border-orange-200/60 focus:border-orange-400 focus:ring-orange-200/50 rounded-2xl py-4 text-base transition-all duration-300" 
+        <Input
+          id="topic"
+          type="text"
+          placeholder="Enter topic name (e.g., Machine Learning, History, Biology)..."
+          value={topicName}
+          onChange={e => setTopicName(e.target.value)}
+          className="w-full bg-white/90 backdrop-optimized border-orange-200/60 focus:border-orange-400 focus:ring-orange-200/50 rounded-2xl py-4 text-base optimized-input smooth-transition"
+          maxLength={100}
         />
       </div>
 
@@ -106,23 +108,23 @@ const QuestionGenerationForm = memo(({
         )}
         
         <div className="relative group">
-          {/* Button glow effect */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-25 group-hover:opacity-75 transition duration-300 group-hover:duration-200 animate-pulse" />
+          {/* Simplified button glow effect for better performance */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-25 group-hover:opacity-75 smooth-transition" />
 
           <Button
             onClick={onGenerate}
             disabled={credits < totalQuestions || totalQuestions === 0}
-            className="relative bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl shadow-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed py-3 px-8 text-base hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95 will-change-transform"
+            className="relative bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl shadow-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed py-3 px-8 text-base hover:shadow-xl optimized-button gpu-accelerated"
           >
             <div className="flex items-center justify-center gap-2">
-              <Zap className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
-              <span className="transition-all duration-200">Generate Questions</span>
-              <Sparkles className="w-4 h-4 transition-transform duration-200 group-hover:rotate-12" />
+              <Zap className="w-5 h-5 smooth-transition group-hover:scale-110" />
+              <span className="smooth-transition text-optimized">Generate Questions</span>
+              <Sparkles className="w-4 h-4 smooth-transition group-hover:rotate-12" />
             </div>
 
-            {/* Ripple effect on click */}
+            {/* Simplified ripple effect */}
             <div className="absolute inset-0 rounded-xl overflow-hidden">
-              <div className="absolute inset-0 bg-white/20 transform scale-0 group-active:scale-100 transition-transform duration-300 rounded-xl" />
+              <div className="absolute inset-0 bg-white/20 transform scale-0 group-active:scale-100 smooth-transition rounded-xl" />
             </div>
           </Button>
         </div>
