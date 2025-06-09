@@ -81,6 +81,10 @@ export default defineConfig(({ mode }) => ({
           if (assetInfo.name && /\.(png|jpe?g|gif|svg)$/i.test(assetInfo.name)) {
             return 'assets/images/[name].[ext]';
           }
+          // Keep Lottie files with original names
+          if (assetInfo.name && /\.(lottie|json)$/i.test(assetInfo.name)) {
+            return 'assets/animations/[name].[ext]';
+          }
           return 'assets/[name]-[hash].[ext]';
         }
       }

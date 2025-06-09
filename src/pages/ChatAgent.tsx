@@ -1,6 +1,7 @@
 
 import { useState, useCallback, memo, useMemo, lazy, Suspense } from "react";
 import QuestionGenerationForm from "@/components/QuestionGenerationForm";
+import QuestionGenerationLoader from "@/components/QuestionGenerationLoader";
 
 // Lazy load QuestionDisplay for better initial page load performance
 const QuestionDisplay = lazy(() => import("@/components/QuestionDisplay"));
@@ -96,8 +97,8 @@ const ChatAgent = memo(() => {
 
     setIsGenerating(true);
 
-    // Simulate async operation for better UX
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Simulate realistic question generation time with coffee brewing animation
+    await new Promise(resolve => setTimeout(resolve, 3000)); // 3 seconds for nice animation
 
     // Generate questions immediately
     setGeneratedQuestions(SAMPLE_QUESTIONS.slice(0, totalQuestions || 3));
@@ -151,14 +152,14 @@ const ChatAgent = memo(() => {
             </div>
           )}
 
-          {/* Loading state for generation */}
-          {isGenerating && (
-            <div className="relative z-10 mt-8 flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-              <span className="ml-3 text-slate-600">Generating questions...</span>
-            </div>
-          )}
         </div>
+
+        {/* Coffee Brewing Animation Overlay */}
+        <QuestionGenerationLoader
+          isVisible={isGenerating}
+          totalQuestions={totalQuestions}
+          onComplete={() => setIsGenerating(false)}
+        />
       </div>
     </div>
   );
