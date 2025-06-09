@@ -146,8 +146,8 @@ export const usersAPI = {
   },
 };
 
-// Webhook response types
-interface WebhookQuestionResponse {
+// API response types
+interface APIQuestionResponse {
   "Question Type": string;
   "Difficulty Level": string;
   "Question Text": string;
@@ -164,20 +164,20 @@ interface WebhookQuestionResponse {
   "Topic": string;
 }
 
-// Transform webhook response to our MCQQuestion format
-const transformWebhookResponse = (webhookQuestions: WebhookQuestionResponse[]): MCQQuestion[] => {
-  return webhookQuestions.map((wq, index) => {
+// Transform API response to our MCQQuestion format
+const transformAPIResponse = (apiQuestions: APIQuestionResponse[]): MCQQuestion[] => {
+  return apiQuestions.map((aq, index) => {
     // Extract options (filter out empty ones)
     const options = [
-      wq["Option (A)"],
-      wq["Option (B)"],
-      wq["Option (C)"],
-      wq["Option (D)"],
-      wq["Option (E)"] || ""
+      aq["Option (A)"],
+      aq["Option (B)"],
+      aq["Option (C)"],
+      aq["Option (D)"],
+      aq["Option (E)"] || ""
     ].filter(option => option && option.trim() !== "");
 
     // Convert correct option letter to index (A=0, B=1, C=2, D=3, E=4)
-    const correctLetter = wq["Correct Option (A/B/C/D)"].toUpperCase();
+    const correctLetter = aq["Correct Option (A/B/C/D)"].toUpperCase();
     const correctAnswer = correctLetter.charCodeAt(0) - 65; // A=0, B=1, etc.
 
     // Map difficulty level to our format
@@ -190,53 +190,53 @@ const transformWebhookResponse = (webhookQuestions: WebhookQuestionResponse[]): 
       'hard': 'hard'
     };
 
-    const difficulty = difficultyMap[wq["Difficulty Level"]] || 'medium';
+    const difficulty = difficultyMap[aq["Difficulty Level"]] || 'medium';
 
     return {
-      id: `webhook-${Date.now()}-${index}`,
-      question: wq["Question Text"],
+      id: `generated-${Date.now()}-${index}`,
+      question: aq["Question Text"],
       options,
       correctAnswer,
-      explanation: wq["Answer Explanation"],
+      explanation: aq["Answer Explanation"],
       difficulty,
-      // Additional metadata for debugging
+      // Additional metadata for enhanced display
       metadata: {
-        subTopics: wq["Sub-Topics"],
-        author: wq["Author"],
-        topic: wq["Topic"],
-        score: wq["Score"],
-        questionType: wq["Question Type"]
+        subTopics: aq["Sub-Topics"],
+        author: aq["Author"],
+        topic: aq["Topic"],
+        score: aq["Score"],
+        questionType: aq["Question Type"]
       }
     };
   });
 };
 
-// Webhook API
-export const webhookAPI = {
-  sendQuestionGenerationData: async (formData: {
+// Question Generation API
+export const questionGenerationAPI = {
+  generateQuestions: async (formData: {
     context: string;
     topicName: string;
     easyCount: number;
     mediumCount: number;
     hardCount: number;
     totalQuestions: number;
-    webhookId: string;
+    serviceId: string;
   }) => {
-    const WEBHOOK_URL = 'https://primary-production-1cd8.up.railway.app/webhook/c6ef8f24-74f3-4781-9d60-13e917c7d2a7';
+    const API_ENDPOINT = 'https://primary-production-1cd8.up.railway.app/webhook/c6ef8f24-74f3-4781-9d60-13e917c7d2a7';
 
     try {
-      console.log('🔗 Sending data to webhook:', WEBHOOK_URL);
-      console.log('📊 Form data:', formData);
-      console.log('🛡️ CSP Check: Attempting external request to', new URL(WEBHOOK_URL).origin);
+      console.log('🚀 Generating questions via API:', API_ENDPOINT);
+      console.log('📊 Generation parameters:', formData);
+      console.log('🛡️ CSP Check: Attempting external request to', new URL(API_ENDPOINT).origin);
 
-      const response = await fetch(WEBHOOK_URL, {
+      const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          webhookId: formData.webhookId,
+          serviceId: formData.serviceId,
           timestamp: new Date().toISOString(),
           formData: {
             context: formData.context,
@@ -257,20 +257,20 @@ export const webhookAPI = {
       const responseData = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(`Webhook failed with status ${response.status}: ${responseData.message || 'Unknown error'}`);
+        throw new Error(`Question generation failed with status ${response.status}: ${responseData.message || 'Unknown error'}`);
       }
 
-      console.log('✅ Webhook response:', responseData);
+      console.log('✅ API response received:', responseData);
 
-      // Transform webhook response to MCQQuestion format if it contains questions
+      // Transform API response to MCQQuestion format if it contains questions
       let transformedQuestions: MCQQuestion[] = [];
       if (Array.isArray(responseData) && responseData.length > 0) {
-        console.log('🔄 Transforming webhook questions to MCQ format...');
-        transformedQuestions = transformWebhookResponse(responseData);
+        console.log('🔄 Transforming API questions to MCQ format...');
+        transformedQuestions = transformAPIResponse(responseData);
         console.log('✅ Transformed questions:', transformedQuestions);
       } else if (responseData.questions && Array.isArray(responseData.questions)) {
-        console.log('🔄 Transforming nested webhook questions to MCQ format...');
-        transformedQuestions = transformWebhookResponse(responseData.questions);
+        console.log('🔄 Transforming nested API questions to MCQ format...');
+        transformedQuestions = transformAPIResponse(responseData.questions);
         console.log('✅ Transformed questions:', transformedQuestions);
       }
 
@@ -281,13 +281,13 @@ export const webhookAPI = {
         status: response.status
       };
     } catch (error) {
-      console.error('❌ Webhook error:', error);
+      console.error('❌ Question generation error:', error);
 
       // Check for CSP violations
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
         console.error('🛡️ Possible CSP violation: External request blocked');
         console.error('🔧 Check Content-Security-Policy headers and meta tags');
-        console.error('🌐 Ensure connect-src includes:', new URL(WEBHOOK_URL).origin);
+        console.error('🌐 Ensure connect-src includes:', new URL(API_ENDPOINT).origin);
       }
 
       throw error;

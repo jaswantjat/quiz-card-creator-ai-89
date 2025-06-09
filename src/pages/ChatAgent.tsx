@@ -2,11 +2,11 @@
 import { useState, useCallback, memo, useMemo, lazy, Suspense } from "react";
 import QuestionGenerationForm from "@/components/QuestionGenerationForm";
 import QuestionGenerationLoader from "@/components/QuestionGenerationLoader";
-import { webhookAPI } from "@/lib/api";
+import { questionGenerationAPI } from "@/lib/api";
 import { toast } from "sonner";
 
-// Lazy load QuestionDisplay for better initial page load performance
-const QuestionDisplay = lazy(() => import("@/components/QuestionDisplay"));
+// Lazy load SequentialQuestionDisplay for better initial page load performance
+const SequentialQuestionDisplay = lazy(() => import("@/components/SequentialQuestionDisplay"));
 
 interface MCQQuestion {
   id: string;
@@ -76,7 +76,7 @@ const ChatAgent = memo(() => {
   const [credits, setCredits] = useState(10);
   const [generatedQuestions, setGeneratedQuestions] = useState<MCQQuestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [webhookStatus, setWebhookStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
 
   // Memoize totalQuestions to prevent unnecessary recalculations
   const totalQuestions = useMemo(() =>
@@ -117,50 +117,50 @@ const ChatAgent = memo(() => {
     }
 
     setIsGenerating(true);
-    setWebhookStatus('sending');
+    setGenerationStatus('generating');
 
     try {
-      // Step 1: Send data to webhook
+      // Step 1: Generate questions via AI service
       console.log('🚀 Starting question generation process...');
 
-      const webhookData = {
+      const generationData = {
         context,
         topicName,
         easyCount,
         mediumCount,
         hardCount,
         totalQuestions,
-        webhookId: 'c6ef8f24-74f3-4781-9d60-13e917c7d2a7'
+        serviceId: 'c6ef8f24-74f3-4781-9d60-13e917c7d2a7'
       };
 
-      const webhookResponse = await webhookAPI.sendQuestionGenerationData(webhookData);
+      const apiResponse = await questionGenerationAPI.generateQuestions(generationData);
 
-      console.log('✅ Webhook sent successfully:', webhookResponse);
-      setWebhookStatus('success');
+      console.log('✅ Questions generated successfully:', apiResponse);
+      setGenerationStatus('success');
 
-      // Show success toast for webhook
-      toast.success('Form data sent to webhook successfully!', {
-        description: `Webhook responded with status ${webhookResponse.status}`
+      // Show success toast for generation
+      toast.success('Questions generated successfully!', {
+        description: `AI service responded with status ${apiResponse.status}`
       });
 
-      // Step 2: Use webhook questions if available, otherwise fallback to sample questions
+      // Step 2: Use AI-generated questions if available, otherwise fallback to sample questions
       let questionsToDisplay: MCQQuestion[] = [];
 
-      if (webhookResponse.questions && webhookResponse.questions.length > 0) {
-        console.log('🎯 Using webhook-generated questions:', webhookResponse.questions.length);
-        questionsToDisplay = webhookResponse.questions.slice(0, totalQuestions || 3);
+      if (apiResponse.questions && apiResponse.questions.length > 0) {
+        console.log('🎯 Using AI-generated questions:', apiResponse.questions.length);
+        questionsToDisplay = apiResponse.questions.slice(0, totalQuestions || 3);
 
         // Show success toast for question generation
-        toast.success(`Generated ${questionsToDisplay.length} questions from webhook!`, {
-          description: 'Questions received and processed successfully'
+        toast.success(`Generated ${questionsToDisplay.length} questions successfully!`, {
+          description: 'Questions created and processed successfully'
         });
       } else {
-        console.log('⚠️ No questions in webhook response, using sample questions');
+        console.log('⚠️ No questions in API response, using sample questions');
         questionsToDisplay = SAMPLE_QUESTIONS.slice(0, totalQuestions || 3);
 
         // Show info toast about fallback
         toast.info('Using sample questions as fallback', {
-          description: 'Webhook response did not contain questions'
+          description: 'AI service response did not contain questions'
         });
       }
 
@@ -177,15 +177,15 @@ const ChatAgent = memo(() => {
 
     } catch (error) {
       console.error('❌ Error in question generation process:', error);
-      setWebhookStatus('error');
+      setGenerationStatus('error');
 
       // Show error toast but continue with question generation
-      toast.error('Webhook failed, but continuing with question generation', {
-        description: error instanceof Error ? error.message : 'Unknown webhook error'
+      toast.error('AI service failed, but continuing with question generation', {
+        description: error instanceof Error ? error.message : 'Unknown generation error'
       });
 
-      // Continue with question generation even if webhook fails (use sample questions)
-      console.log('🔄 Falling back to sample questions due to webhook failure');
+      // Continue with question generation even if AI service fails (use sample questions)
+      console.log('🔄 Falling back to sample questions due to AI service failure');
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       const fallbackQuestions = SAMPLE_QUESTIONS.slice(0, totalQuestions || 3);
@@ -193,12 +193,12 @@ const ChatAgent = memo(() => {
 
       // Show info toast about fallback
       toast.info(`Generated ${fallbackQuestions.length} sample questions`, {
-        description: 'Webhook failed, but question generation continued'
+        description: 'AI service failed, but question generation continued'
       });
     } finally {
       setIsGenerating(false);
-      // Reset webhook status after a delay
-      setTimeout(() => setWebhookStatus('idle'), 3000);
+      // Reset generation status after a delay
+      setTimeout(() => setGenerationStatus('idle'), 3000);
     }
   }, [credits, totalQuestions, context, topicName, easyCount, mediumCount, hardCount]);
 
@@ -228,7 +228,7 @@ const ChatAgent = memo(() => {
             onGenerate={handleGenerate}
           />
 
-          {/* Generated Questions with Lazy Loading */}
+          {/* Generated Questions with Sequential Display */}
           {hasQuestions && (
             <div className="relative z-10 mt-8">
               <Suspense fallback={
@@ -237,7 +237,7 @@ const ChatAgent = memo(() => {
                   <span className="ml-3 text-slate-600">Loading questions...</span>
                 </div>
               }>
-                <QuestionDisplay
+                <SequentialQuestionDisplay
                   questions={generatedQuestions}
                   onAddToQB={handleAddToQB}
                   onRegenerate={handleRegenerate}
@@ -252,7 +252,7 @@ const ChatAgent = memo(() => {
         <QuestionGenerationLoader
           isVisible={isGenerating}
           totalQuestions={totalQuestions}
-          webhookStatus={webhookStatus}
+          generationStatus={generationStatus}
           onComplete={() => setIsGenerating(false)}
         />
       </div>

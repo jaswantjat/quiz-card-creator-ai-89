@@ -4,21 +4,21 @@ import CoffeeBrewingAnimation from './CoffeeBrewingAnimation';
 interface QuestionGenerationLoaderProps {
   isVisible: boolean;
   totalQuestions: number;
-  webhookStatus?: 'idle' | 'sending' | 'success' | 'error';
+  generationStatus?: 'idle' | 'generating' | 'success' | 'error';
   onComplete?: () => void;
 }
 
 const QuestionGenerationLoader = memo(({
   isVisible,
   totalQuestions,
-  webhookStatus = 'idle',
+  generationStatus = 'idle',
   onComplete
 }: QuestionGenerationLoaderProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loadingText, setLoadingText] = useState('Brewing your questions...');
 
   const loadingSteps = [
-    'Sending data to webhook...',
+    'Processing your request...',
     'Analyzing context and topics...',
     'Crafting intelligent questions...',
     'Adding explanations and options...',
@@ -94,31 +94,31 @@ const QuestionGenerationLoader = memo(({
           </div>
         </div>
 
-        {/* Webhook Status Indicator */}
-        {webhookStatus !== 'idle' && (
+        {/* Generation Status Indicator */}
+        {generationStatus !== 'idle' && (
           <div className="mb-3">
             <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
-              webhookStatus === 'sending' ? 'bg-blue-100 text-blue-700' :
-              webhookStatus === 'success' ? 'bg-green-100 text-green-700' :
-              webhookStatus === 'error' ? 'bg-red-100 text-red-700' :
+              generationStatus === 'generating' ? 'bg-blue-100 text-blue-700' :
+              generationStatus === 'success' ? 'bg-green-100 text-green-700' :
+              generationStatus === 'error' ? 'bg-red-100 text-red-700' :
               'bg-gray-100 text-gray-700'
             }`}>
-              {webhookStatus === 'sending' && (
+              {generationStatus === 'generating' && (
                 <>
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  Sending to webhook...
+                  Generating questions...
                 </>
               )}
-              {webhookStatus === 'success' && (
+              {generationStatus === 'success' && (
                 <>
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  Webhook sent ✓
+                  Questions generated ✓
                 </>
               )}
-              {webhookStatus === 'error' && (
+              {generationStatus === 'error' && (
                 <>
                   <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  Webhook failed ⚠
+                  Generation failed ⚠
                 </>
               )}
             </div>

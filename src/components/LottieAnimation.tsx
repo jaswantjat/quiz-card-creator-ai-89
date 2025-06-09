@@ -58,7 +58,7 @@ const LottieAnimation = memo(({
 
     // Check for external URLs and CSP compliance
     if (src.startsWith('http')) {
-      console.log('🛡️ CSP Check: Loading external Lottie animation from', new URL(src).origin);
+      console.log('🛡️ CSP Check: Loading external animation from', new URL(src).origin);
     }
 
     // Respect user's motion preferences
