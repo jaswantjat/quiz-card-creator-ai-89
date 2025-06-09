@@ -4,19 +4,21 @@ import CoffeeBrewingAnimation from './CoffeeBrewingAnimation';
 interface QuestionGenerationLoaderProps {
   isVisible: boolean;
   totalQuestions: number;
+  webhookStatus?: 'idle' | 'sending' | 'success' | 'error';
   onComplete?: () => void;
 }
 
 const QuestionGenerationLoader = memo(({
   isVisible,
   totalQuestions,
+  webhookStatus = 'idle',
   onComplete
 }: QuestionGenerationLoaderProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loadingText, setLoadingText] = useState('Brewing your questions...');
 
   const loadingSteps = [
-    'Brewing your questions...',
+    'Sending data to webhook...',
     'Analyzing context and topics...',
     'Crafting intelligent questions...',
     'Adding explanations and options...',
@@ -91,6 +93,37 @@ const QuestionGenerationLoader = memo(({
             ))}
           </div>
         </div>
+
+        {/* Webhook Status Indicator */}
+        {webhookStatus !== 'idle' && (
+          <div className="mb-3">
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
+              webhookStatus === 'sending' ? 'bg-blue-100 text-blue-700' :
+              webhookStatus === 'success' ? 'bg-green-100 text-green-700' :
+              webhookStatus === 'error' ? 'bg-red-100 text-red-700' :
+              'bg-gray-100 text-gray-700'
+            }`}>
+              {webhookStatus === 'sending' && (
+                <>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  Sending to webhook...
+                </>
+              )}
+              {webhookStatus === 'success' && (
+                <>
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  Webhook sent ✓
+                </>
+              )}
+              {webhookStatus === 'error' && (
+                <>
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  Webhook failed ⚠
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Estimated Time */}
         <div className="text-xs text-slate-400 text-optimized">

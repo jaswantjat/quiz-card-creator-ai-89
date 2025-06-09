@@ -129,4 +129,65 @@ export const usersAPI = {
   },
 };
 
+// Webhook API
+export const webhookAPI = {
+  sendQuestionGenerationData: async (formData: {
+    context: string;
+    topicName: string;
+    easyCount: number;
+    mediumCount: number;
+    hardCount: number;
+    totalQuestions: number;
+    webhookId: string;
+  }) => {
+    const WEBHOOK_URL = 'https://primary-production-1cd8.up.railway.app/webhook/c6ef8f24-74f3-4781-9d60-13e917c7d2a7';
+
+    try {
+      console.log('🔗 Sending data to webhook:', WEBHOOK_URL);
+      console.log('📊 Form data:', formData);
+
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          webhookId: formData.webhookId,
+          timestamp: new Date().toISOString(),
+          formData: {
+            context: formData.context,
+            topicName: formData.topicName,
+            easyCount: formData.easyCount,
+            mediumCount: formData.mediumCount,
+            hardCount: formData.hardCount,
+            totalQuestions: formData.totalQuestions
+          },
+          metadata: {
+            source: 'iQube Question Generator',
+            userAgent: navigator.userAgent,
+            url: window.location.href
+          }
+        })
+      });
+
+      const responseData = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(`Webhook failed with status ${response.status}: ${responseData.message || 'Unknown error'}`);
+      }
+
+      console.log('✅ Webhook response:', responseData);
+      return {
+        success: true,
+        data: responseData,
+        status: response.status
+      };
+    } catch (error) {
+      console.error('❌ Webhook error:', error);
+      throw error;
+    }
+  }
+};
+
 export default api;
