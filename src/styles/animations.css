@@ -249,67 +249,23 @@
   }
 }
 
-/* Coffee Brewing Animation */
-@keyframes steamRise {
-  0%, 100% {
-    opacity: 0.3;
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: translateY(-5px) scale(1.1);
-  }
+/* Lottie Animation Optimizations */
+.coffee-brewing-lottie {
+  contain: layout style;
+  will-change: auto;
 }
 
-@keyframes coffeeGlow {
-  0%, 100% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(1.2);
-  }
+.coffee-brewing-lottie:hover {
+  will-change: transform;
 }
 
-@keyframes cupFloat {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-2px);
-  }
+.coffee-brewing-lottie:not(:hover) {
+  will-change: auto;
 }
 
-.coffee-brewing-container {
-  animation: cupFloat 3s ease-in-out infinite;
-}
-
-.coffee-cup-animation .steam-animation {
-  animation: steamRise 2s ease-in-out infinite;
-  transform-origin: center bottom;
-}
-
-.coffee-cup-animation .coffee-liquid {
-  animation: coffeeGlow 2.5s ease-in-out infinite;
-}
-
-/* Stagger steam animations */
-.coffee-cup-animation .steam-animation path:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.coffee-cup-animation .steam-animation path:nth-child(2) {
-  animation-delay: 0.3s;
-}
-
-.coffee-cup-animation .steam-animation path:nth-child(3) {
-  animation-delay: 0.6s;
-}
-
-/* Reduced motion support for coffee animation */
+/* Reduced motion support for Lottie animations */
 @media (prefers-reduced-motion: reduce) {
-  .coffee-brewing-container,
-  .coffee-cup-animation .steam-animation,
-  .coffee-cup-animation .coffee-liquid {
-    animation: none;
+  .coffee-brewing-lottie {
+    animation-play-state: paused !important;
   }
 }
