@@ -332,8 +332,56 @@ app.get('/', (req, res) => {
 // Trust proxy for Railway deployment (must be before rate limiting)
 app.set('trust proxy', 1);
 
-// Security middleware
-app.use(helmet());
+// Security middleware with custom CSP for webhook and Lottie animations
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'", // Required for Vite in development
+        "'unsafe-eval'", // Required for Lottie animations
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'", // Required for styled components and CSS-in-JS
+        "https://fonts.googleapis.com",
+      ],
+      fontSrc: [
+        "'self'",
+        "https://fonts.googleapis.com",
+        "https://fonts.gstatic.com",
+      ],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "blob:",
+        "https:", // Allow all HTTPS images for flexibility
+      ],
+      connectSrc: [
+        "'self'",
+        // Webhook endpoint
+        "https://primary-production-1cd8.up.railway.app",
+        // Lottie animation source
+        "https://lottie.host",
+        // Allow local development
+        "http://localhost:*",
+        "ws://localhost:*",
+        "wss://localhost:*",
+      ],
+      mediaSrc: [
+        "'self'",
+        "data:",
+        "blob:",
+        "https://lottie.host", // For Lottie animations
+      ],
+      objectSrc: ["'none'"],
+      frameSrc: ["'self'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
+}));
 
 // CORS configuration
 app.use(cors({

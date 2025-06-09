@@ -56,6 +56,11 @@ const LottieAnimation = memo(({
   useEffect(() => {
     console.log('🎭 LottieAnimation mounted with src:', src, 'fallback:', fallbackSrc);
 
+    // Check for external URLs and CSP compliance
+    if (src.startsWith('http')) {
+      console.log('🛡️ CSP Check: Loading external Lottie animation from', new URL(src).origin);
+    }
+
     // Respect user's motion preferences
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 

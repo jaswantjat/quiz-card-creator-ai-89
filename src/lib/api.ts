@@ -145,6 +145,7 @@ export const webhookAPI = {
     try {
       console.log('🔗 Sending data to webhook:', WEBHOOK_URL);
       console.log('📊 Form data:', formData);
+      console.log('🛡️ CSP Check: Attempting external request to', new URL(WEBHOOK_URL).origin);
 
       const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
@@ -185,6 +186,14 @@ export const webhookAPI = {
       };
     } catch (error) {
       console.error('❌ Webhook error:', error);
+
+      // Check for CSP violations
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        console.error('🛡️ Possible CSP violation: External request blocked');
+        console.error('🔧 Check Content-Security-Policy headers and meta tags');
+        console.error('🌐 Ensure connect-src includes:', new URL(WEBHOOK_URL).origin);
+      }
+
       throw error;
     }
   }
