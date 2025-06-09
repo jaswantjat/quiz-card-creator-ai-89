@@ -12,6 +12,13 @@ interface MCQQuestion {
   correctAnswer: number;
   explanation: string;
   difficulty: 'easy' | 'medium' | 'hard';
+  metadata?: {
+    subTopics?: string;
+    author?: string;
+    topic?: string;
+    score?: string;
+    questionType?: string;
+  };
 }
 
 interface QuestionDisplayProps {
@@ -64,11 +71,21 @@ const QuestionCard = memo(({
         {/* Question Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-sm font-semibold text-slate-500">Q{index + 1}</span>
               <Badge className={difficultyBadgeClass}>
                 {capitalizedDifficulty}
               </Badge>
+              {question.metadata?.questionType && (
+                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                  {question.metadata.questionType}
+                </Badge>
+              )}
+              {question.metadata?.subTopics && (
+                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                  {question.metadata.subTopics}
+                </Badge>
+              )}
             </div>
             <h4 className="text-lg font-semibold text-slate-800 leading-relaxed">
               {question.question}
@@ -121,8 +138,34 @@ const QuestionCard = memo(({
           </div>
         </div>
 
+        {/* Question Metadata */}
+        {question.metadata && (
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <div className="flex flex-wrap gap-3 text-xs text-slate-500">
+              {question.metadata.author && (
+                <span className="flex items-center gap-1">
+                  <span className="font-medium">Author:</span>
+                  <span className="text-slate-600">{question.metadata.author}</span>
+                </span>
+              )}
+              {question.metadata.topic && (
+                <span className="flex items-center gap-1">
+                  <span className="font-medium">Topic:</span>
+                  <span className="text-slate-600">{question.metadata.topic}</span>
+                </span>
+              )}
+              {question.metadata.score && (
+                <span className="flex items-center gap-1">
+                  <span className="font-medium">Score:</span>
+                  <span className="text-slate-600">{question.metadata.score}</span>
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mt-4">
           <Button
             onClick={onRegenerate}
             variant="outline"

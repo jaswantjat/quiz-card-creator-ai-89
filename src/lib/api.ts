@@ -1,5 +1,22 @@
 import axios from 'axios';
 
+// MCQQuestion interface for type safety
+interface MCQQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  metadata?: {
+    subTopics?: string;
+    author?: string;
+    topic?: string;
+    score?: string;
+    questionType?: string;
+  };
+}
+
 // API base URL - in production, use relative path since frontend and backend are served from same domain
 const API_BASE_URL = import.meta.env.VITE_API_URL ||
   (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
@@ -129,6 +146,71 @@ export const usersAPI = {
   },
 };
 
+// Webhook response types
+interface WebhookQuestionResponse {
+  "Question Type": string;
+  "Difficulty Level": string;
+  "Question Text": string;
+  "Option (A)": string;
+  "Option (B)": string;
+  "Option (C)": string;
+  "Option (D)": string;
+  "Option (E)"?: string;
+  "Correct Option (A/B/C/D)": string;
+  "Answer Explanation": string;
+  "Score": string;
+  "Sub-Topics": string;
+  "Author": string;
+  "Topic": string;
+}
+
+// Transform webhook response to our MCQQuestion format
+const transformWebhookResponse = (webhookQuestions: WebhookQuestionResponse[]): MCQQuestion[] => {
+  return webhookQuestions.map((wq, index) => {
+    // Extract options (filter out empty ones)
+    const options = [
+      wq["Option (A)"],
+      wq["Option (B)"],
+      wq["Option (C)"],
+      wq["Option (D)"],
+      wq["Option (E)"] || ""
+    ].filter(option => option && option.trim() !== "");
+
+    // Convert correct option letter to index (A=0, B=1, C=2, D=3, E=4)
+    const correctLetter = wq["Correct Option (A/B/C/D)"].toUpperCase();
+    const correctAnswer = correctLetter.charCodeAt(0) - 65; // A=0, B=1, etc.
+
+    // Map difficulty level to our format
+    const difficultyMap: { [key: string]: 'easy' | 'medium' | 'hard' } = {
+      'Easy': 'easy',
+      'Medium': 'medium',
+      'Hard': 'hard',
+      'easy': 'easy',
+      'medium': 'medium',
+      'hard': 'hard'
+    };
+
+    const difficulty = difficultyMap[wq["Difficulty Level"]] || 'medium';
+
+    return {
+      id: `webhook-${Date.now()}-${index}`,
+      question: wq["Question Text"],
+      options,
+      correctAnswer,
+      explanation: wq["Answer Explanation"],
+      difficulty,
+      // Additional metadata for debugging
+      metadata: {
+        subTopics: wq["Sub-Topics"],
+        author: wq["Author"],
+        topic: wq["Topic"],
+        score: wq["Score"],
+        questionType: wq["Question Type"]
+      }
+    };
+  });
+};
+
 // Webhook API
 export const webhookAPI = {
   sendQuestionGenerationData: async (formData: {
@@ -179,9 +261,23 @@ export const webhookAPI = {
       }
 
       console.log('✅ Webhook response:', responseData);
+
+      // Transform webhook response to MCQQuestion format if it contains questions
+      let transformedQuestions: MCQQuestion[] = [];
+      if (Array.isArray(responseData) && responseData.length > 0) {
+        console.log('🔄 Transforming webhook questions to MCQ format...');
+        transformedQuestions = transformWebhookResponse(responseData);
+        console.log('✅ Transformed questions:', transformedQuestions);
+      } else if (responseData.questions && Array.isArray(responseData.questions)) {
+        console.log('🔄 Transforming nested webhook questions to MCQ format...');
+        transformedQuestions = transformWebhookResponse(responseData.questions);
+        console.log('✅ Transformed questions:', transformedQuestions);
+      }
+
       return {
         success: true,
         data: responseData,
+        questions: transformedQuestions,
         status: response.status
       };
     } catch (error) {

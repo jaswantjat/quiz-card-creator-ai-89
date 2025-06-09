@@ -15,6 +15,13 @@ interface MCQQuestion {
   correctAnswer: number;
   explanation: string;
   difficulty: 'easy' | 'medium' | 'hard';
+  metadata?: {
+    subTopics?: string;
+    author?: string;
+    topic?: string;
+    score?: string;
+    questionType?: string;
+  };
 }
 
 // Move sample questions outside component to prevent recreation on every render
@@ -136,12 +143,32 @@ const ChatAgent = memo(() => {
         description: `Webhook responded with status ${webhookResponse.status}`
       });
 
-      // Step 2: Continue with existing question generation logic
-      // Maintain the coffee brewing animation timing for good UX
-      await new Promise(resolve => setTimeout(resolve, 2000)); // 2 seconds remaining for animation
+      // Step 2: Use webhook questions if available, otherwise fallback to sample questions
+      let questionsToDisplay: MCQQuestion[] = [];
 
-      // Generate questions using existing logic
-      setGeneratedQuestions(SAMPLE_QUESTIONS.slice(0, totalQuestions || 3));
+      if (webhookResponse.questions && webhookResponse.questions.length > 0) {
+        console.log('🎯 Using webhook-generated questions:', webhookResponse.questions.length);
+        questionsToDisplay = webhookResponse.questions.slice(0, totalQuestions || 3);
+
+        // Show success toast for question generation
+        toast.success(`Generated ${questionsToDisplay.length} questions from webhook!`, {
+          description: 'Questions received and processed successfully'
+        });
+      } else {
+        console.log('⚠️ No questions in webhook response, using sample questions');
+        questionsToDisplay = SAMPLE_QUESTIONS.slice(0, totalQuestions || 3);
+
+        // Show info toast about fallback
+        toast.info('Using sample questions as fallback', {
+          description: 'Webhook response did not contain questions'
+        });
+      }
+
+      // Maintain the coffee brewing animation timing for good UX
+      await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 seconds remaining for animation
+
+      // Set the questions to display
+      setGeneratedQuestions(questionsToDisplay);
 
       // Consume credits
       setCredits(prevCredits => prevCredits - (totalQuestions || 3));
@@ -157,10 +184,17 @@ const ChatAgent = memo(() => {
         description: error instanceof Error ? error.message : 'Unknown webhook error'
       });
 
-      // Continue with question generation even if webhook fails
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setGeneratedQuestions(SAMPLE_QUESTIONS.slice(0, totalQuestions || 3));
-      setCredits(prevCredits => prevCredits - (totalQuestions || 3));
+      // Continue with question generation even if webhook fails (use sample questions)
+      console.log('🔄 Falling back to sample questions due to webhook failure');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const fallbackQuestions = SAMPLE_QUESTIONS.slice(0, totalQuestions || 3);
+      setGeneratedQuestions(fallbackQuestions);
+
+      // Show info toast about fallback
+      toast.info(`Generated ${fallbackQuestions.length} sample questions`, {
+        description: 'Webhook failed, but question generation continued'
+      });
     } finally {
       setIsGenerating(false);
       // Reset webhook status after a delay
