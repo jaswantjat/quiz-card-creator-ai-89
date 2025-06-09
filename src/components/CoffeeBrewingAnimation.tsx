@@ -10,7 +10,7 @@ interface CoffeeBrewingAnimationProps {
 
 // Use the exact Lottie animation URL provided, with JSON fallback
 const LOTTIE_ANIMATION_URL = 'https://lottie.host/0e55ab1a-dd3a-4a0a-95cf-cb52b8719407/kpKxG90DHf.lottie';
-const JSON_FALLBACK = '/src/assets/animations/coffee-fallback.json';
+const JSON_FALLBACK = '/animations/coffee-fallback.json';
 
 const CoffeeBrewingAnimation = memo(({
   isVisible = true,

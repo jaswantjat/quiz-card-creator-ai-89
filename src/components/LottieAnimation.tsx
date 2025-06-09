@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from 'react';
-import Player from 'react-lottie-player';
+import { Player } from '@lottiefiles/react-lottie-player';
 
 
 
@@ -37,29 +37,35 @@ const LottieAnimation = memo(({
 
   // Handle animation load errors
   const handleError = () => {
-    console.error('Failed to load animation from:', currentSrc);
+    console.error('🚨 Failed to load animation from:', currentSrc);
     if (fallbackSrc && currentSrc !== fallbackSrc) {
-      console.log('Trying fallback:', fallbackSrc);
+      console.log('🔄 Trying fallback:', fallbackSrc);
       setCurrentSrc(fallbackSrc);
       setError(null);
     } else {
+      console.error('❌ All animation sources failed');
       setError('Animation failed to load');
     }
   };
 
   const handleLoad = () => {
     setError(null);
-    console.log('Animation loaded successfully from:', currentSrc);
+    console.log('✅ Animation loaded successfully from:', currentSrc);
   };
 
   useEffect(() => {
+    console.log('🎭 LottieAnimation mounted with src:', src, 'fallback:', fallbackSrc);
+
     // Respect user's motion preferences
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    if (prefersReducedMotion && playerRef.current) {
-      playerRef.current.pause();
+    if (prefersReducedMotion) {
+      console.log('🔇 Reduced motion detected, will pause animation');
+      if (playerRef.current) {
+        playerRef.current.pause();
+      }
     }
-  }, []);
+  }, [src, fallbackSrc]);
 
   if (error) {
     return (
@@ -79,6 +85,7 @@ const LottieAnimation = memo(({
         autoplay={autoplay}
         loop={loop}
         onEvent={(event) => {
+          console.log('🎬 Player event:', event, 'for:', currentSrc);
           if (event === 'load') {
             handleLoad();
           } else if (event === 'error') {
