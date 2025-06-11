@@ -1,163 +1,35 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import iQubeLogo from '@/assets/images/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png';
 import aiIcon from '@/assets/images/2d10c74e-3a04-4e16-adec-d4b95a85bc81.png';
-import { questionsAPI } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import SimpleProgressiveDisplay from "./SimpleProgressiveDisplay";
 
-// Unified question interface for progressive loading
-interface UnifiedQuestion {
-  id: string;
-  question: string;
-  topic: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  questionType: string;
-  generated: boolean;
-  // Optional MCQ fields for future expansion
-  options?: string[];
-  correctAnswer?: number;
-  explanation?: string;
-  metadata?: {
-    subTopics?: string;
-    author?: string;
-    score?: string;
-  };
-}
-
-// Progressive Loading State Interface
-interface ProgressiveLoadingState {
-  phase: 'initial' | 'loading' | 'complete';
-  questionsLoaded: number;
-  totalExpected: number;
-  isLoading: boolean;
-  error?: string;
-}
+// Simplified AICard - Navigation only, no question generation
 
 const AICard = () => {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [questions, setQuestions] = useState<UnifiedQuestion[]>([]);
-  const [selectedTopic, setSelectedTopic] = useState<string>("");
-  const [progressiveLoadingState, setProgressiveLoadingState] = useState<ProgressiveLoadingState>({
-    phase: 'initial',
-    questionsLoaded: 0,
-    totalExpected: 0,
-    isLoading: false
-  });
+  const [isNavigating, setIsNavigating] = useState(false);
+  const navigate = useNavigate();
   const { user } = useAuth();
 
-  const topics = ["Business & AI", "Technology & Innovation", "Education & Learning", "Health & Wellness", "Science & Research", "Marketing & Sales", "Leadership & Management", "Creative Writing", "Philosophy & Ethics", "Environment & Sustainability"];
-  
-  const generateQuestionsForTopic = (topic: string) => {
-    const questionSets = {
-      "Business & AI": ["What are the key factors to consider when implementing AI in business?", "How can machine learning improve customer experience?", "What ethical considerations should guide AI development in business?", "How do you measure the ROI of AI implementations?", "What are the emerging trends in artificial intelligence for business?"],
-      "Technology & Innovation": ["How is emerging technology reshaping traditional industries?", "What role does innovation play in competitive advantage?", "How can organizations foster a culture of technological innovation?", "What are the challenges of digital transformation?", "How do you balance innovation with security concerns?"],
-      "Education & Learning": ["How can technology enhance personalized learning experiences?", "What are the most effective methods for skill development?", "How do you create engaging educational content?", "What role does feedback play in the learning process?", "How can we measure learning effectiveness?"],
-      "Health & Wellness": ["What are the key components of a holistic wellness approach?", "How can technology improve healthcare accessibility?", "What role does mental health play in overall wellness?", "How can we promote preventive healthcare practices?", "What are the challenges in healthcare innovation?"],
-      "Science & Research": ["What methodologies ensure research reliability and validity?", "How do you approach interdisciplinary research collaboration?", "What are the ethical considerations in scientific research?", "How can research findings be effectively communicated to the public?", "What role does peer review play in scientific advancement?"],
-      "Marketing & Sales": ["How has digital marketing transformed customer engagement?", "What are the key metrics for measuring marketing success?", "How do you build authentic brand relationships?", "What role does data analytics play in sales strategies?", "How can businesses adapt to changing consumer behaviors?"],
-      "Leadership & Management": ["What qualities define effective leadership in the modern workplace?", "How do you manage and motivate remote teams?", "What are the challenges of organizational change management?", "How can leaders foster innovation within their teams?", "What role does emotional intelligence play in leadership?"],
-      "Creative Writing": ["What techniques help develop compelling characters?", "How do you maintain consistency in world-building?", "What are effective methods for overcoming writer's block?", "How do you balance plot development with character growth?", "What role does research play in creative writing?"],
-      "Philosophy & Ethics": ["How do ethical frameworks guide decision-making?", "What is the relationship between individual rights and collective good?", "How do cultural perspectives influence ethical reasoning?", "What are the philosophical implications of artificial intelligence?", "How do we navigate moral dilemmas in complex situations?"],
-      "Environment & Sustainability": ["What are the most effective strategies for environmental conservation?", "How can businesses integrate sustainability into their operations?", "What role does individual action play in environmental protection?", "How do we balance economic growth with environmental responsibility?", "What are the challenges of implementing renewable energy solutions?"]
-    };
-    const topicQuestions = questionSets[topic as keyof typeof questionSets] || questionSets["Business & AI"];
-    return topicQuestions.sort(() => 0.5 - Math.random()).slice(0, 3);
+  // Simple navigation handler - no question generation here
+  const handleNavigateToGenerator = () => {
+    setIsNavigating(true);
+
+    // Show loading feedback
+    toast.success("Opening Question Generator...", {
+      description: "Redirecting to the question generation form"
+    });
+
+    // Navigate to the proper question generation page
+    setTimeout(() => {
+      navigate('/chat-agent');
+      setIsNavigating(false);
+    }, 500);
   };
 
-  // Progressive question generation with immediate display
-  const handleGenerateQuestions = useCallback(async () => {
-    setIsGenerating(true);
-    setQuestions([]); // Clear previous questions
 
-    try {
-      // Pick a random topic and generate questions
-      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
-      setSelectedTopic(randomTopic);
-
-      // Initialize progressive loading state
-      setProgressiveLoadingState({
-        phase: 'initial',
-        questionsLoaded: 0,
-        totalExpected: 3,
-        isLoading: true
-      });
-
-      console.log('🚀 Starting progressive question generation...');
-
-      // Simulate progressive loading by generating questions one by one
-      const allQuestions: UnifiedQuestion[] = [];
-      const topicQuestions = generateQuestionsForTopic(randomTopic);
-
-      for (let i = 0; i < 3; i++) {
-        // Simulate API delay for realistic progressive loading
-        if (i > 0) {
-          await new Promise(resolve => setTimeout(resolve, 800));
-        }
-
-        const newQuestion: UnifiedQuestion = {
-          id: `progressive-${Date.now()}-${i}`,
-          question: topicQuestions[i] || `Generated question ${i + 1} for ${randomTopic}`,
-          topic: randomTopic,
-          difficulty: 'medium',
-          questionType: 'text',
-          generated: true
-        };
-
-        allQuestions.push(newQuestion);
-
-        // Update questions immediately - this is the key for progressive display
-        setQuestions([...allQuestions]);
-
-        // Update progressive loading state
-        setProgressiveLoadingState({
-          phase: i === 2 ? 'complete' : 'loading',
-          questionsLoaded: allQuestions.length,
-          totalExpected: 3,
-          isLoading: i < 2
-        });
-
-        // Show progress toast for each question
-        toast.success(`Question ${i + 1} loaded!`, {
-          description: `${allQuestions.length} of 3 questions ready`
-        });
-
-        console.log(`✅ Question ${i + 1} loaded progressively`);
-      }
-
-      // Final success message
-      toast.success(`All 3 questions generated for ${randomTopic}!`, {
-        description: 'Questions are ready for use'
-      });
-
-    } catch (error: any) {
-      console.error('Generation failed:', error);
-      toast.error('Failed to generate questions. Using fallback questions.');
-
-      // Fallback to local generation if API fails
-      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
-      const fallbackQuestions = generateQuestionsForTopic(randomTopic).map((q, index) => ({
-        id: `fallback-${index}`,
-        question: q,
-        topic: randomTopic,
-        difficulty: 'medium' as const,
-        questionType: 'text',
-        generated: true
-      }));
-      setQuestions(fallbackQuestions);
-      setSelectedTopic(randomTopic);
-
-      setProgressiveLoadingState({
-        phase: 'complete',
-        questionsLoaded: fallbackQuestions.length,
-        totalExpected: fallbackQuestions.length,
-        isLoading: false
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [topics]);
 
   return (
     <div className="relative w-full font-inter">
@@ -214,36 +86,20 @@ const AICard = () => {
             Generates intelligent questions for various topics.
           </p>
 
-          {/* Generate Button */}
-          <Button onClick={handleGenerateQuestions} disabled={isGenerating} className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border border-white/30 font-inter">
-            {isGenerating ? <div className="flex items-center gap-2">
+          {/* Navigate to Generator Button */}
+          <Button onClick={handleNavigateToGenerator} disabled={isNavigating} className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border border-white/30 font-inter">
+            {isNavigating ? <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Generating Questions...
+                Opening Generator...
               </div> : <div className="flex items-center gap-2">
                 <img src={aiIcon} alt="AI Icon" className="w-6 h-6" />
-                Generate Questions with AI
+                Start Question Generation
               </div>}
           </Button>
         </div>
       </div>
 
-      {/* Progressive Question Display */}
-      {questions.length > 0 && (
-        <div className="mt-6">
-          <SimpleProgressiveDisplay
-            questions={questions}
-            loadingState={progressiveLoadingState}
-            onAddToQB={(questionId: string) => {
-              console.log('Add to question bank:', questionId);
-              toast.success('Question added to bank!');
-            }}
-            onRegenerate={() => {
-              console.log('Regenerating questions...');
-              handleGenerateQuestions();
-            }}
-          />
-        </div>
-      )}
+
     </div>
   );
 };
