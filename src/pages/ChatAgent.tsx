@@ -333,32 +333,7 @@ const ChatAgent = memo(() => {
           {/* Simplified gradient overlay - reduced complexity for better performance */}
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 via-transparent to-amber-100/20 pointer-events-none" />
 
-          {/* Progressive Loading Toggle (for testing) */}
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-semibold text-blue-800">Loading Mode</h4>
-                <p className="text-sm text-blue-600">
-                  {useProgressiveLoading
-                    ? 'Progressive: Shows questions immediately as they load'
-                    : 'Legacy: Shows all questions after complete loading'
-                  }
-                </p>
-              </div>
-              <button
-                onClick={() => setUseProgressiveLoading(!useProgressiveLoading)}
-                className={`
-                  px-4 py-2 rounded-lg font-medium transition-all duration-200
-                  ${useProgressiveLoading
-                    ? 'bg-orange-500 text-white hover:bg-orange-600'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }
-                `}
-              >
-                {useProgressiveLoading ? 'Progressive' : 'Legacy'}
-              </button>
-            </div>
-          </div>
+
 
           <QuestionGenerationForm
             {...formProps}
