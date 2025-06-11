@@ -211,8 +211,24 @@ const transformAPIResponse = (apiQuestions: APIQuestionResponse[]): MCQQuestion[
   });
 };
 
-// Question Generation API
+// Progressive Loading Types
+interface ProgressiveLoadingState {
+  phase: 'initial' | 'background' | 'complete';
+  questionsLoaded: number;
+  totalExpected: number;
+  isLoading: boolean;
+  error?: string;
+}
+
+interface ProgressiveQuestionResponse {
+  questions: MCQQuestion[];
+  loadingState: ProgressiveLoadingState;
+  hasMore: boolean;
+}
+
+// Question Generation API with Progressive Loading
 export const questionGenerationAPI = {
+  // Original single-request method (kept for backward compatibility)
   generateQuestions: async (formData: {
     context: string;
     topicName: string;
@@ -227,7 +243,6 @@ export const questionGenerationAPI = {
     try {
       console.log('🚀 Generating questions via API:', API_ENDPOINT);
       console.log('📊 Generation parameters:', formData);
-      console.log('🛡️ CSP Check: Attempting external request to', new URL(API_ENDPOINT).origin);
 
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
@@ -262,16 +277,12 @@ export const questionGenerationAPI = {
 
       console.log('✅ API response received:', responseData);
 
-      // Transform API response to MCQQuestion format if it contains questions
+      // Transform API response to MCQQuestion format
       let transformedQuestions: MCQQuestion[] = [];
       if (Array.isArray(responseData) && responseData.length > 0) {
-        console.log('🔄 Transforming API questions to MCQ format...');
         transformedQuestions = transformAPIResponse(responseData);
-        console.log('✅ Transformed questions:', transformedQuestions);
       } else if (responseData.questions && Array.isArray(responseData.questions)) {
-        console.log('🔄 Transforming nested API questions to MCQ format...');
         transformedQuestions = transformAPIResponse(responseData.questions);
-        console.log('✅ Transformed questions:', transformedQuestions);
       }
 
       return {
@@ -282,15 +293,183 @@ export const questionGenerationAPI = {
       };
     } catch (error) {
       console.error('❌ Question generation error:', error);
+      throw error;
+    }
+  },
 
-      // Check for CSP violations
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        console.error('🛡️ Possible CSP violation: External request blocked');
-        console.error('🔧 Check Content-Security-Policy headers and meta tags');
-        console.error('🌐 Ensure connect-src includes:', new URL(API_ENDPOINT).origin);
+  // NEW: Progressive question generation with immediate first response
+  generateQuestionsProgressive: async function* (formData: {
+    context: string;
+    topicName: string;
+    easyCount: number;
+    mediumCount: number;
+    hardCount: number;
+    totalQuestions: number;
+    serviceId: string;
+  }): AsyncGenerator<ProgressiveQuestionResponse, void, unknown> {
+    const API_ENDPOINT = 'https://primary-production-1cd8.up.railway.app/webhook/c6ef8f24-74f3-4781-9d60-13e917c7d2a7';
+
+    console.log('🚀 Starting progressive question generation...');
+
+    try {
+      // Phase 1: Initial request for immediate response
+      console.log('📡 Phase 1: Sending initial request...');
+
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          serviceId: formData.serviceId,
+          timestamp: new Date().toISOString(),
+          phase: 'initial', // Indicate this is the initial request
+          formData: {
+            context: formData.context,
+            topicName: formData.topicName,
+            easyCount: formData.easyCount,
+            mediumCount: formData.mediumCount,
+            hardCount: formData.hardCount,
+            totalQuestions: formData.totalQuestions
+          },
+          metadata: {
+            source: 'iQube Question Generator Progressive',
+            userAgent: navigator.userAgent,
+            url: window.location.href
+          }
+        })
+      });
+
+      const initialData = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(`Initial request failed: ${response.status}`);
       }
 
-      throw error;
+      // Transform initial response
+      let initialQuestions: MCQQuestion[] = [];
+      if (Array.isArray(initialData) && initialData.length > 0) {
+        initialQuestions = transformAPIResponse(initialData);
+      } else if (initialData.questions && Array.isArray(initialData.questions)) {
+        initialQuestions = transformAPIResponse(initialData.questions);
+      }
+
+      console.log(`✅ Phase 1 complete: ${initialQuestions.length} questions received`);
+
+      // Yield initial questions immediately
+      yield {
+        questions: initialQuestions,
+        loadingState: {
+          phase: 'initial',
+          questionsLoaded: initialQuestions.length,
+          totalExpected: formData.totalQuestions,
+          isLoading: true
+        },
+        hasMore: initialQuestions.length < formData.totalQuestions
+      };
+
+      // Phase 2: Background loading for additional questions
+      if (initialQuestions.length < formData.totalQuestions) {
+        console.log('🔄 Phase 2: Starting background loading...');
+
+        // Simulate polling or additional requests for more questions
+        // In a real implementation, this might poll a status endpoint or make additional requests
+        const remainingQuestions = formData.totalQuestions - initialQuestions.length;
+
+        // Simulate background processing with delays
+        for (let i = 0; i < 3; i++) { // Up to 3 additional batches
+          await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5s delay between batches
+
+          try {
+            // Make additional request for more questions
+            const backgroundResponse = await fetch(API_ENDPOINT, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: JSON.stringify({
+                serviceId: formData.serviceId,
+                timestamp: new Date().toISOString(),
+                phase: 'background',
+                batch: i + 1,
+                formData: {
+                  ...formData,
+                  totalQuestions: Math.min(remainingQuestions, 2) // Request 2 questions per batch
+                }
+              })
+            });
+
+            if (backgroundResponse.ok) {
+              const backgroundData = await backgroundResponse.json().catch(() => ({}));
+              let additionalQuestions: MCQQuestion[] = [];
+
+              if (Array.isArray(backgroundData) && backgroundData.length > 0) {
+                additionalQuestions = transformAPIResponse(backgroundData);
+              } else if (backgroundData.questions && Array.isArray(backgroundData.questions)) {
+                additionalQuestions = transformAPIResponse(backgroundData.questions);
+              }
+
+              if (additionalQuestions.length > 0) {
+                console.log(`✅ Background batch ${i + 1}: ${additionalQuestions.length} additional questions`);
+
+                const totalLoaded = initialQuestions.length + additionalQuestions.length;
+
+                yield {
+                  questions: additionalQuestions,
+                  loadingState: {
+                    phase: 'background',
+                    questionsLoaded: totalLoaded,
+                    totalExpected: formData.totalQuestions,
+                    isLoading: totalLoaded < formData.totalQuestions
+                  },
+                  hasMore: totalLoaded < formData.totalQuestions
+                };
+
+                // Update initial questions array for next iteration
+                initialQuestions = [...initialQuestions, ...additionalQuestions];
+
+                if (totalLoaded >= formData.totalQuestions) {
+                  break; // We have enough questions
+                }
+              }
+            }
+          } catch (backgroundError) {
+            console.warn(`⚠️ Background batch ${i + 1} failed:`, backgroundError);
+            // Continue with next batch even if one fails
+          }
+        }
+      }
+
+      // Phase 3: Complete
+      console.log('🎉 Progressive loading complete');
+      yield {
+        questions: [],
+        loadingState: {
+          phase: 'complete',
+          questionsLoaded: initialQuestions.length,
+          totalExpected: formData.totalQuestions,
+          isLoading: false
+        },
+        hasMore: false
+      };
+
+    } catch (error) {
+      console.error('❌ Progressive generation error:', error);
+
+      // Yield error state
+      yield {
+        questions: [],
+        loadingState: {
+          phase: 'initial',
+          questionsLoaded: 0,
+          totalExpected: formData.totalQuestions,
+          isLoading: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        },
+        hasMore: false
+      };
     }
   }
 };

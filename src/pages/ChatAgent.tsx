@@ -1,12 +1,13 @@
 
-import { useState, useCallback, memo, useMemo, lazy, Suspense } from "react";
+import { useState, useCallback, memo, useMemo, lazy, Suspense, useEffect } from "react";
 import QuestionGenerationForm from "@/components/QuestionGenerationForm";
 import QuestionGenerationLoader from "@/components/QuestionGenerationLoader";
 import { questionGenerationAPI } from "@/lib/api";
 import { toast } from "sonner";
 
-// Lazy load SequentialQuestionDisplay for better initial page load performance
+// Lazy load components for better initial page load performance
 const SequentialQuestionDisplay = lazy(() => import("@/components/SequentialQuestionDisplay"));
+const ProgressiveQuestionDisplay = lazy(() => import("@/components/ProgressiveQuestionDisplay"));
 
 interface MCQQuestion {
   id: string;
@@ -67,6 +68,15 @@ const SAMPLE_QUESTIONS: MCQQuestion[] = [
   }
 ];
 
+// Progressive Loading State Interface
+interface ProgressiveLoadingState {
+  phase: 'initial' | 'background' | 'complete';
+  questionsLoaded: number;
+  totalExpected: number;
+  isLoading: boolean;
+  error?: string;
+}
+
 const ChatAgent = memo(() => {
   const [context, setContext] = useState("");
   const [topicName, setTopicName] = useState("");
@@ -77,6 +87,15 @@ const ChatAgent = memo(() => {
   const [generatedQuestions, setGeneratedQuestions] = useState<MCQQuestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
+
+  // Progressive loading state
+  const [progressiveLoadingState, setProgressiveLoadingState] = useState<ProgressiveLoadingState>({
+    phase: 'initial',
+    questionsLoaded: 0,
+    totalExpected: 0,
+    isLoading: false
+  });
+  const [useProgressiveLoading, setUseProgressiveLoading] = useState(true);
 
   // Memoize totalQuestions to prevent unnecessary recalculations
   const totalQuestions = useMemo(() =>
@@ -100,7 +119,128 @@ const ChatAgent = memo(() => {
     totalQuestions
   }), [context, topicName, easyCount, mediumCount, hardCount, credits, totalQuestions]);
 
-  const handleGenerate = useCallback(async () => {
+  // Progressive question generation handler
+  const handleProgressiveGenerate = useCallback(async () => {
+    if (credits < totalQuestions) {
+      return;
+    }
+
+    // Basic validation
+    if (!topicName.trim()) {
+      toast.error('Please enter a topic name before generating questions');
+      return;
+    }
+
+    if (totalQuestions === 0) {
+      toast.error('Please select at least one question to generate');
+      return;
+    }
+
+    setIsGenerating(true);
+    setGenerationStatus('generating');
+    setGeneratedQuestions([]); // Clear previous questions
+
+    // Initialize progressive loading state
+    setProgressiveLoadingState({
+      phase: 'initial',
+      questionsLoaded: 0,
+      totalExpected: totalQuestions,
+      isLoading: true
+    });
+
+    const generationData = {
+      context,
+      topicName,
+      easyCount,
+      mediumCount,
+      hardCount,
+      totalQuestions,
+      serviceId: 'c6ef8f24-74f3-4781-9d60-13e917c7d2a7'
+    };
+
+    try {
+      console.log('🚀 Starting progressive question generation...');
+
+      let allQuestions: MCQQuestion[] = [];
+      let hasReceivedInitial = false;
+
+      // Use the progressive generator
+      for await (const response of questionGenerationAPI.generateQuestionsProgressive(generationData)) {
+        console.log('📦 Progressive response:', response);
+
+        // Update loading state
+        setProgressiveLoadingState(response.loadingState);
+
+        if (response.questions.length > 0) {
+          if (!hasReceivedInitial) {
+            // First batch - show immediately for instant feedback
+            console.log('⚡ Displaying initial questions immediately');
+            allQuestions = response.questions;
+            setGeneratedQuestions(allQuestions);
+            setGenerationStatus('success');
+
+            // Show initial success toast
+            toast.success(`${response.questions.length} questions loaded instantly!`, {
+              description: 'Loading additional questions in background...'
+            });
+
+            hasReceivedInitial = true;
+
+            // Reduce loading animation time since we have initial results
+            setTimeout(() => setIsGenerating(false), 800);
+          } else {
+            // Additional batches - append smoothly
+            console.log('🔄 Adding additional questions progressively');
+            allQuestions = [...allQuestions, ...response.questions];
+            setGeneratedQuestions(allQuestions);
+
+            // Show progress toast
+            toast.success(`+${response.questions.length} more questions loaded!`, {
+              description: `Total: ${allQuestions.length} questions`
+            });
+          }
+        }
+
+        // Handle completion
+        if (response.loadingState.phase === 'complete') {
+          console.log('🎉 Progressive loading complete');
+          toast.success('All questions loaded successfully!', {
+            description: `Generated ${allQuestions.length} total questions`
+          });
+          break;
+        }
+      }
+
+      // Consume credits
+      setCredits(prevCredits => prevCredits - totalQuestions);
+
+    } catch (error) {
+      console.error('❌ Progressive generation error:', error);
+      setGenerationStatus('error');
+
+      // Update loading state with error
+      setProgressiveLoadingState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }));
+
+      // Fallback to sample questions
+      console.log('🔄 Falling back to sample questions');
+      const fallbackQuestions = SAMPLE_QUESTIONS.slice(0, totalQuestions || 3);
+      setGeneratedQuestions(fallbackQuestions);
+
+      toast.error('Progressive loading failed, using sample questions', {
+        description: error instanceof Error ? error.message : 'Unknown error'
+      });
+    } finally {
+      // Reset generation status after a delay
+      setTimeout(() => setGenerationStatus('idle'), 3000);
+    }
+  }, [credits, totalQuestions, context, topicName, easyCount, mediumCount, hardCount]);
+
+  // Legacy single-request handler (kept for fallback)
+  const handleLegacyGenerate = useCallback(async () => {
     if (credits < totalQuestions) {
       return;
     }
@@ -120,8 +260,7 @@ const ChatAgent = memo(() => {
     setGenerationStatus('generating');
 
     try {
-      // Step 1: Generate questions via AI service
-      console.log('🚀 Starting question generation process...');
+      console.log('🚀 Starting legacy question generation...');
 
       const generationData = {
         context,
@@ -134,73 +273,44 @@ const ChatAgent = memo(() => {
       };
 
       const apiResponse = await questionGenerationAPI.generateQuestions(generationData);
-
-      console.log('✅ Questions generated successfully:', apiResponse);
       setGenerationStatus('success');
 
-      // Show success toast for generation
-      toast.success('Questions generated successfully!', {
-        description: `AI service responded with status ${apiResponse.status}`
-      });
-
-      // Step 2: Use AI-generated questions if available, otherwise fallback to sample questions
       let questionsToDisplay: MCQQuestion[] = [];
-
       if (apiResponse.questions && apiResponse.questions.length > 0) {
-        console.log('🎯 Using AI-generated questions:', apiResponse.questions.length);
-        questionsToDisplay = apiResponse.questions.slice(0, totalQuestions || 3);
-
-        // Show success toast for question generation
-        toast.success(`Generated ${questionsToDisplay.length} questions successfully!`, {
-          description: 'Questions created and processed successfully'
-        });
+        questionsToDisplay = apiResponse.questions;
+        toast.success(`Generated ${questionsToDisplay.length} questions!`);
       } else {
-        console.log('⚠️ No questions in API response, using sample questions');
         questionsToDisplay = SAMPLE_QUESTIONS.slice(0, totalQuestions || 3);
-
-        // Show info toast about fallback
-        toast.info('Using sample questions as fallback', {
-          description: 'AI service response did not contain questions'
-        });
+        toast.info(`Using ${questionsToDisplay.length} sample questions`);
       }
 
-      // Maintain the coffee brewing animation timing for good UX
-      await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 seconds remaining for animation
-
-      // Set the questions to display
+      await new Promise(resolve => setTimeout(resolve, 1500));
       setGeneratedQuestions(questionsToDisplay);
-
-      // Consume credits
-      setCredits(prevCredits => prevCredits - (totalQuestions || 3));
-
-      console.log('🎉 Question generation completed successfully');
+      setCredits(prevCredits => prevCredits - totalQuestions);
 
     } catch (error) {
-      console.error('❌ Error in question generation process:', error);
+      console.error('❌ Legacy generation error:', error);
       setGenerationStatus('error');
 
-      // Show error toast but continue with question generation
-      toast.error('AI service failed, but continuing with question generation', {
-        description: error instanceof Error ? error.message : 'Unknown generation error'
-      });
-
-      // Continue with question generation even if AI service fails (use sample questions)
-      console.log('🔄 Falling back to sample questions due to AI service failure');
       await new Promise(resolve => setTimeout(resolve, 1500));
-
       const fallbackQuestions = SAMPLE_QUESTIONS.slice(0, totalQuestions || 3);
       setGeneratedQuestions(fallbackQuestions);
 
-      // Show info toast about fallback
-      toast.info(`Generated ${fallbackQuestions.length} sample questions`, {
-        description: 'AI service failed, but question generation continued'
-      });
+      toast.error('Generation failed, using sample questions');
     } finally {
       setIsGenerating(false);
-      // Reset generation status after a delay
       setTimeout(() => setGenerationStatus('idle'), 3000);
     }
   }, [credits, totalQuestions, context, topicName, easyCount, mediumCount, hardCount]);
+
+  // Main generate handler - chooses between progressive and legacy
+  const handleGenerate = useCallback(() => {
+    if (useProgressiveLoading) {
+      return handleProgressiveGenerate();
+    } else {
+      return handleLegacyGenerate();
+    }
+  }, [useProgressiveLoading, handleProgressiveGenerate, handleLegacyGenerate]);
 
   const handleRegenerate = useCallback(async () => {
     setIsGenerating(true);
@@ -223,12 +333,39 @@ const ChatAgent = memo(() => {
           {/* Simplified gradient overlay - reduced complexity for better performance */}
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 via-transparent to-amber-100/20 pointer-events-none" />
 
+          {/* Progressive Loading Toggle (for testing) */}
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-semibold text-blue-800">Loading Mode</h4>
+                <p className="text-sm text-blue-600">
+                  {useProgressiveLoading
+                    ? 'Progressive: Shows questions immediately as they load'
+                    : 'Legacy: Shows all questions after complete loading'
+                  }
+                </p>
+              </div>
+              <button
+                onClick={() => setUseProgressiveLoading(!useProgressiveLoading)}
+                className={`
+                  px-4 py-2 rounded-lg font-medium transition-all duration-200
+                  ${useProgressiveLoading
+                    ? 'bg-orange-500 text-white hover:bg-orange-600'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }
+                `}
+              >
+                {useProgressiveLoading ? 'Progressive' : 'Legacy'}
+              </button>
+            </div>
+          </div>
+
           <QuestionGenerationForm
             {...formProps}
             onGenerate={handleGenerate}
           />
 
-          {/* Generated Questions with Sequential Display */}
+          {/* Generated Questions with Progressive or Sequential Display */}
           {hasQuestions && (
             <div className="relative z-10 mt-8">
               <Suspense fallback={
@@ -237,11 +374,20 @@ const ChatAgent = memo(() => {
                   <span className="ml-3 text-slate-600">Loading questions...</span>
                 </div>
               }>
-                <SequentialQuestionDisplay
-                  questions={generatedQuestions}
-                  onAddToQB={handleAddToQB}
-                  onRegenerate={handleRegenerate}
-                />
+                {useProgressiveLoading ? (
+                  <ProgressiveQuestionDisplay
+                    questions={generatedQuestions}
+                    loadingState={progressiveLoadingState}
+                    onAddToQB={handleAddToQB}
+                    onRegenerate={handleRegenerate}
+                  />
+                ) : (
+                  <SequentialQuestionDisplay
+                    questions={generatedQuestions}
+                    onAddToQB={handleAddToQB}
+                    onRegenerate={handleRegenerate}
+                  />
+                )}
               </Suspense>
             </div>
           )}
