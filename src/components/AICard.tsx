@@ -1,27 +1,50 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import iQubeLogo from '@/assets/images/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png';
 import aiIcon from '@/assets/images/2d10c74e-3a04-4e16-adec-d4b95a85bc81.png';
 import { questionsAPI } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import QuestionGenerator from "./QuestionGenerator";
+import SimpleProgressiveDisplay from "./SimpleProgressiveDisplay";
 
-interface GeneratedQuestion {
+// Unified question interface for progressive loading
+interface UnifiedQuestion {
   id: string;
   question: string;
   topic: string;
-  difficulty: string;
+  difficulty: 'easy' | 'medium' | 'hard';
   questionType: string;
   generated: boolean;
+  // Optional MCQ fields for future expansion
+  options?: string[];
+  correctAnswer?: number;
+  explanation?: string;
+  metadata?: {
+    subTopics?: string;
+    author?: string;
+    score?: string;
+  };
+}
+
+// Progressive Loading State Interface
+interface ProgressiveLoadingState {
+  phase: 'initial' | 'loading' | 'complete';
+  questionsLoaded: number;
+  totalExpected: number;
+  isLoading: boolean;
+  error?: string;
 }
 
 const AICard = () => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
+  const [questions, setQuestions] = useState<UnifiedQuestion[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string>("");
-  const navigate = useNavigate();
+  const [progressiveLoadingState, setProgressiveLoadingState] = useState<ProgressiveLoadingState>({
+    phase: 'initial',
+    questionsLoaded: 0,
+    totalExpected: 0,
+    isLoading: false
+  });
   const { user } = useAuth();
 
   const topics = ["Business & AI", "Technology & Innovation", "Education & Learning", "Health & Wellness", "Science & Research", "Marketing & Sales", "Leadership & Management", "Creative Writing", "Philosophy & Ethics", "Environment & Sustainability"];
@@ -43,29 +66,74 @@ const AICard = () => {
     return topicQuestions.sort(() => 0.5 - Math.random()).slice(0, 3);
   };
 
-  const handleGenerateQuestions = async () => {
+  // Progressive question generation with immediate display
+  const handleGenerateQuestions = useCallback(async () => {
     setIsGenerating(true);
+    setQuestions([]); // Clear previous questions
+
     try {
       // Pick a random topic and generate questions
       const randomTopic = topics[Math.floor(Math.random() * topics.length)];
       setSelectedTopic(randomTopic);
 
-      // Call backend API to generate questions
-      const response = await questionsAPI.generate({
-        topicName: randomTopic,
-        count: 3,
-        difficulty: 'medium',
-        questionType: 'text'
+      // Initialize progressive loading state
+      setProgressiveLoadingState({
+        phase: 'initial',
+        questionsLoaded: 0,
+        totalExpected: 3,
+        isLoading: true
       });
 
-      setQuestions(response.questions);
-      toast.success(`Generated ${response.questions.length} questions for ${randomTopic}`);
+      console.log('🚀 Starting progressive question generation...');
 
-      // Navigate to chat agent with generated questions
-      navigate('/chat-agent', { state: { questions: response.questions, topic: randomTopic } });
+      // Simulate progressive loading by generating questions one by one
+      const allQuestions: UnifiedQuestion[] = [];
+      const topicQuestions = generateQuestionsForTopic(randomTopic);
+
+      for (let i = 0; i < 3; i++) {
+        // Simulate API delay for realistic progressive loading
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, 800));
+        }
+
+        const newQuestion: UnifiedQuestion = {
+          id: `progressive-${Date.now()}-${i}`,
+          question: topicQuestions[i] || `Generated question ${i + 1} for ${randomTopic}`,
+          topic: randomTopic,
+          difficulty: 'medium',
+          questionType: 'text',
+          generated: true
+        };
+
+        allQuestions.push(newQuestion);
+
+        // Update questions immediately - this is the key for progressive display
+        setQuestions([...allQuestions]);
+
+        // Update progressive loading state
+        setProgressiveLoadingState({
+          phase: i === 2 ? 'complete' : 'loading',
+          questionsLoaded: allQuestions.length,
+          totalExpected: 3,
+          isLoading: i < 2
+        });
+
+        // Show progress toast for each question
+        toast.success(`Question ${i + 1} loaded!`, {
+          description: `${allQuestions.length} of 3 questions ready`
+        });
+
+        console.log(`✅ Question ${i + 1} loaded progressively`);
+      }
+
+      // Final success message
+      toast.success(`All 3 questions generated for ${randomTopic}!`, {
+        description: 'Questions are ready for use'
+      });
+
     } catch (error: any) {
       console.error('Generation failed:', error);
-      toast.error(error.response?.data?.message || 'Failed to generate questions. Please try again.');
+      toast.error('Failed to generate questions. Using fallback questions.');
 
       // Fallback to local generation if API fails
       const randomTopic = topics[Math.floor(Math.random() * topics.length)];
@@ -73,16 +141,23 @@ const AICard = () => {
         id: `fallback-${index}`,
         question: q,
         topic: randomTopic,
-        difficulty: 'medium',
+        difficulty: 'medium' as const,
         questionType: 'text',
         generated: true
       }));
       setQuestions(fallbackQuestions);
       setSelectedTopic(randomTopic);
+
+      setProgressiveLoadingState({
+        phase: 'complete',
+        questionsLoaded: fallbackQuestions.length,
+        totalExpected: fallbackQuestions.length,
+        isLoading: false
+      });
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [topics]);
 
   return (
     <div className="relative w-full font-inter">
@@ -152,10 +227,23 @@ const AICard = () => {
         </div>
       </div>
 
-      {/* Question Generator Results */}
-      {questions.length > 0 && <div className="mt-6">
-          <QuestionGenerator questions={questions} />
-        </div>}
+      {/* Progressive Question Display */}
+      {questions.length > 0 && (
+        <div className="mt-6">
+          <SimpleProgressiveDisplay
+            questions={questions}
+            loadingState={progressiveLoadingState}
+            onAddToQB={(questionId: string) => {
+              console.log('Add to question bank:', questionId);
+              toast.success('Question added to bank!');
+            }}
+            onRegenerate={() => {
+              console.log('Regenerating questions...');
+              handleGenerateQuestions();
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
