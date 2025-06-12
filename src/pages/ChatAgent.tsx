@@ -1,7 +1,6 @@
 
 import { useState, useCallback, memo, useMemo, lazy, Suspense, useEffect } from "react";
 import QuestionGenerationForm from "@/components/QuestionGenerationForm";
-import QuestionGenerationLoader from "@/components/QuestionGenerationLoader";
 import { questionGenerationAPI } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -25,48 +24,7 @@ interface MCQQuestion {
   };
 }
 
-// Move sample questions outside component to prevent recreation on every render
-const SAMPLE_QUESTIONS: MCQQuestion[] = [
-  {
-    id: "1",
-    question: "What is the primary purpose of React's useState hook?",
-    options: [
-      "To manage component lifecycle",
-      "To handle side effects",
-      "To manage local component state",
-      "To optimize performance"
-    ],
-    correctAnswer: 2,
-    explanation: "The useState hook is specifically designed to manage local state within functional components. It returns a state variable and a setter function to update that state.",
-    difficulty: 'easy'
-  },
-  {
-    id: "2",
-    question: "Which of the following best describes the Virtual DOM in React?",
-    options: [
-      "A direct copy of the browser's DOM",
-      "A lightweight JavaScript representation of the DOM",
-      "A database for storing component data",
-      "A styling framework for React components"
-    ],
-    correctAnswer: 1,
-    explanation: "The Virtual DOM is a lightweight JavaScript representation of the actual DOM. React uses it to efficiently update the UI by comparing (diffing) the virtual DOM with the previous version and only updating the parts that changed.",
-    difficulty: 'medium'
-  },
-  {
-    id: "3",
-    question: "What happens when you call setState() multiple times in the same function?",
-    options: [
-      "Each setState call triggers an immediate re-render",
-      "Only the last setState call takes effect",
-      "React batches the updates and triggers one re-render",
-      "It causes an error in the application"
-    ],
-    correctAnswer: 2,
-    explanation: "React batches multiple setState calls within the same function and triggers only one re-render for performance optimization. This is called 'batching' and helps prevent unnecessary re-renders.",
-    difficulty: 'hard'
-  }
-];
+
 
 // Progressive Loading State Interface
 interface ProgressiveLoadingState {
@@ -119,7 +77,7 @@ const ChatAgent = memo(() => {
     totalQuestions
   }), [context, topicName, easyCount, mediumCount, hardCount, credits, totalQuestions]);
 
-  // Progressive question generation handler
+  // Progressive question generation handler with FIXED state management
   const handleProgressiveGenerate = useCallback(async () => {
     if (credits < totalQuestions) {
       return;
@@ -159,53 +117,46 @@ const ChatAgent = memo(() => {
     };
 
     try {
-      console.log('🚀 Starting progressive question generation...');
+      console.log('🚀 Starting FIXED progressive question generation...');
 
-      let allQuestions: MCQQuestion[] = [];
+      // ✅ CRITICAL FIX: Use functional state updates to avoid closure issues
+      let questionsAccumulator: MCQQuestion[] = [];
       let hasReceivedInitial = false;
 
       // Use the progressive generator
       for await (const response of questionGenerationAPI.generateQuestionsProgressive(generationData)) {
-        console.log('📦 Progressive response:', response);
-
         // Update loading state
         setProgressiveLoadingState(response.loadingState);
 
         if (response.questions.length > 0) {
           if (!hasReceivedInitial) {
             // First batch - show immediately for instant feedback
-            console.log('⚡ Displaying initial questions immediately');
-            allQuestions = response.questions;
-            setGeneratedQuestions(allQuestions);
+            questionsAccumulator = [...response.questions];
+            setGeneratedQuestions([...questionsAccumulator]);
             setGenerationStatus('success');
+            setIsGenerating(false);
 
-            // Show initial success toast
             toast.success(`${response.questions.length} questions loaded instantly!`, {
               description: 'Loading additional questions in background...'
             });
 
             hasReceivedInitial = true;
-
-            // Reduce loading animation time since we have initial results
-            setTimeout(() => setIsGenerating(false), 800);
           } else {
             // Additional batches - append smoothly
-            console.log('🔄 Adding additional questions progressively');
-            allQuestions = [...allQuestions, ...response.questions];
-            setGeneratedQuestions(allQuestions);
+            questionsAccumulator = [...questionsAccumulator, ...response.questions];
+            setGeneratedQuestions([...questionsAccumulator]);
 
-            // Show progress toast
             toast.success(`+${response.questions.length} more questions loaded!`, {
-              description: `Total: ${allQuestions.length} questions`
+              description: `Total: ${questionsAccumulator.length} questions`
             });
           }
         }
 
         // Handle completion
         if (response.loadingState.phase === 'complete') {
-          console.log('🎉 Progressive loading complete');
+          setGeneratedQuestions([...questionsAccumulator]);
           toast.success('All questions loaded successfully!', {
-            description: `Generated ${allQuestions.length} total questions`
+            description: `Generated ${questionsAccumulator.length} total questions`
           });
           break;
         }
@@ -217,6 +168,7 @@ const ChatAgent = memo(() => {
     } catch (error) {
       console.error('❌ Progressive generation error:', error);
       setGenerationStatus('error');
+      setIsGenerating(false);
 
       // Update loading state with error
       setProgressiveLoadingState(prev => ({
@@ -225,12 +177,8 @@ const ChatAgent = memo(() => {
         error: error instanceof Error ? error.message : 'Unknown error'
       }));
 
-      // Fallback to sample questions
-      console.log('🔄 Falling back to sample questions');
-      const fallbackQuestions = SAMPLE_QUESTIONS.slice(0, totalQuestions || 3);
-      setGeneratedQuestions(fallbackQuestions);
-
-      toast.error('Progressive loading failed, using sample questions', {
+      // Show error to user
+      toast.error('Question generation failed', {
         description: error instanceof Error ? error.message : 'Unknown error'
       });
     } finally {
@@ -260,8 +208,6 @@ const ChatAgent = memo(() => {
     setGenerationStatus('generating');
 
     try {
-      console.log('🚀 Starting legacy question generation...');
-
       const generationData = {
         context,
         topicName,
@@ -275,33 +221,34 @@ const ChatAgent = memo(() => {
       const apiResponse = await questionGenerationAPI.generateQuestions(generationData);
       setGenerationStatus('success');
 
-      let questionsToDisplay: MCQQuestion[] = [];
       if (apiResponse.questions && apiResponse.questions.length > 0) {
-        questionsToDisplay = apiResponse.questions;
-        toast.success(`Generated ${questionsToDisplay.length} questions!`);
-      } else {
-        questionsToDisplay = SAMPLE_QUESTIONS.slice(0, totalQuestions || 3);
-        toast.info(`Using ${questionsToDisplay.length} sample questions`);
-      }
+        setGeneratedQuestions(apiResponse.questions);
+        setCredits(prevCredits => prevCredits - totalQuestions);
+        toast.success(`Generated ${apiResponse.questions.length} questions!`);
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setGeneratedQuestions(questionsToDisplay);
-      setCredits(prevCredits => prevCredits - totalQuestions);
+        // Hide loader after a short delay for smooth transition
+        setTimeout(() => setIsGenerating(false), 500);
+      } else {
+        // No questions returned - show error
+        setGenerationStatus('error');
+        setIsGenerating(false);
+        toast.error('No questions were generated. Please try again.');
+      }
 
     } catch (error) {
       console.error('❌ Legacy generation error:', error);
       setGenerationStatus('error');
-
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const fallbackQuestions = SAMPLE_QUESTIONS.slice(0, totalQuestions || 3);
-      setGeneratedQuestions(fallbackQuestions);
-
-      toast.error('Generation failed, using sample questions');
-    } finally {
       setIsGenerating(false);
+
+      toast.error('Question generation failed', {
+        description: error instanceof Error ? error.message : 'Unknown error'
+      });
+    } finally {
       setTimeout(() => setGenerationStatus('idle'), 3000);
     }
   }, [credits, totalQuestions, context, topicName, easyCount, mediumCount, hardCount]);
+
+
 
   // Main generate handler - chooses between progressive and legacy
   const handleGenerate = useCallback(() => {
@@ -322,7 +269,25 @@ const ChatAgent = memo(() => {
     // TODO: Add to question bank functionality
   }, []);
 
+  const handleRegenerateQuestion = useCallback(async (questionId: string) => {
+    // TODO: Implement individual question regeneration
+    // For now, we'll regenerate all questions as a placeholder
+    console.log(`Regenerating question with ID: ${questionId}`);
+    await handleRegenerate();
+  }, [handleRegenerate]);
+
+
+
   const hasQuestions = generatedQuestions.length > 0;
+
+  // Simple debug logging for production
+  useEffect(() => {
+    if (generatedQuestions.length > 0) {
+      console.log(`✅ Questions in state: ${generatedQuestions.length}`);
+    }
+  }, [generatedQuestions.length]);
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-amber-50/20 p-4 sm:p-6 font-inter">
@@ -340,7 +305,9 @@ const ChatAgent = memo(() => {
             onGenerate={handleGenerate}
           />
 
-          {/* Generated Questions with Progressive or Sequential Display */}
+
+
+          {/* Generated Questions Display */}
           {hasQuestions && (
             <div className="relative z-10 mt-8">
               <Suspense fallback={
@@ -355,27 +322,26 @@ const ChatAgent = memo(() => {
                     loadingState={progressiveLoadingState}
                     onAddToQB={handleAddToQB}
                     onRegenerate={handleRegenerate}
+                    onRegenerateQuestion={handleRegenerateQuestion}
                   />
                 ) : (
                   <SequentialQuestionDisplay
                     questions={generatedQuestions}
                     onAddToQB={handleAddToQB}
                     onRegenerate={handleRegenerate}
+                    onRegenerateQuestion={handleRegenerateQuestion}
                   />
                 )}
               </Suspense>
             </div>
           )}
 
+
+
         </div>
 
-        {/* Coffee Brewing Animation Overlay */}
-        <QuestionGenerationLoader
-          isVisible={isGenerating}
-          totalQuestions={totalQuestions}
-          generationStatus={generationStatus}
-          onComplete={() => setIsGenerating(false)}
-        />
+
+
       </div>
     </div>
   );

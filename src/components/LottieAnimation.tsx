@@ -35,15 +35,15 @@ const LottieAnimation = memo(({
     xl: 'w-40 h-40'
   };
 
-  // Handle animation load errors
+  // Handle animation load errors with better fallback logic
   const handleError = () => {
     console.error('🚨 Failed to load animation from:', currentSrc);
     if (fallbackSrc && currentSrc !== fallbackSrc) {
-      console.log('🔄 Trying fallback:', fallbackSrc);
+      console.log('🔄 Trying fallback animation:', fallbackSrc);
       setCurrentSrc(fallbackSrc);
       setError(null);
     } else {
-      console.error('❌ All animation sources failed');
+      console.error('❌ All animation sources failed, showing static fallback');
       setError('Animation failed to load');
     }
   };
@@ -93,12 +93,13 @@ const LottieAnimation = memo(({
           console.log('🎬 Player event:', event, 'for:', currentSrc);
           if (event === 'load') {
             handleLoad();
-          } else if (event === 'error') {
+          } else if (event === 'error' || event === 'loadError') {
             handleError();
           } else if (event === 'complete') {
             onComplete?.();
           }
         }}
+        onError={handleError}
         style={{
           width: '100%',
           height: '100%',

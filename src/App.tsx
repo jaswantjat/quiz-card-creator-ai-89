@@ -3,7 +3,7 @@ import { Suspense, lazy } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -30,24 +30,51 @@ const queryClient = new QueryClient({
   },
 });
 
+// Router configuration with React Router v7 future flags
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <Outlet />,
+      children: [
+        {
+          index: true,
+          element: <Index />,
+        },
+        {
+          path: "chat-agent",
+          element: <ChatAgent />,
+        },
+        {
+          path: "login",
+          element: <Login />,
+        },
+        {
+          path: "register",
+          element: <Register />,
+        },
+        {
+          path: "*",
+          element: <NotFound />,
+        },
+      ],
+    },
+  ],
+  {
+    // ✅ React Router v7 - Now using actual v7, no future flags needed
+    // All v7 features are now default behavior
+  }
+);
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
           <Sonner />
-          <BrowserRouter>
-            <Suspense fallback={<LoadingAnimation />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/chat-agent" element={<ChatAgent />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
+          <Suspense fallback={<LoadingAnimation />}>
+            <RouterProvider router={router} />
+          </Suspense>
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>

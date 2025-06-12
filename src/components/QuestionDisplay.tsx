@@ -1,9 +1,11 @@
 
-import { memo, useMemo, useCallback } from "react";
+import { memo, useMemo, useCallback, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Plus, CheckCircle, BookOpen } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { RefreshCw, Plus, CheckCircle, BookOpen, MessageSquare } from "lucide-react";
+import { toast } from 'sonner';
 
 interface MCQQuestion {
   id: string;
@@ -25,6 +27,7 @@ interface QuestionDisplayProps {
   questions: MCQQuestion[];
   onAddToQB: (questionId: string) => void;
   onRegenerate: () => void;
+  onRegenerateQuestion?: (questionId: string) => void;
 }
 
 // Memoized difficulty color mapping for better performance
@@ -33,6 +36,13 @@ const DIFFICULTY_COLORS = {
   medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   hard: 'bg-red-100 text-red-800 border-red-200'
 } as const;
+
+// Difficulty order for sorting
+const DIFFICULTY_ORDER = {
+  easy: 1,
+  medium: 2,
+  hard: 3
+};
 
 // Memoized option letters to prevent recreation
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
@@ -43,17 +53,36 @@ const QuestionCard = memo(({
   index,
   onAddToQB,
   onRegenerate,
+  onRegenerateQuestion,
   getDifficultyColor
 }: {
   question: MCQQuestion;
   index: number;
   onAddToQB: (id: string) => void;
   onRegenerate: () => void;
+  onRegenerateQuestion?: (questionId: string) => void;
   getDifficultyColor: (difficulty: string) => string;
 }) => {
+  const [comment, setComment] = useState('');
+  const [showCommentBox, setShowCommentBox] = useState(false);
+
   const handleAddClick = useCallback(() => {
     onAddToQB(question.id);
+    toast.success('Question added to Question Bank!');
   }, [onAddToQB, question.id]);
+
+  const handleRegenerateClick = useCallback(() => {
+    if (onRegenerateQuestion) {
+      onRegenerateQuestion(question.id);
+      toast.info('Regenerating this question...');
+    }
+  }, [onRegenerateQuestion, question.id]);
+
+  const handleCommentSave = useCallback(() => {
+    // TODO: Implement comment saving functionality
+    toast.success('Comment saved for review!');
+    setShowCommentBox(false);
+  }, [comment]);
 
   const difficultyBadgeClass = useMemo(() =>
     getDifficultyColor(question.difficulty),
@@ -90,6 +119,37 @@ const QuestionCard = memo(({
             <h4 className="text-lg font-semibold text-slate-800 leading-relaxed">
               {question.question}
             </h4>
+          </div>
+          <div className="flex items-center gap-2 ml-4">
+            <Button
+              onClick={() => setShowCommentBox(!showCommentBox)}
+              size="sm"
+              variant="outline"
+              className="hover:bg-blue-50 hover:border-blue-300 transition-colors"
+            >
+              <MessageSquare className="w-4 h-4 mr-1" />
+              Comment
+            </Button>
+            {onRegenerateQuestion && (
+              <Button
+                onClick={handleRegenerateClick}
+                size="sm"
+                variant="outline"
+                className="hover:bg-yellow-50 hover:border-yellow-300 transition-colors"
+              >
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Regenerate
+              </Button>
+            )}
+            <Button
+              onClick={handleAddClick}
+              size="sm"
+              variant="outline"
+              className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add to QB
+            </Button>
           </div>
         </div>
 
@@ -138,6 +198,35 @@ const QuestionCard = memo(({
           </div>
         </div>
 
+        {/* Comment Box */}
+        {showCommentBox && (
+          <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <h4 className="font-semibold text-gray-800 mb-2">Subject Matter Expert Comments</h4>
+            <Textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Add your comments or feedback about this question..."
+              className="mb-3 min-h-[80px] resize-none"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                onClick={() => setShowCommentBox(false)}
+                size="sm"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCommentSave}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Save Comment
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Question Metadata */}
         {question.metadata && (
           <div className="mt-4 pt-3 border-t border-gray-100">
@@ -164,25 +253,7 @@ const QuestionCard = memo(({
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex justify-between items-center mt-4">
-          <Button
-            onClick={onRegenerate}
-            variant="outline"
-            className="border-orange-200 text-orange-600 hover:bg-orange-50 smooth-transition"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Regenerate
-          </Button>
 
-          <Button
-            onClick={handleAddClick}
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl smooth-transition transform hover:scale-105 active:scale-95 gpu-accelerated"
-          >
-            <Plus className="w-4 h-4 mr-2 smooth-transition group-hover:rotate-90" />
-            Add to QB
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );
@@ -190,7 +261,16 @@ const QuestionCard = memo(({
 
 QuestionCard.displayName = 'QuestionCard';
 
-const QuestionDisplay = memo(({ questions, onAddToQB, onRegenerate }: QuestionDisplayProps) => {
+const QuestionDisplay = memo(({ questions, onAddToQB, onRegenerate, onRegenerateQuestion }: QuestionDisplayProps) => {
+  // Sort questions by difficulty: Easy → Medium → Hard
+  const sortedQuestions = useMemo(() => {
+    return [...questions].sort((a, b) => {
+      const orderA = DIFFICULTY_ORDER[a.difficulty] || 999;
+      const orderB = DIFFICULTY_ORDER[b.difficulty] || 999;
+      return orderA - orderB;
+    });
+  }, [questions]);
+
   const handleAddToQB = useCallback((questionId: string) => {
     onAddToQB(questionId);
   }, [onAddToQB]);
@@ -199,7 +279,7 @@ const QuestionDisplay = memo(({ questions, onAddToQB, onRegenerate }: QuestionDi
     return DIFFICULTY_COLORS[difficulty as keyof typeof DIFFICULTY_COLORS] || 'bg-gray-100 text-gray-800 border-gray-200';
   }, []);
 
-  const questionsCount = useMemo(() => questions.length, [questions.length]);
+  const questionsCount = useMemo(() => sortedQuestions.length, [sortedQuestions.length]);
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-500">
@@ -212,15 +292,16 @@ const QuestionDisplay = memo(({ questions, onAddToQB, onRegenerate }: QuestionDi
         </Badge>
       </div>
 
-      {/* Questions - Optimized with better performance */}
+      {/* Questions - Sorted by difficulty (Easy → Medium → Hard) */}
       <div className="space-y-6">
-        {questions.map((question, index) => (
+        {sortedQuestions.map((question, index) => (
           <QuestionCard
             key={question.id}
             question={question}
             index={index}
             onAddToQB={handleAddToQB}
             onRegenerate={onRegenerate}
+            onRegenerateQuestion={onRegenerateQuestion}
             getDifficultyColor={getDifficultyColor}
           />
         ))}

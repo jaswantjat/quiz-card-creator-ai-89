@@ -211,6 +211,73 @@ const transformAPIResponse = (apiQuestions: APIQuestionResponse[]): MCQQuestion[
   });
 };
 
+// Fallback transformation for different response structures
+const transformGenericResponse = (data: any[]): MCQQuestion[] => {
+  console.log('🔄 Using generic transformation for:', data);
+
+  return data.map((item, index) => {
+    // Try to extract question data from various possible structures
+    const question = item.question || item.Question || item["Question Text"] || item.text || `Question ${index + 1}`;
+
+    // Try to extract options from various possible structures
+    let options: string[] = [];
+    if (item.options && Array.isArray(item.options)) {
+      options = item.options;
+    } else if (item.Options && Array.isArray(item.Options)) {
+      options = item.Options;
+    } else {
+      // Try to extract from individual option fields
+      const optionFields = [
+        item["Option (A)"] || item.optionA || item.a,
+        item["Option (B)"] || item.optionB || item.b,
+        item["Option (C)"] || item.optionC || item.c,
+        item["Option (D)"] || item.optionD || item.d,
+        item["Option (E)"] || item.optionE || item.e
+      ].filter(opt => opt && opt.trim() !== "");
+
+      if (optionFields.length > 0) {
+        options = optionFields;
+      } else {
+        options = ["Option A", "Option B", "Option C", "Option D"];
+      }
+    }
+
+    // Try to extract correct answer
+    let correctAnswer = 0;
+    if (typeof item.correctAnswer === 'number') {
+      correctAnswer = item.correctAnswer;
+    } else if (typeof item.correct_answer === 'number') {
+      correctAnswer = item.correct_answer;
+    } else if (item["Correct Option (A/B/C/D)"]) {
+      const letter = item["Correct Option (A/B/C/D)"].toUpperCase();
+      correctAnswer = letter.charCodeAt(0) - 65;
+    }
+
+    // Try to extract explanation
+    const explanation = item.explanation || item.Explanation || item["Answer Explanation"] || "No explanation provided.";
+
+    // Try to extract difficulty
+    const difficultyRaw = item.difficulty || item.Difficulty || item["Difficulty Level"] || "medium";
+    const difficulty = difficultyRaw.toLowerCase() as 'easy' | 'medium' | 'hard';
+
+    return {
+      id: `generated-${Date.now()}-${index}`,
+      question,
+      options,
+      correctAnswer: Math.max(0, Math.min(correctAnswer, options.length - 1)), // Ensure valid index
+      explanation,
+      difficulty: ['easy', 'medium', 'hard'].includes(difficulty) ? difficulty : 'medium',
+      metadata: {
+        subTopics: item["Sub-Topics"] || item.subTopics,
+        author: item.Author || item.author,
+        topic: item.Topic || item.topic,
+        score: item.Score || item.score,
+        questionType: item["Question Type"] || item.questionType || "MCQ"
+      }
+    };
+  });
+};
+
 // Progressive Loading Types
 interface ProgressiveLoadingState {
   phase: 'initial' | 'background' | 'complete';
@@ -244,53 +311,112 @@ export const questionGenerationAPI = {
       console.log('🚀 Generating questions via API:', API_ENDPOINT);
       console.log('📊 Generation parameters:', formData);
 
-      const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          serviceId: formData.serviceId,
-          timestamp: new Date().toISOString(),
-          formData: {
-            context: formData.context,
-            topicName: formData.topicName,
-            easyCount: formData.easyCount,
-            mediumCount: formData.mediumCount,
-            hardCount: formData.hardCount,
-            totalQuestions: formData.totalQuestions
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      try {
+        const response = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
           },
-          metadata: {
-            source: 'iQube Question Generator',
-            userAgent: navigator.userAgent,
-            url: window.location.href
+          body: JSON.stringify({
+            serviceId: formData.serviceId,
+            timestamp: new Date().toISOString(),
+            formData: {
+              context: formData.context,
+              topicName: formData.topicName,
+              easyCount: formData.easyCount,
+              mediumCount: formData.mediumCount,
+              hardCount: formData.hardCount,
+              totalQuestions: formData.totalQuestions
+            },
+            metadata: {
+              source: 'iQube Question Generator',
+              userAgent: navigator.userAgent,
+              url: window.location.href
+            }
+          }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        const responseData = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(`Question generation failed with status ${response.status}: ${responseData.message || 'Unknown error'}`);
+        }
+
+        console.log('✅ API response received:', responseData);
+        console.log('🔍 Response type:', typeof responseData);
+        console.log('🔍 Is array:', Array.isArray(responseData));
+        console.log('🔍 Response keys:', Object.keys(responseData || {}));
+
+        if (responseData && typeof responseData === 'object') {
+          console.log('🔍 First item structure:', responseData[0] || responseData.questions?.[0]);
+        }
+
+        // Transform API response to MCQQuestion format
+        let transformedQuestions: MCQQuestion[] = [];
+
+        try {
+          if (Array.isArray(responseData) && responseData.length > 0) {
+            console.log('🔄 Transforming direct array response...');
+            try {
+              transformedQuestions = transformAPIResponse(responseData);
+            } catch (specificError) {
+              console.warn('⚠️ Specific transform failed, trying generic:', specificError);
+              transformedQuestions = transformGenericResponse(responseData);
+            }
+          } else if (responseData.questions && Array.isArray(responseData.questions)) {
+            console.log('🔄 Transforming nested questions array...');
+            try {
+              transformedQuestions = transformAPIResponse(responseData.questions);
+            } catch (specificError) {
+              console.warn('⚠️ Specific transform failed, trying generic:', specificError);
+              transformedQuestions = transformGenericResponse(responseData.questions);
+            }
+          } else {
+            console.warn('⚠️ Unexpected response structure:', responseData);
+            // Try to transform the entire response as a single question array
+            if (responseData && typeof responseData === 'object') {
+              transformedQuestions = transformGenericResponse([responseData]);
+            }
           }
-        })
-      });
 
-      const responseData = await response.json().catch(() => ({}));
+          console.log('✅ Transformed questions:', transformedQuestions.length);
+          console.log('🔍 First transformed question:', transformedQuestions[0]);
+        } catch (transformError) {
+          console.error('❌ Transform error:', transformError);
+          console.log('🔍 Raw data that failed to transform:', responseData);
 
-      if (!response.ok) {
-        throw new Error(`Question generation failed with status ${response.status}: ${responseData.message || 'Unknown error'}`);
+          // Last resort: create a placeholder question to test UI rendering
+          console.log('🆘 Creating placeholder question for UI testing...');
+          transformedQuestions = [{
+            id: 'error-placeholder',
+            question: 'Error: Could not parse question data. Raw response received but transformation failed.',
+            options: ['Check console for details', 'Response structure mismatch', 'Transform function needs update', 'Contact developer'],
+            correctAnswer: 0,
+            explanation: `Raw response: ${JSON.stringify(responseData).substring(0, 200)}...`,
+            difficulty: 'medium' as const
+          }];
+        }
+
+        return {
+          success: true,
+          data: responseData,
+          questions: transformedQuestions,
+          status: response.status
+        };
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          throw new Error('Request timed out after 30 seconds. The webhook service may be unavailable.');
+        }
+        throw error;
       }
-
-      console.log('✅ API response received:', responseData);
-
-      // Transform API response to MCQQuestion format
-      let transformedQuestions: MCQQuestion[] = [];
-      if (Array.isArray(responseData) && responseData.length > 0) {
-        transformedQuestions = transformAPIResponse(responseData);
-      } else if (responseData.questions && Array.isArray(responseData.questions)) {
-        transformedQuestions = transformAPIResponse(responseData.questions);
-      }
-
-      return {
-        success: true,
-        data: responseData,
-        questions: transformedQuestions,
-        status: response.status
-      };
     } catch (error) {
       console.error('❌ Question generation error:', error);
       throw error;
@@ -315,6 +441,10 @@ export const questionGenerationAPI = {
       // Phase 1: Initial request for immediate response
       console.log('📡 Phase 1: Sending initial request...');
 
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -338,8 +468,11 @@ export const questionGenerationAPI = {
             userAgent: navigator.userAgent,
             url: window.location.href
           }
-        })
+        }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       const initialData = await response.json().catch(() => ({}));
 
@@ -442,10 +575,10 @@ export const questionGenerationAPI = {
         }
       }
 
-      // Phase 3: Complete
+      // Phase 3: Complete - ✅ CRITICAL FIX: Don't yield empty questions array
       console.log('🎉 Progressive loading complete');
       yield {
-        questions: [],
+        questions: [], // Empty array is OK here - it signals completion, not replacement
         loadingState: {
           phase: 'complete',
           questionsLoaded: initialQuestions.length,

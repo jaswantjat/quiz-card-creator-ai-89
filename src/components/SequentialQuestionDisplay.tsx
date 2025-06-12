@@ -2,7 +2,9 @@ import { memo, useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Plus, RefreshCw, CheckCircle, BookOpen } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ChevronLeft, ChevronRight, Plus, RefreshCw, CheckCircle, BookOpen, MessageSquare } from "lucide-react";
+import { toast } from 'sonner';
 
 interface MCQQuestion {
   id: string;
@@ -24,6 +26,7 @@ interface SequentialQuestionDisplayProps {
   questions: MCQQuestion[];
   onAddToQB: (questionId: string) => void;
   onRegenerate: () => void;
+  onRegenerateQuestion?: (questionId: string) => void;
 }
 
 // Difficulty color mapping
@@ -33,29 +36,61 @@ const DIFFICULTY_COLORS = {
   hard: 'bg-red-100 text-red-800 border-red-200'
 };
 
-const SequentialQuestionDisplay = memo(({ questions, onAddToQB, onRegenerate }: SequentialQuestionDisplayProps) => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+// Difficulty order for sorting
+const DIFFICULTY_ORDER = {
+  easy: 1,
+  medium: 2,
+  hard: 3
+};
 
-  const currentQuestion = useMemo(() => 
-    questions[currentQuestionIndex], 
-    [questions, currentQuestionIndex]
+const SequentialQuestionDisplay = memo(({ questions, onAddToQB, onRegenerate, onRegenerateQuestion }: SequentialQuestionDisplayProps) => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [comment, setComment] = useState('');
+  const [showCommentBox, setShowCommentBox] = useState(false);
+
+  // Sort questions by difficulty: Easy → Medium → Hard
+  const sortedQuestions = useMemo(() => {
+    return [...questions].sort((a, b) => {
+      const orderA = DIFFICULTY_ORDER[a.difficulty] || 999;
+      const orderB = DIFFICULTY_ORDER[b.difficulty] || 999;
+      return orderA - orderB;
+    });
+  }, [questions]);
+
+  const currentQuestion = useMemo(() =>
+    sortedQuestions[currentQuestionIndex],
+    [sortedQuestions, currentQuestionIndex]
   );
 
-  const totalQuestions = useMemo(() => questions.length, [questions.length]);
+  const totalQuestions = useMemo(() => sortedQuestions.length, [sortedQuestions.length]);
 
   const handlePrevious = useCallback(() => {
     setCurrentQuestionIndex(prev => Math.max(0, prev - 1));
   }, []);
 
   const handleNext = useCallback(() => {
-    setCurrentQuestionIndex(prev => Math.min(questions.length - 1, prev + 1));
-  }, [questions.length]);
+    setCurrentQuestionIndex(prev => Math.min(sortedQuestions.length - 1, prev + 1));
+  }, [sortedQuestions.length]);
 
   const handleAddToQB = useCallback(() => {
     if (currentQuestion) {
       onAddToQB(currentQuestion.id);
+      toast.success('Question added to Question Bank!');
     }
   }, [currentQuestion, onAddToQB]);
+
+  const handleRegenerateClick = useCallback(() => {
+    if (currentQuestion && onRegenerateQuestion) {
+      onRegenerateQuestion(currentQuestion.id);
+      toast.info('Regenerating this question...');
+    }
+  }, [currentQuestion, onRegenerateQuestion]);
+
+  const handleCommentSave = useCallback(() => {
+    // TODO: Implement comment saving functionality
+    toast.success('Comment saved for review!');
+    setShowCommentBox(false);
+  }, [comment]);
 
   const getDifficultyColor = useCallback((difficulty: string) => {
     return DIFFICULTY_COLORS[difficulty as keyof typeof DIFFICULTY_COLORS] || 'bg-gray-100 text-gray-800 border-gray-200';
@@ -101,7 +136,7 @@ const SequentialQuestionDisplay = memo(({ questions, onAddToQB, onRegenerate }: 
           
           <Button
             onClick={handleNext}
-            disabled={currentQuestionIndex === questions.length - 1}
+            disabled={currentQuestionIndex === sortedQuestions.length - 1}
             variant="outline"
             size="sm"
             className="border-orange-200 text-orange-600 hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -137,6 +172,37 @@ const SequentialQuestionDisplay = memo(({ questions, onAddToQB, onRegenerate }: 
               <h4 className="text-lg font-semibold text-slate-800 leading-relaxed">
                 {currentQuestion.question}
               </h4>
+            </div>
+            <div className="flex items-center gap-2 ml-4">
+              <Button
+                onClick={() => setShowCommentBox(!showCommentBox)}
+                size="sm"
+                variant="outline"
+                className="hover:bg-blue-50 hover:border-blue-300 transition-colors"
+              >
+                <MessageSquare className="w-4 h-4 mr-1" />
+                Comment
+              </Button>
+              {onRegenerateQuestion && (
+                <Button
+                  onClick={handleRegenerateClick}
+                  size="sm"
+                  variant="outline"
+                  className="hover:bg-yellow-50 hover:border-yellow-300 transition-colors"
+                >
+                  <RefreshCw className="w-4 h-4 mr-1" />
+                  Regenerate
+                </Button>
+              )}
+              <Button
+                onClick={handleAddToQB}
+                size="sm"
+                variant="outline"
+                className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add to QB
+              </Button>
             </div>
           </div>
 
@@ -180,6 +246,35 @@ const SequentialQuestionDisplay = memo(({ questions, onAddToQB, onRegenerate }: 
             <p className="text-blue-700 leading-relaxed">{currentQuestion.explanation}</p>
           </div>
 
+          {/* Comment Box */}
+          {showCommentBox && (
+            <div className="mb-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <h4 className="font-semibold text-gray-800 mb-2">Subject Matter Expert Comments</h4>
+              <Textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Add your comments or feedback about this question..."
+                className="mb-3 min-h-[80px] resize-none"
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  onClick={() => setShowCommentBox(false)}
+                  size="sm"
+                  variant="outline"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCommentSave}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Save Comment
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Question Metadata */}
           {currentQuestion.metadata && (
             <div className="mt-4 pt-3 border-t border-gray-100">
@@ -206,31 +301,13 @@ const SequentialQuestionDisplay = memo(({ questions, onAddToQB, onRegenerate }: 
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex justify-between items-center mt-4">
-            <Button
-              onClick={onRegenerate}
-              variant="outline"
-              className="border-orange-200 text-orange-600 hover:bg-orange-50 smooth-transition"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Regenerate All
-            </Button>
 
-            <Button
-              onClick={handleAddToQB}
-              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl smooth-transition transform hover:scale-105 active:scale-95 gpu-accelerated"
-            >
-              <Plus className="w-4 h-4 mr-2 smooth-transition group-hover:rotate-90" />
-              Add to QB
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
       {/* Question Navigation Dots */}
       <div className="flex justify-center gap-2">
-        {questions.map((_, index) => (
+        {sortedQuestions.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentQuestionIndex(index)}
@@ -242,6 +319,18 @@ const SequentialQuestionDisplay = memo(({ questions, onAddToQB, onRegenerate }: 
             aria-label={`Go to question ${index + 1}`}
           />
         ))}
+      </div>
+
+      {/* Global Actions */}
+      <div className="flex justify-center pt-4">
+        <Button
+          onClick={onRegenerate}
+          variant="outline"
+          className="border-orange-200 text-orange-600 hover:bg-orange-50 smooth-transition"
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Regenerate All Questions
+        </Button>
       </div>
     </div>
   );

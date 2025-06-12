@@ -24,109 +24,7 @@ const saveQuestionSchema = Joi.object({
   questionType: Joi.string().valid('text', 'mcq').default('text')
 });
 
-// Predefined question sets (same as frontend)
-const questionSets = {
-  "Business & AI": [
-    "What are the key factors to consider when implementing AI in business?",
-    "How can machine learning improve customer experience?",
-    "What ethical considerations should guide AI development in business?",
-    "How do you measure the ROI of AI implementations?",
-    "What are the emerging trends in artificial intelligence for business?",
-    "How can AI help in decision-making processes?",
-    "What are the challenges of integrating AI with existing business systems?",
-    "How does AI impact workforce management and employment?"
-  ],
-  "Technology & Innovation": [
-    "How is emerging technology reshaping traditional industries?",
-    "What role does innovation play in competitive advantage?",
-    "How can organizations foster a culture of technological innovation?",
-    "What are the challenges of digital transformation?",
-    "How do you balance innovation with security concerns?",
-    "What are the key drivers of technological disruption?",
-    "How can companies stay ahead in rapidly evolving tech landscapes?",
-    "What role does open-source technology play in innovation?"
-  ],
-  "Education & Learning": [
-    "How can technology enhance personalized learning experiences?",
-    "What are the most effective methods for skill development?",
-    "How do you create engaging educational content?",
-    "What role does feedback play in the learning process?",
-    "How can we measure learning effectiveness?",
-    "What are the benefits of collaborative learning environments?",
-    "How can gamification improve educational outcomes?",
-    "What challenges do educators face in digital learning environments?"
-  ],
-  "Health & Wellness": [
-    "What are the key components of a holistic wellness approach?",
-    "How can technology improve healthcare accessibility?",
-    "What role does mental health play in overall wellness?",
-    "How can we promote preventive healthcare practices?",
-    "What are the challenges in healthcare innovation?",
-    "How does lifestyle impact long-term health outcomes?",
-    "What are the benefits of telemedicine and remote healthcare?",
-    "How can data analytics improve patient care?"
-  ],
-  "Science & Research": [
-    "What methodologies ensure research reliability and validity?",
-    "How do you approach interdisciplinary research collaboration?",
-    "What are the ethical considerations in scientific research?",
-    "How can research findings be effectively communicated to the public?",
-    "What role does peer review play in scientific advancement?",
-    "How can technology accelerate scientific discovery?",
-    "What are the challenges of reproducibility in research?",
-    "How do you manage research data and ensure its integrity?"
-  ],
-  "Marketing & Sales": [
-    "How has digital marketing transformed customer engagement?",
-    "What are the key metrics for measuring marketing success?",
-    "How do you build authentic brand relationships?",
-    "What role does data analytics play in sales strategies?",
-    "How can businesses adapt to changing consumer behaviors?",
-    "What are the most effective content marketing strategies?",
-    "How do you optimize the customer journey and conversion funnel?",
-    "What impact does social media have on brand perception?"
-  ],
-  "Leadership & Management": [
-    "What qualities define effective leadership in the modern workplace?",
-    "How do you manage and motivate remote teams?",
-    "What are the challenges of organizational change management?",
-    "How can leaders foster innovation within their teams?",
-    "What role does emotional intelligence play in leadership?",
-    "How do you build and maintain high-performing teams?",
-    "What strategies help in conflict resolution and team dynamics?",
-    "How can leaders adapt to rapidly changing business environments?"
-  ],
-  "Creative Writing": [
-    "What techniques help develop compelling characters?",
-    "How do you maintain consistency in world-building?",
-    "What are effective methods for overcoming writer's block?",
-    "How do you balance plot development with character growth?",
-    "What role does research play in creative writing?",
-    "How can writers develop their unique voice and style?",
-    "What are the key elements of effective dialogue?",
-    "How do you structure a narrative for maximum impact?"
-  ],
-  "Philosophy & Ethics": [
-    "How do ethical frameworks guide decision-making?",
-    "What is the relationship between individual rights and collective good?",
-    "How do cultural perspectives influence ethical reasoning?",
-    "What are the philosophical implications of artificial intelligence?",
-    "How do we navigate moral dilemmas in complex situations?",
-    "What role does virtue ethics play in modern society?",
-    "How can philosophical thinking improve critical reasoning?",
-    "What are the ethical considerations in emerging technologies?"
-  ],
-  "Environment & Sustainability": [
-    "What are the most effective strategies for environmental conservation?",
-    "How can businesses integrate sustainability into their operations?",
-    "What role does individual action play in environmental protection?",
-    "How do we balance economic growth with environmental responsibility?",
-    "What are the challenges of implementing renewable energy solutions?",
-    "How can technology help address climate change?",
-    "What are the benefits of circular economy principles?",
-    "How do environmental policies impact business and society?"
-  ]
-};
+
 
 // Generate questions endpoint
 router.post('/generate', async (req, res, next) => {
@@ -143,27 +41,11 @@ router.post('/generate', async (req, res, next) => {
       });
     }
 
-    const { topicName, count, difficulty, questionType } = value;
-
-    // Get questions from predefined sets
-    const topicQuestions = questionSets[topicName] || questionSets["Business & AI"];
-    const selectedQuestions = topicQuestions
-      .sort(() => 0.5 - Math.random())
-      .slice(0, count)
-      .map(questionText => ({
-        id: uuidv4(),
-        question: questionText,
-        topic: topicName,
-        difficulty: difficulty || 'medium',
-        questionType: questionType || 'text',
-        generated: true
-      }));
-
-    res.json({
-      message: 'Questions generated successfully',
-      questions: selectedQuestions,
-      topic: topicName,
-      count: selectedQuestions.length
+    // Return error - no demo questions available
+    return res.status(501).json({
+      error: 'Question generation not implemented',
+      message: 'This endpoint requires integration with an AI service for question generation. Demo questions have been removed.',
+      details: 'Please use the webhook-based question generation service instead.'
     });
 
   } catch (error) {

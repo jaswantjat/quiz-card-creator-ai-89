@@ -18,7 +18,7 @@ import { authenticateToken } from './middleware/auth.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // CRITICAL: Health check MUST be first - no middleware before this
 app.get('/health', (req, res) => {

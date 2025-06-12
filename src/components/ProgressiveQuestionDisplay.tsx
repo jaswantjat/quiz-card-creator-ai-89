@@ -2,7 +2,8 @@ import { memo, useState, useCallback, useMemo, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Plus, RotateCcw, Loader2, CheckCircle2, Clock } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { BookOpen, Plus, RotateCcw, Loader2, CheckCircle2, Clock, MessageSquare, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MCQQuestion {
@@ -34,6 +35,7 @@ interface ProgressiveQuestionDisplayProps {
   loadingState: ProgressiveLoadingState;
   onAddToQB: (questionId: string) => void;
   onRegenerate: () => void;
+  onRegenerateQuestion?: (questionId: string) => void;
 }
 
 // Difficulty color mapping
@@ -43,19 +45,30 @@ const DIFFICULTY_COLORS = {
   hard: 'bg-red-100 text-red-800 border-red-200'
 };
 
+// Difficulty order for sorting
+const DIFFICULTY_ORDER = {
+  easy: 1,
+  medium: 2,
+  hard: 3
+};
+
 // Individual Question Card with smooth animations
 const QuestionCard = memo(({
   question,
   index,
   onAddToQB,
+  onRegenerateQuestion,
   isNew = false
 }: {
   question: MCQQuestion;
   index: number;
   onAddToQB: (id: string) => void;
+  onRegenerateQuestion?: (questionId: string) => void;
   isNew?: boolean;
 }) => {
-  const [isVisible, setIsVisible] = useState(!isNew);
+  const [isVisible, setIsVisible] = useState(true); // Always visible for immediate display
+  const [comment, setComment] = useState('');
+  const [showCommentBox, setShowCommentBox] = useState(false);
 
   useEffect(() => {
     if (isNew) {
@@ -69,6 +82,19 @@ const QuestionCard = memo(({
     onAddToQB(question.id);
     toast.success('Question added to Question Bank!');
   }, [onAddToQB, question.id]);
+
+  const handleRegenerateClick = useCallback(() => {
+    if (onRegenerateQuestion) {
+      onRegenerateQuestion(question.id);
+      toast.info('Regenerating this question...');
+    }
+  }, [onRegenerateQuestion, question.id]);
+
+  const handleCommentSave = useCallback(() => {
+    // TODO: Implement comment saving functionality
+    toast.success('Comment saved for review!');
+    setShowCommentBox(false);
+  }, [comment]);
 
   const difficultyBadgeClass = useMemo(() =>
     DIFFICULTY_COLORS[question.difficulty] || 'bg-gray-100 text-gray-800 border-gray-200',
@@ -111,15 +137,37 @@ const QuestionCard = memo(({
               )}
             </div>
           </div>
-          <Button
-            onClick={handleAddClick}
-            size="sm"
-            variant="outline"
-            className="ml-4 hover:bg-orange-50 hover:border-orange-300 transition-colors"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Add to QB
-          </Button>
+          <div className="flex items-center gap-2 ml-4">
+            <Button
+              onClick={() => setShowCommentBox(!showCommentBox)}
+              size="sm"
+              variant="outline"
+              className="hover:bg-blue-50 hover:border-blue-300 transition-colors"
+            >
+              <MessageSquare className="w-4 h-4 mr-1" />
+              Comment
+            </Button>
+            {onRegenerateQuestion && (
+              <Button
+                onClick={handleRegenerateClick}
+                size="sm"
+                variant="outline"
+                className="hover:bg-yellow-50 hover:border-yellow-300 transition-colors"
+              >
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Regenerate
+              </Button>
+            )}
+            <Button
+              onClick={handleAddClick}
+              size="sm"
+              variant="outline"
+              className="hover:bg-orange-50 hover:border-orange-300 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add to QB
+            </Button>
+          </div>
         </div>
 
         {/* Question Text */}
@@ -166,6 +214,35 @@ const QuestionCard = memo(({
           <h4 className="font-semibold text-blue-800 mb-2">Explanation</h4>
           <p className="text-blue-700 leading-relaxed">{question.explanation}</p>
         </div>
+
+        {/* Comment Box */}
+        {showCommentBox && (
+          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <h4 className="font-semibold text-gray-800 mb-2">Subject Matter Expert Comments</h4>
+            <Textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Add your comments or feedback about this question..."
+              className="mb-3 min-h-[80px] resize-none"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                onClick={() => setShowCommentBox(false)}
+                size="sm"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCommentSave}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Save Comment
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Metadata */}
         {question.metadata && (
@@ -252,36 +329,57 @@ const LoadingStatus = memo(({ loadingState }: { loadingState: ProgressiveLoading
 LoadingStatus.displayName = 'LoadingStatus';
 
 // Main Progressive Question Display Component
-const ProgressiveQuestionDisplay = memo(({ 
-  questions, 
-  loadingState, 
-  onAddToQB, 
-  onRegenerate 
+const ProgressiveQuestionDisplay = memo(({
+  questions,
+  loadingState,
+  onAddToQB,
+  onRegenerate,
+  onRegenerateQuestion
 }: ProgressiveQuestionDisplayProps) => {
   const [newQuestionIds, setNewQuestionIds] = useState<Set<string>>(new Set());
 
+  // Sort questions by difficulty: Easy → Medium → Hard
+  const sortedQuestions = useMemo(() => {
+    console.log('🔄 Sorting questions:', questions.length);
+    return [...questions].sort((a, b) => {
+      const orderA = DIFFICULTY_ORDER[a.difficulty] || 999;
+      const orderB = DIFFICULTY_ORDER[b.difficulty] || 999;
+      return orderA - orderB;
+    });
+  }, [questions]);
+
   // Track new questions for animation
   useEffect(() => {
-    if (questions.length > 0) {
-      const currentIds = new Set(questions.map(q => q.id));
+    if (sortedQuestions.length > 0) {
+      const currentIds = new Set(sortedQuestions.map(q => q.id));
       const newIds = new Set([...currentIds].filter(id => !newQuestionIds.has(id)));
-      
+
       if (newIds.size > 0) {
         setNewQuestionIds(currentIds);
-        
+
         // Remove "new" status after animation
         setTimeout(() => {
           setNewQuestionIds(prev => new Set([...prev, ...newIds]));
         }, 2000);
       }
     }
-  }, [questions, newQuestionIds]);
+  }, [sortedQuestions, newQuestionIds]);
 
   const handleAddToQB = useCallback((questionId: string) => {
     onAddToQB(questionId);
   }, [onAddToQB]);
 
-  const questionsCount = useMemo(() => questions.length, [questions.length]);
+  const questionsCount = useMemo(() => sortedQuestions.length, [sortedQuestions.length]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🔍 ProgressiveQuestionDisplay Debug:', {
+      questionsReceived: questions.length,
+      sortedQuestionsCount: sortedQuestions.length,
+      loadingState,
+      firstQuestion: questions[0]
+    });
+  }, [questions, sortedQuestions, loadingState]);
 
   if (loadingState.error) {
     return (
@@ -312,21 +410,40 @@ const ProgressiveQuestionDisplay = memo(({
       {/* Loading Status */}
       <LoadingStatus loadingState={loadingState} />
 
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
+          <strong>Debug:</strong> Questions: {questions.length}, Sorted: {sortedQuestions.length}, Loading: {loadingState.isLoading ? 'Yes' : 'No'}
+          {questions.length > 0 && (
+            <div className="mt-2">
+              <strong>First Question:</strong> {questions[0]?.question?.substring(0, 50)}...
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Questions */}
-      <div className="space-y-6">
-        {questions.map((question, index) => {
-          const isNew = !newQuestionIds.has(question.id);
-          return (
-            <QuestionCard
-              key={question.id}
-              question={question}
-              index={index}
-              onAddToQB={handleAddToQB}
-              isNew={isNew}
-            />
-          );
-        })}
-      </div>
+      {sortedQuestions.length > 0 ? (
+        <div className="space-y-6">
+          {sortedQuestions.map((question, index) => {
+            const isNew = !newQuestionIds.has(question.id);
+            return (
+              <QuestionCard
+                key={question.id}
+                question={question}
+                index={index}
+                onAddToQB={handleAddToQB}
+                onRegenerateQuestion={onRegenerateQuestion}
+                isNew={isNew}
+              />
+            );
+          })}
+        </div>
+      ) : !loadingState.isLoading ? (
+        <div className="text-center py-8 text-slate-500">
+          <p>No questions generated yet. Click "Generate Questions" to start.</p>
+        </div>
+      ) : null}
 
       {/* Regenerate Button */}
       {questionsCount > 0 && (

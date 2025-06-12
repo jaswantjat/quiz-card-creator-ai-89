@@ -596,57 +596,18 @@ if (process.env.NODE_ENV === 'production') {
 app.post('/api/questions/generate', (req, res) => {
   const startTime = Date.now();
   try {
-    const { topicName = "Business & AI", count = 3, difficulty = "medium" } = req.body;
+    const { topicName, count, difficulty } = req.body;
     console.log(`🤖 Question generation request: topic=${topicName}, count=${count}, difficulty=${difficulty}`);
 
-    const questionSets = {
-      "Business & AI": [
-        "What are the key factors to consider when implementing AI in business?",
-        "How can machine learning improve customer experience?",
-        "What ethical considerations should guide AI development in business?",
-        "How do you measure the ROI of AI implementations?",
-        "What are the emerging trends in artificial intelligence for business?"
-      ],
-      "Technology & Innovation": [
-        "How is emerging technology reshaping traditional industries?",
-        "What role does innovation play in competitive advantage?",
-        "How can organizations foster a culture of technological innovation?",
-        "What are the challenges of digital transformation?",
-        "How do you balance innovation with security concerns?"
-      ],
-      "Education & Learning": [
-        "How can technology enhance personalized learning experiences?",
-        "What are the most effective methods for skill development?",
-        "How do you create engaging educational content?",
-        "What role does feedback play in the learning process?",
-        "How can we measure learning effectiveness?"
-      ]
-    };
-
-    const topicQuestions = questionSets[topicName] || questionSets["Business & AI"];
-    const selectedQuestions = topicQuestions
-      .sort(() => 0.5 - Math.random())
-      .slice(0, count)
-      .map((questionText, index) => ({
-        id: `q-${Date.now()}-${index}`,
-        question: questionText,
-        topic: topicName,
-        difficulty: difficulty,
-        questionType: 'text',
-        generated: true
-      }));
-
     const duration = Date.now() - startTime;
-    console.log(`✅ Question generation completed in ${duration}ms`);
+    console.error(`❌ Question generation failed after ${duration}ms: Demo questions removed`);
 
-    res.json({
-      message: 'Questions generated successfully',
-      questions: selectedQuestions,
-      topic: topicName,
-      count: selectedQuestions.length,
+    res.status(501).json({
+      error: 'Question generation not implemented',
+      message: 'This endpoint requires integration with an AI service for question generation. Demo questions have been removed.',
+      details: 'Please use the webhook-based question generation service instead.',
       performance: {
-        generation_time_ms: duration,
-        questions_per_second: Math.round((selectedQuestions.length / duration) * 1000)
+        failed_after_ms: duration
       }
     });
   } catch (error) {
@@ -664,15 +625,11 @@ app.post('/api/questions/generate', (req, res) => {
 
 // Simple topics endpoint (no database required)
 app.get('/api/questions/topics', (req, res) => {
-  const topics = [
-    { id: 1, name: "Business & AI", description: "AI applications in business" },
-    { id: 2, name: "Technology & Innovation", description: "Emerging technologies and innovation" },
-    { id: 3, name: "Education & Learning", description: "Educational technology and learning methods" },
-    { id: 4, name: "Health & Wellness", description: "Healthcare and wellness topics" },
-    { id: 5, name: "Science & Research", description: "Scientific research and methodologies" }
-  ];
-
-  res.json({ topics });
+  res.status(501).json({
+    error: 'Topics endpoint not implemented',
+    message: 'Demo topics have been removed. Please use the database-backed topics endpoint.',
+    topics: []
+  });
 });
 
 // API routes
