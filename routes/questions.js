@@ -25,6 +25,10 @@ const saveQuestionSchema = Joi.object({
   questionType: Joi.string().valid('text', 'mcq').default('text')
 });
 
+const commentSchema = Joi.object({
+  commentText: Joi.string().required().min(1).max(2000)
+});
+
 
 
 // Generate questions endpoint
@@ -220,6 +224,210 @@ router.get('/topics', async (req, res, next) => {
 
     res.json({
       topics: result.recordset
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get comments for a question
+router.get('/:questionId/comments', async (req, res, next) => {
+  try {
+    const { questionId } = req.params;
+    const pool = await getPool();
+
+    const result = await pool.request()
+      .input('questionId', sql.UniqueIdentifier, questionId)
+      .query(`
+        SELECT
+          c.id,
+          c.comment_text,
+          c.created_at,
+          c.updated_at,
+          u.first_name,
+          u.last_name,
+          u.email
+        FROM question_comments c
+        INNER JOIN users u ON c.user_id = u.id
+        WHERE c.question_id = @questionId
+        ORDER BY c.created_at DESC
+      `);
+
+    res.json({
+      comments: result.recordset.map(comment => ({
+        id: comment.id,
+        commentText: comment.comment_text,
+        createdAt: comment.created_at,
+        updatedAt: comment.updated_at,
+        user: {
+          firstName: comment.first_name,
+          lastName: comment.last_name,
+          email: comment.email
+        }
+      }))
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Add comment to a question (requires authentication)
+router.post('/:questionId/comments', authenticateToken, async (req, res, next) => {
+  try {
+    const { questionId } = req.params;
+    const { error, value } = commentSchema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: error.details.map(detail => ({
+          field: detail.path.join('.'),
+          message: detail.message
+        }))
+      });
+    }
+
+    const { commentText } = value;
+    const userId = req.user.id;
+    const pool = await getPool();
+
+    // Check if question exists
+    const questionCheck = await pool.request()
+      .input('questionId', sql.UniqueIdentifier, questionId)
+      .query('SELECT id FROM questions WHERE id = @questionId');
+
+    if (questionCheck.recordset.length === 0) {
+      return res.status(404).json({
+        error: 'Question not found'
+      });
+    }
+
+    // Insert comment
+    const result = await pool.request()
+      .input('questionId', sql.UniqueIdentifier, questionId)
+      .input('userId', sql.UniqueIdentifier, userId)
+      .input('commentText', sql.NVarChar, commentText)
+      .query(`
+        INSERT INTO question_comments (question_id, user_id, comment_text)
+        OUTPUT INSERTED.id, INSERTED.created_at, INSERTED.updated_at
+        VALUES (@questionId, @userId, @commentText)
+      `);
+
+    const newComment = result.recordset[0];
+
+    res.status(201).json({
+      message: 'Comment added successfully',
+      comment: {
+        id: newComment.id,
+        commentText,
+        createdAt: newComment.created_at,
+        updatedAt: newComment.updated_at,
+        user: {
+          firstName: req.user.first_name,
+          lastName: req.user.last_name,
+          email: req.user.email
+        }
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update comment (requires authentication and ownership)
+router.put('/:questionId/comments/:commentId', authenticateToken, async (req, res, next) => {
+  try {
+    const { questionId, commentId } = req.params;
+    const { error, value } = commentSchema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: error.details.map(detail => ({
+          field: detail.path.join('.'),
+          message: detail.message
+        }))
+      });
+    }
+
+    const { commentText } = value;
+    const userId = req.user.id;
+    const pool = await getPool();
+
+    // Check if comment exists and belongs to user
+    const commentCheck = await pool.request()
+      .input('commentId', sql.UniqueIdentifier, commentId)
+      .input('questionId', sql.UniqueIdentifier, questionId)
+      .input('userId', sql.UniqueIdentifier, userId)
+      .query(`
+        SELECT id FROM question_comments
+        WHERE id = @commentId AND question_id = @questionId AND user_id = @userId
+      `);
+
+    if (commentCheck.recordset.length === 0) {
+      return res.status(404).json({
+        error: 'Comment not found or you do not have permission to edit it'
+      });
+    }
+
+    // Update comment
+    const result = await pool.request()
+      .input('commentId', sql.UniqueIdentifier, commentId)
+      .input('commentText', sql.NVarChar, commentText)
+      .query(`
+        UPDATE question_comments
+        SET comment_text = @commentText, updated_at = GETUTCDATE()
+        OUTPUT INSERTED.updated_at
+        WHERE id = @commentId
+      `);
+
+    res.json({
+      message: 'Comment updated successfully',
+      comment: {
+        id: commentId,
+        commentText,
+        updatedAt: result.recordset[0].updated_at
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete comment (requires authentication and ownership)
+router.delete('/:questionId/comments/:commentId', authenticateToken, async (req, res, next) => {
+  try {
+    const { questionId, commentId } = req.params;
+    const userId = req.user.id;
+    const pool = await getPool();
+
+    // Check if comment exists and belongs to user
+    const commentCheck = await pool.request()
+      .input('commentId', sql.UniqueIdentifier, commentId)
+      .input('questionId', sql.UniqueIdentifier, questionId)
+      .input('userId', sql.UniqueIdentifier, userId)
+      .query(`
+        SELECT id FROM question_comments
+        WHERE id = @commentId AND question_id = @questionId AND user_id = @userId
+      `);
+
+    if (commentCheck.recordset.length === 0) {
+      return res.status(404).json({
+        error: 'Comment not found or you do not have permission to delete it'
+      });
+    }
+
+    // Delete comment
+    await pool.request()
+      .input('commentId', sql.UniqueIdentifier, commentId)
+      .query('DELETE FROM question_comments WHERE id = @commentId');
+
+    res.json({
+      message: 'Comment deleted successfully'
     });
 
   } catch (error) {

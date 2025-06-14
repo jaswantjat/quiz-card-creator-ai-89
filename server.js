@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { imageMap, imageCache, preloadImages } from './imageData.js';
+
 
 // ES module __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -25,8 +25,7 @@ import { authenticateToken } from './middleware/auth.js';
 // Load environment variables
 dotenv.config();
 
-// Pre-load images into memory for Railway deployment
-preloadImages();
+
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -39,7 +38,7 @@ app.get('/health', (req, res) => {
   console.log('🏥 Health check requested');
   res.status(200).json({
     status: 'OK',
-    message: 'iQube Backend API is running',
+    message: 'iMocha Backend API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     port: PORT,
@@ -101,15 +100,29 @@ app.get('/api/status/database', async (req, res) => {
       },
       timestamp: new Date().toISOString(),
       suggestions: isFirewallError ? [
-        'Add Railway IP to Azure SQL firewall rules',
-        `Current Railway IP appears to be: ${req.ip}`,
-        'Check Azure Portal → SQL servers → iqube-sql-jaswant → Networking → Firewall rules',
-        'Add firewall rule with Railway IP address'
+        '🔥 FIREWALL ISSUE DETECTED - Railway IP not whitelisted',
+        '💡 RECOMMENDED SOLUTION:',
+        '1. Go to Azure Portal → SQL servers → iqube-sql-jaswant → Networking',
+        '2. Enable "Allow Azure services and resources to access this server"',
+        '3. Save firewall rules and wait 2-3 minutes',
+        '4. Test again at /api/status/database',
+        '',
+        '🔧 ALTERNATIVE (less reliable):',
+        `5. Add specific IP range: ${req.ip} - ${req.ip}`,
+        '6. Note: Railway IPs change frequently, so this may break again',
+        '',
+        '📊 TROUBLESHOOTING:',
+        '- Run: npm run test-db (locally with same env vars)',
+        '- Check: Azure SQL server status and firewall logs'
       ] : [
-        'Check database credentials',
-        'Verify server name and database name',
-        'Check network connectivity',
-        'Review connection string configuration'
+        '🔑 AUTHENTICATION/CONNECTION ISSUE',
+        '💡 TROUBLESHOOTING STEPS:',
+        '1. Verify database credentials in Railway environment variables',
+        '2. Check Azure SQL server status',
+        '3. Verify server name and database name',
+        '4. Test connection locally: npm run test-db',
+        '5. Check network connectivity',
+        '6. Review Azure SQL server logs'
       ]
     });
   }
@@ -130,7 +143,7 @@ app.get('/', (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iQube - AI Question Generator</title>
+    <title>iMocha - AI Question Generator</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -213,8 +226,8 @@ app.get('/', (req, res) => {
 </head>
 <body>
     <div class="container">
-        <div class="logo">iQ</div>
-        <h1>Welcome to iQube</h1>
+        <div class="logo">iM</div>
+        <h1>Welcome to iMocha</h1>
         <p class="subtitle">AI-Powered Question Generator for iMocha</p>
 
         <form id="authForm">
@@ -364,6 +377,9 @@ app.use(helmet({
         "https://primary-production-1cd8.up.railway.app",
         // Lottie animation source
         "https://lottie.host",
+        // CDN sources for DotLottie WASM files
+        "https://cdn.jsdelivr.net",
+        "https://unpkg.com",
         // Allow local development
         "http://localhost:*",
         "ws://localhost:*",
@@ -379,6 +395,8 @@ app.use(helmet({
       frameSrc: ["'self'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
+      workerSrc: ["'self'", "blob:"],
+      childSrc: ["'self'", "blob:"],
     },
   },
 }));
@@ -424,14 +442,7 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Debug middleware to log requests (but don't interfere with static files)
-app.use((req, res, next) => {
-  // Only log non-static file requests to reduce noise
-  if (!req.url.includes('/assets/') && !req.url.includes('/lovable-uploads/') && !req.url.includes('/animations/') && !req.url.includes('.css') && !req.url.includes('.js') && !req.url.includes('.png') && !req.url.includes('.jpg') && !req.url.includes('.svg') && !req.url.includes('.ico') && !req.url.includes('.json') && !req.url.includes('.lottie')) {
-    console.log(`📡 Request: ${req.method} ${req.url}`);
-  }
-  next();
-});
+
 
 // Serve static files with proper caching headers for performance
 if (process.env.NODE_ENV === 'production') {
@@ -484,23 +495,7 @@ if (process.env.NODE_ENV === 'production') {
     }
   }));
 
-  // ULTIMATE SOLUTION: Memory-based image serving for Railway
-  Object.keys(imageMap).forEach(filename => {
-    app.get(`/lovable-uploads/${filename}`, (req, res) => {
-      const imageBuffer = imageCache[filename];
 
-      if (imageBuffer) {
-        console.log(`🎯 Serving ${imageMap[filename].name} from memory cache (${imageBuffer.length} bytes)`);
-        res.setHeader('Content-Type', imageMap[filename].contentType);
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-        res.setHeader('Content-Length', imageBuffer.length);
-        return res.send(imageBuffer);
-      }
-
-      console.log(`❌ Image not found in cache: ${filename}`);
-      res.status(404).send('Image not found');
-    });
-  });
 
   // Serve JS/CSS/Image assets from dist/assets
   app.use('/assets', express.static(path.join(__dirname, 'dist', 'assets'), {
@@ -679,7 +674,7 @@ app.use(errorHandler);
 
 // Start server - CRITICAL: Bind to :: for Railway IPv6 compatibility
 const server = app.listen(PORT, '::', () => {
-  console.log(`🚀 iQube Backend API running on port ${PORT}`);
+  console.log(`🚀 iMocha Backend API running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Server running at http://[::]:${PORT}`);
   console.log(`🔗 Health check: http://[::]:${PORT}/health`);

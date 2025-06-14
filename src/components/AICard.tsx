@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import iQubeLogo from '@/assets/images/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png';
+import iMochaLogo from '@/assets/images/imocha-logo.png';
 import aiIcon from '@/assets/images/2d10c74e-3a04-4e16-adec-d4b95a85bc81.png';
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -17,11 +17,7 @@ const AICard = () => {
   const handleNavigateToGenerator = () => {
     setIsNavigating(true);
 
-    // Show loading feedback
-    toast.success("Opening Question Generator...", {
-      description: "Redirecting to the question generation form"
-    });
-
+    // Silent navigation - no toast notification needed
     // Navigate to the proper question generation page
     setTimeout(() => {
       navigate('/chat-agent');
@@ -75,9 +71,9 @@ const AICard = () => {
         <div className="relative z-10">
           {/* Logo and Title */}
           <div className="flex items-center gap-3 mb-4">
-            <img src={iQubeLogo} alt="iQube Logo" className="w-20 h-20 object-contain" />
+            <img src={iMochaLogo} alt="iMocha Logo" className="w-20 h-20 object-contain" />
             <h1 className="font-space text-5xl font-bold text-white leading-tight tracking-tight mx--6 px-0 my-0">
-              iQube
+              iMocha
             </h1>
           </div>
           

@@ -3,23 +3,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <link rel="icon" type="image/png" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/lovable-uploads/iMocha logo .png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>iQube - AI Question Generator</title>
 
-    <!-- Content Security Policy for webhook and Lottie animations -->
+    <!-- Content Security Policy for webhook and Lottie animations with WASM support -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval';
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;
       img-src 'self' data: blob: https:;
-      connect-src 'self' https://primary-production-1cd8.up.railway.app https://lottie.host http://localhost:* ws://localhost:* wss://localhost:*;
+      connect-src 'self' https://primary-production-1cd8.up.railway.app https://lottie.host https://cdn.jsdelivr.net https://unpkg.com http://localhost:* ws://localhost:* wss://localhost:*;
       media-src 'self' data: blob: https://lottie.host;
       object-src 'none';
       frame-src 'self';
       base-uri 'self';
       form-action 'self';
+      worker-src 'self' blob:;
+      child-src 'self' blob:;
     ">
 
     <!-- Google Fonts -->

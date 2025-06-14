@@ -3,6 +3,7 @@ import Joi from 'joi';
 import bcrypt from 'bcryptjs';
 import { getPool } from '../config/database.js';
 import sql from 'mssql';
+import { getUserCredits, refreshDailyCredits, getCreditHistory } from '../backend/utils/creditManager.js';
 
 const router = express.Router();
 

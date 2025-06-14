@@ -17,8 +17,7 @@ bun.lockb
 !public/lovable-uploads/
 !dist/lovable-uploads/
 
-# Backend subdirectory (files are now in root)
-backend/
+# Legacy backend directory has been removed - all files are now in root
 
 # Development files
 *.log

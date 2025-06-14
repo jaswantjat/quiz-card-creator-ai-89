@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Zap, Sparkles } from "lucide-react";
+import { Zap } from "lucide-react";
 import { memo } from "react";
 import ChatAgentHeader from "./ChatAgentHeader";
 import DifficultySelector from "./DifficultySelector";
@@ -119,7 +119,6 @@ const QuestionGenerationForm = memo(({
             <div className="flex items-center justify-center gap-2">
               <Zap className="w-5 h-5 smooth-transition group-hover:scale-110" />
               <span className="smooth-transition text-optimized">Generate Questions</span>
-              <Sparkles className="w-4 h-4 smooth-transition group-hover:rotate-12" />
             </div>
 
             {/* Simplified ripple effect */}

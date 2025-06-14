@@ -6,6 +6,9 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
+  dailyCredits?: number;
+  lastCreditRefresh?: string;
+  timezone?: string;
   createdAt?: string;
 }
 
@@ -23,6 +26,8 @@ interface AuthContextType {
   }) => Promise<void>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
+  refreshUserProfile: () => Promise<void>;
+  updateCredits: (newCredits: number) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,7 +64,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           // Skip token validation if database is not available
           // This allows the app to work in demo mode
-          console.log('Auth initialized from localStorage (demo mode)');
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -190,6 +194,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshUserProfile = async () => {
+    try {
+      if (token) {
+        const response = await authAPI.getProfile();
+        const userData = response.user;
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+    } catch (error) {
+      console.error('Failed to refresh user profile:', error);
+      // Don't logout on profile refresh failure
+    }
+  };
+
+  const updateCredits = (newCredits: number) => {
+    if (user) {
+      const updatedUser = { ...user, dailyCredits: newCredits };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
   const value: AuthContextType = {
     user,
     token,
@@ -199,6 +225,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     updateUser,
+    refreshUserProfile,
+    updateCredits,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

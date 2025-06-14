@@ -54,6 +54,9 @@ const initializeDatabase = async () => {
         password_hash NVARCHAR(255) NOT NULL,
         first_name NVARCHAR(100),
         last_name NVARCHAR(100),
+        daily_credits INT DEFAULT 10,
+        last_credit_refresh DATETIME2 DEFAULT GETUTCDATE(),
+        timezone NVARCHAR(50) DEFAULT 'UTC',
         created_at DATETIME2 DEFAULT GETUTCDATE(),
         updated_at DATETIME2 DEFAULT GETUTCDATE(),
         is_active BIT DEFAULT 1
@@ -99,8 +102,38 @@ const initializeDatabase = async () => {
       )
     `);
 
+    // Create Question_Comments table
+    await pool.request().query(`
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='question_comments' AND xtype='U')
+      CREATE TABLE question_comments (
+        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        question_id UNIQUEIDENTIFIER FOREIGN KEY REFERENCES questions(id) ON DELETE CASCADE,
+        user_id UNIQUEIDENTIFIER FOREIGN KEY REFERENCES users(id),
+        comment_text NVARCHAR(MAX) NOT NULL,
+        created_at DATETIME2 DEFAULT GETUTCDATE(),
+        updated_at DATETIME2 DEFAULT GETUTCDATE()
+      )
+    `);
+
+    // Create Credit_Transactions table for audit trail
+    await pool.request().query(`
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='credit_transactions' AND xtype='U')
+      CREATE TABLE credit_transactions (
+        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        user_id UNIQUEIDENTIFIER FOREIGN KEY REFERENCES users(id),
+        transaction_type NVARCHAR(20) CHECK (transaction_type IN ('deduction', 'refresh', 'admin_adjustment')),
+        amount INT NOT NULL,
+        balance_after INT NOT NULL,
+        description NVARCHAR(500),
+        created_at DATETIME2 DEFAULT GETUTCDATE()
+      )
+    `);
+
     console.log('✅ Database tables initialized successfully');
-    
+
+    // Add credit fields to existing users table if they don't exist
+    await migrateUserCredits(pool);
+
     // Insert default topics if they don't exist
     await insertDefaultTopics(pool);
     
@@ -139,6 +172,56 @@ const insertDefaultTopics = async (pool) => {
   }
   
   console.log('✅ Default topics inserted successfully');
+};
+
+// Migration function to add credit fields to existing users
+const migrateUserCredits = async (pool) => {
+  try {
+    // Check if credit fields already exist
+    const columnCheck = await pool.request().query(`
+      SELECT COLUMN_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_NAME = 'users' AND COLUMN_NAME IN ('daily_credits', 'last_credit_refresh', 'timezone')
+    `);
+
+    const existingColumns = columnCheck.recordset.map(row => row.COLUMN_NAME);
+
+    // Add missing credit columns
+    if (!existingColumns.includes('daily_credits')) {
+      await pool.request().query(`
+        ALTER TABLE users ADD daily_credits INT DEFAULT 10
+      `);
+      console.log('✅ Added daily_credits column to users table');
+    }
+
+    if (!existingColumns.includes('last_credit_refresh')) {
+      await pool.request().query(`
+        ALTER TABLE users ADD last_credit_refresh DATETIME2 DEFAULT GETUTCDATE()
+      `);
+      console.log('✅ Added last_credit_refresh column to users table');
+    }
+
+    if (!existingColumns.includes('timezone')) {
+      await pool.request().query(`
+        ALTER TABLE users ADD timezone NVARCHAR(50) DEFAULT 'UTC'
+      `);
+      console.log('✅ Added timezone column to users table');
+    }
+
+    // Initialize credit values for existing users who don't have them set
+    await pool.request().query(`
+      UPDATE users
+      SET daily_credits = 10,
+          last_credit_refresh = GETUTCDATE(),
+          timezone = 'UTC'
+      WHERE daily_credits IS NULL OR last_credit_refresh IS NULL OR timezone IS NULL
+    `);
+
+    console.log('✅ Credit migration completed successfully');
+  } catch (error) {
+    console.error('❌ Credit migration failed:', error.message);
+    // Don't throw error to prevent app startup failure
+  }
 };
 
 export { getPool, initializeDatabase };

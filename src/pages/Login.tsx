@@ -25,12 +25,12 @@ const Login: React.FC = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img 
-              src="/lovable-uploads/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png" 
-              alt="iQube Logo" 
-              className="w-16 h-16 object-contain" 
+            <img
+              src="/lovable-uploads/iMocha logo .png"
+              alt="iMocha Logo"
+              className="w-16 h-16 object-contain"
             />
-            <h1 className="text-4xl font-bold text-gray-900">iQube</h1>
+            <h1 className="text-4xl font-bold text-gray-900">iMocha</h1>
           </div>
           <p className="text-gray-600">
             Sign in to access your question generation dashboard

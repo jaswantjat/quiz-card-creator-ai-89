@@ -1,4 +1,4 @@
-# iQube - Full-Stack AI Question Generator for iMocha
+# iMocha - Full-Stack AI Question Generator
 
 A modern, full-stack web application that generates intelligent questions for educational and assessment purposes. Built with React frontend and Express backend, deployed as a single application on Railway.
 
@@ -47,7 +47,7 @@ A modern, full-stack web application that generates intelligent questions for ed
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd iqube-question-generator
+   cd imocha-question-generator
    ```
 
 2. **Install dependencies**
@@ -102,10 +102,48 @@ FRONTEND_URL=https://your-app.railway.app
 ```
 
 ### Azure SQL Firewall Configuration
-Add Railway's IP address to Azure SQL firewall rules:
-1. Go to Azure Portal → SQL Server → Networking
-2. Add Railway IP: `208.77.244.3` (check Railway logs for current IP)
-3. Save firewall rules
+
+**CRITICAL: Railway uses dynamic IP addresses, so static IP whitelisting is unreliable.**
+
+#### Recommended Solution (Most Reliable):
+1. **Go to Azure Portal → SQL servers → iqube-sql-jaswant → Networking**
+2. **Enable "Allow Azure services and resources to access this server"**
+3. **Save firewall rules**
+
+This allows Railway (and other Azure-hosted services) to connect without needing specific IP addresses.
+
+#### Alternative Solution (If Azure services option doesn't work):
+
+**🔍 Step 1: Detect Railway's Current IP**
+```bash
+# Use our automated IP detection tool
+npm run detect-railway-ip https://your-app.railway.app
+
+# Or manually check the database status endpoint
+curl https://your-app.railway.app/api/status/database
+```
+
+**🔥 Step 2: Add IP to Azure SQL Firewall**
+1. **Go to Azure Portal** → SQL servers → iqube-sql-jaswant → Networking
+2. **Click "Add firewall rule"**
+3. **Rule name**: `Railway-Dynamic-IP-[date]`
+4. **Start IP**: [IP from step 1]
+5. **End IP**: [Same IP from step 1]
+6. **Click "Save"**
+
+**⏰ Step 3: Wait and Test**
+- Wait 2-3 minutes for changes to propagate
+- Test: `npm run test-db` or visit `/api/status/database`
+
+**📊 Step 4: Monitor for IP Changes**
+- Railway IPs can change frequently
+- Run `npm run detect-railway-ip` regularly
+- Update firewall rules as needed
+
+#### Troubleshooting:
+- **Test connection**: `https://your-app.railway.app/api/status/database`
+- **Check firewall logs**: Azure Portal → SQL servers → Monitoring → Logs
+- **Verify credentials**: Ensure environment variables match the configuration above
 
 ### Deployment Process
 ```bash
@@ -130,9 +168,22 @@ npm run railway:start         # Start Express server
 
 ### Database & Utilities
 - `npm run init-db` - Initialize database tables
+- `npm run test-db` - Test database connection with detailed diagnostics
+- `npm run detect-railway-ip [url]` - Detect Railway's current IP for firewall configuration
 - `npm run verify-deployment` - Verify deployment configuration
 
 ## 🌐 How Full-Stack Deployment Works
+
+### Project Structure
+```
+├── src/                    # React frontend source
+├── routes/                 # Express API routes
+├── middleware/             # Express middleware
+├── config/                 # Database and app configuration
+├── scripts/                # Database initialization and utilities
+├── dist/                   # Built React app (production)
+└── server.js              # Main Express server (serves both frontend and API)
+```
 
 ### Production Mode
 1. **Build Process**: Vite builds React app to `/dist` directory

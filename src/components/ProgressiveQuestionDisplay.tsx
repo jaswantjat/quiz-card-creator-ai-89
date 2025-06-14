@@ -3,8 +3,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { BookOpen, Plus, RotateCcw, Loader2, CheckCircle2, Clock, MessageSquare, RefreshCw } from 'lucide-react';
+import { BookOpen, Plus, RotateCcw, Loader2, CheckCircle2, Clock, RefreshCw, MessageSquare, Edit2, Trash2, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { commentsAPI } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuestionAutoScroll } from '@/hooks/useAutoScroll';
 
 interface MCQQuestion {
   id: string;
@@ -22,6 +25,18 @@ interface MCQQuestion {
   };
 }
 
+interface Comment {
+  id: string;
+  commentText: string;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
 interface ProgressiveLoadingState {
   phase: 'initial' | 'background' | 'complete';
   questionsLoaded: number;
@@ -36,6 +51,7 @@ interface ProgressiveQuestionDisplayProps {
   onAddToQB: (questionId: string) => void;
   onRegenerate: () => void;
   onRegenerateQuestion?: (questionId: string) => void;
+  regeneratingQuestionIds?: Set<string>;
 }
 
 // Difficulty color mapping
@@ -45,36 +61,35 @@ const DIFFICULTY_COLORS = {
   hard: 'bg-red-100 text-red-800 border-red-200'
 };
 
-// Difficulty order for sorting
-const DIFFICULTY_ORDER = {
-  easy: 1,
-  medium: 2,
-  hard: 3
-};
-
 // Individual Question Card with smooth animations
 const QuestionCard = memo(({
   question,
   index,
   onAddToQB,
   onRegenerateQuestion,
-  isNew = false
+  isNew = false,
+  isRegenerating = false
 }: {
   question: MCQQuestion;
   index: number;
   onAddToQB: (id: string) => void;
   onRegenerateQuestion?: (questionId: string) => void;
   isNew?: boolean;
+  isRegenerating?: boolean;
 }) => {
-  const [isVisible, setIsVisible] = useState(true); // Always visible for immediate display
+  const { user, isAuthenticated } = useAuth();
+  // FIXED: Always start visible to prevent blank screen issues
+  const [isVisible, setIsVisible] = useState(true);
   const [comment, setComment] = useState('');
   const [showCommentBox, setShowCommentBox] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [savingComment, setSavingComment] = useState(false);
 
   useEffect(() => {
     if (isNew) {
-      // Smooth entrance animation for new questions
-      const timer = setTimeout(() => setIsVisible(true), 100);
-      return () => clearTimeout(timer);
+      // FIXED: No delay for visibility - questions should be immediately visible
+      setIsVisible(true);
     }
   }, [isNew]);
 
@@ -84,17 +99,73 @@ const QuestionCard = memo(({
   }, [onAddToQB, question.id]);
 
   const handleRegenerateClick = useCallback(() => {
-    if (onRegenerateQuestion) {
+    if (onRegenerateQuestion && !isRegenerating) {
       onRegenerateQuestion(question.id);
-      toast.info('Regenerating this question...');
+      // Don't show toast here - let the parent component handle feedback
     }
-  }, [onRegenerateQuestion, question.id]);
+  }, [onRegenerateQuestion, question.id, isRegenerating]);
 
-  const handleCommentSave = useCallback(() => {
-    // TODO: Implement comment saving functionality
-    toast.success('Comment saved for review!');
-    setShowCommentBox(false);
-  }, [comment]);
+  // Comment handlers
+  const loadComments = useCallback(async () => {
+    if (!showCommentBox || loadingComments) return;
+
+    setLoadingComments(true);
+    try {
+      const response = await commentsAPI.getComments(question.id);
+      setComments(response.comments || []);
+    } catch (error) {
+      console.error('Failed to load comments:', error);
+      toast.error('Failed to load comments');
+    } finally {
+      setLoadingComments(false);
+    }
+  }, [question.id, showCommentBox, loadingComments]);
+
+  const handleCommentSave = useCallback(async () => {
+    if (!comment.trim() || savingComment) return;
+
+    setSavingComment(true);
+    try {
+      const response = await commentsAPI.addComment(question.id, comment.trim());
+      setComments(prev => [response.comment, ...prev]);
+      setComment('');
+      toast.success('Comment added successfully!');
+    } catch (error) {
+      console.error('Failed to save comment:', error);
+      toast.error('Failed to save comment');
+    } finally {
+      setSavingComment(false);
+    }
+  }, [question.id, comment, savingComment]);
+
+  const handleEditComment = useCallback(async (commentId: string, newText: string) => {
+    try {
+      const response = await commentsAPI.updateComment(question.id, commentId, newText);
+      setComments(prev => prev.map(c => c.id === commentId ? response.comment : c));
+      toast.success('Comment updated successfully!');
+    } catch (error) {
+      console.error('Failed to update comment:', error);
+      toast.error('Failed to update comment');
+    }
+  }, [question.id]);
+
+  const handleDeleteComment = useCallback(async (commentId: string) => {
+    try {
+      await commentsAPI.deleteComment(question.id, commentId);
+      setComments(prev => prev.filter(c => c.id !== commentId));
+      toast.success('Comment deleted successfully!');
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      toast.error('Failed to delete comment');
+    }
+  }, [question.id]);
+
+  // Load comments when comment box is opened
+  useEffect(() => {
+    if (showCommentBox) {
+      loadComments();
+    }
+  }, [showCommentBox, loadComments]);
 
   const difficultyBadgeClass = useMemo(() =>
     DIFFICULTY_COLORS[question.difficulty] || 'bg-gray-100 text-gray-800 border-gray-200',
@@ -106,13 +177,25 @@ const QuestionCard = memo(({
     [question.difficulty]
   );
 
+  // ENHANCED DEBUG: Detailed logging for troubleshooting blank screen
+  console.log(`🎨 QuestionCard ${index + 1} RENDERING:`, {
+    id: question.id,
+    hasQuestion: !!question.question,
+    questionText: question.question?.substring(0, 50) + '...',
+    hasOptions: !!question.options,
+    optionsLength: question.options?.length,
+    isVisible,
+    isNew,
+    difficulty: question.difficulty
+  });
+
   return (
-    <Card 
+    <Card
       className={`
-        bg-white/95 border-orange-200/60 shadow-lg hover:shadow-xl 
+        bg-white/95 border-orange-200/60 shadow-lg hover:shadow-xl
         transition-all duration-500 ease-out transform
-        ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'}
-        ${isNew ? 'ring-2 ring-orange-300 ring-opacity-50' : ''}
+        ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-95 translate-y-1 scale-99'}
+        ${isNew ? 'ring-2 ring-orange-300 ring-opacity-50 animate-pulse' : ''}
         hover:scale-[1.02] hover:-translate-y-1
       `}
     >
@@ -122,12 +205,20 @@ const QuestionCard = memo(({
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-sm font-semibold text-slate-500">Q{index + 1}</span>
-              <Badge className={difficultyBadgeClass}>
-                {capitalizedDifficulty}
-              </Badge>
+              {/* 1. First badge: MCQ (Question Type) */}
               {question.metadata?.questionType && (
                 <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                   {question.metadata.questionType}
+                </Badge>
+              )}
+              {/* 2. Second badge: Difficulty Level */}
+              <Badge className={difficultyBadgeClass}>
+                {capitalizedDifficulty}
+              </Badge>
+              {/* 3. Third badge: Sub-Topics */}
+              {question.metadata?.subTopics && (
+                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                  {question.metadata.subTopics}
                 </Badge>
               )}
               {isNew && (
@@ -145,17 +236,22 @@ const QuestionCard = memo(({
               className="hover:bg-blue-50 hover:border-blue-300 transition-colors"
             >
               <MessageSquare className="w-4 h-4 mr-1" />
-              Comment
+              Comment {comments.length > 0 && `(${comments.length})`}
             </Button>
             {onRegenerateQuestion && (
               <Button
                 onClick={handleRegenerateClick}
                 size="sm"
                 variant="outline"
-                className="hover:bg-yellow-50 hover:border-yellow-300 transition-colors"
+                disabled={isRegenerating}
+                className={`transition-colors ${
+                  isRegenerating
+                    ? 'bg-yellow-100 border-yellow-300 text-yellow-700 cursor-not-allowed'
+                    : 'hover:bg-yellow-50 hover:border-yellow-300'
+                }`}
               >
-                <RefreshCw className="w-4 h-4 mr-1" />
-                Regenerate
+                <RefreshCw className={`w-4 h-4 mr-1 ${isRegenerating ? 'animate-spin' : ''}`} />
+                {isRegenerating ? 'Regenerating...' : 'Regenerate'}
               </Button>
             )}
             <Button
@@ -172,9 +268,9 @@ const QuestionCard = memo(({
 
         {/* Question Text */}
         <div className="mb-6">
-          <p className="text-slate-800 text-lg leading-relaxed font-medium">
+          <h4 className="text-lg font-semibold text-slate-800 leading-relaxed">
             {question.question}
-          </p>
+          </h4>
         </div>
 
         {/* Options */}
@@ -210,36 +306,121 @@ const QuestionCard = memo(({
         </div>
 
         {/* Explanation */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <h4 className="font-semibold text-blue-800 mb-2">Explanation</h4>
-          <p className="text-blue-700 leading-relaxed">{question.explanation}</p>
+        <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-4 mb-6">
+          <div className="flex items-start gap-2">
+            <BookOpen className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h5 className="font-semibold text-blue-800 mb-1">Explanation</h5>
+              <p className="text-blue-700 leading-relaxed">{question.explanation}</p>
+            </div>
+          </div>
         </div>
 
-        {/* Comment Box */}
+        {/* Comments Section */}
         {showCommentBox && (
-          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
-            <h4 className="font-semibold text-gray-800 mb-2">Subject Matter Expert Comments</h4>
-            <Textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Add your comments or feedback about this question..."
-              className="mb-3 min-h-[80px] resize-none"
-            />
-            <div className="flex justify-end gap-2">
-              <Button
-                onClick={() => setShowCommentBox(false)}
-                size="sm"
-                variant="outline"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCommentSave}
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Save Comment
-              </Button>
+          <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <h4 className="font-semibold text-gray-800 mb-4">Subject Matter Expert Comments</h4>
+
+            {/* Add New Comment */}
+            {isAuthenticated && (
+              <div className="mb-4 p-3 bg-white rounded-lg border">
+                <Textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Add your comments or feedback about this question..."
+                  className="mb-3 min-h-[80px] resize-none"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    onClick={() => {
+                      setShowCommentBox(false);
+                      setComment('');
+                    }}
+                    size="sm"
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCommentSave}
+                    size="sm"
+                    disabled={savingComment || !comment.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {savingComment ? 'Saving...' : 'Save Comment'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {!isAuthenticated && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800 text-sm">
+                  Please log in to add comments to this question.
+                </p>
+              </div>
+            )}
+
+            {/* Existing Comments */}
+            <div className="space-y-3">
+              {loadingComments ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-sm text-gray-600 mt-2">Loading comments...</p>
+                </div>
+              ) : comments.length > 0 ? (
+                comments.map((commentItem) => (
+                  <div key={commentItem.id} className="bg-white rounded-lg border p-3">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-500" />
+                        <span className="font-medium text-sm text-gray-800">
+                          {commentItem.user.firstName} {commentItem.user.lastName}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(commentItem.createdAt).toLocaleDateString()}
+                        </span>
+                        {commentItem.updatedAt !== commentItem.createdAt && (
+                          <span className="text-xs text-gray-400">(edited)</span>
+                        )}
+                      </div>
+
+                      {/* Edit/Delete buttons for comment owner */}
+                      {user?.email === commentItem.user.email && (
+                        <div className="flex gap-1">
+                          <Button
+                            onClick={() => handleEditComment(commentItem.id, commentItem.commentText)}
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 hover:bg-blue-100"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteComment(commentItem.id)}
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 hover:bg-red-100"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                      {commentItem.commentText}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <MessageSquare className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">No comments yet</p>
+                  {isAuthenticated && (
+                    <p className="text-xs text-gray-500">Be the first to add feedback!</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -334,28 +515,27 @@ const ProgressiveQuestionDisplay = memo(({
   loadingState,
   onAddToQB,
   onRegenerate,
-  onRegenerateQuestion
+  onRegenerateQuestion,
+  regeneratingQuestionIds = new Set()
 }: ProgressiveQuestionDisplayProps) => {
   const [newQuestionIds, setNewQuestionIds] = useState<Set<string>>(new Set());
+  const { scrollToQuestions, questionsRef } = useQuestionAutoScroll();
 
-  // Sort questions by difficulty: Easy → Medium → Hard
-  const sortedQuestions = useMemo(() => {
-    console.log('🔄 Sorting questions:', questions.length);
-    return [...questions].sort((a, b) => {
-      const orderA = DIFFICULTY_ORDER[a.difficulty] || 999;
-      const orderB = DIFFICULTY_ORDER[b.difficulty] || 999;
-      return orderA - orderB;
-    });
-  }, [questions]);
-
-  // Track new questions for animation
+  // Track new questions for animation and auto-scroll
   useEffect(() => {
-    if (sortedQuestions.length > 0) {
-      const currentIds = new Set(sortedQuestions.map(q => q.id));
+    if (questions.length > 0) {
+      const currentIds = new Set(questions.map(q => q.id));
       const newIds = new Set([...currentIds].filter(id => !newQuestionIds.has(id)));
 
       if (newIds.size > 0) {
         setNewQuestionIds(currentIds);
+
+        // Auto-scroll to questions when first batch is rendered
+        // Only scroll on the very first questions (when newQuestionIds was empty)
+        if (newQuestionIds.size === 0) {
+          console.log('🔄 Auto-scroll: First questions rendered, scrolling to questions section');
+          scrollToQuestions(undefined, 800); // 800ms delay to ensure rendering is complete
+        }
 
         // Remove "new" status after animation
         setTimeout(() => {
@@ -363,23 +543,23 @@ const ProgressiveQuestionDisplay = memo(({
         }, 2000);
       }
     }
-  }, [sortedQuestions, newQuestionIds]);
+  }, [questions, newQuestionIds, scrollToQuestions]);
 
   const handleAddToQB = useCallback((questionId: string) => {
     onAddToQB(questionId);
   }, [onAddToQB]);
 
-  const questionsCount = useMemo(() => sortedQuestions.length, [sortedQuestions.length]);
+  const questionsCount = useMemo(() => questions.length, [questions.length]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('🔍 ProgressiveQuestionDisplay Debug:', {
-      questionsReceived: questions.length,
-      sortedQuestionsCount: sortedQuestions.length,
-      loadingState,
-      firstQuestion: questions[0]
-    });
-  }, [questions, sortedQuestions, loadingState]);
+  // ENHANCED DEBUG: Track main component rendering
+  console.log('🔍 ProgressiveQuestionDisplay RENDERING:', {
+    questionsCount,
+    hasQuestions: questions.length > 0,
+    loadingPhase: loadingState.phase,
+    loadingError: loadingState.error,
+    isLoading: loadingState.isLoading,
+    firstQuestionId: questions[0]?.id || 'none'
+  });
 
   if (loadingState.error) {
     return (
@@ -397,7 +577,7 @@ const ProgressiveQuestionDisplay = memo(({
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-500">
+    <div className="space-y-6 animate-in fade-in-50 duration-500" ref={questionsRef}>
       {/* Header */}
       <div className="flex items-center gap-3">
         <BookOpen className="w-6 h-6 text-orange-500" />
@@ -407,26 +587,15 @@ const ProgressiveQuestionDisplay = memo(({
         </Badge>
       </div>
 
-      {/* Loading Status */}
-      <LoadingStatus loadingState={loadingState} />
 
-      {/* Debug Info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
-          <strong>Debug:</strong> Questions: {questions.length}, Sorted: {sortedQuestions.length}, Loading: {loadingState.isLoading ? 'Yes' : 'No'}
-          {questions.length > 0 && (
-            <div className="mt-2">
-              <strong>First Question:</strong> {questions[0]?.question?.substring(0, 50)}...
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Questions */}
-      {sortedQuestions.length > 0 ? (
-        <div className="space-y-6">
-          {sortedQuestions.map((question, index) => {
+      <div className="space-y-6">
+        {questions.length > 0 ? (
+          questions.map((question, index) => {
             const isNew = !newQuestionIds.has(question.id);
+            const isRegenerating = regeneratingQuestionIds.has(question.id);
+            console.log(`🔄 Rendering question ${index + 1}:`, { id: question.id, isNew, isRegenerating });
             return (
               <QuestionCard
                 key={question.id}
@@ -435,29 +604,18 @@ const ProgressiveQuestionDisplay = memo(({
                 onAddToQB={handleAddToQB}
                 onRegenerateQuestion={onRegenerateQuestion}
                 isNew={isNew}
+                isRegenerating={isRegenerating}
               />
             );
-          })}
-        </div>
-      ) : !loadingState.isLoading ? (
-        <div className="text-center py-8 text-slate-500">
-          <p>No questions generated yet. Click "Generate Questions" to start.</p>
-        </div>
-      ) : null}
+          })
+        ) : (
+          <div className="text-center py-8 text-slate-500">
+            <p>No questions to display</p>
+          </div>
+        )}
+      </div>
 
-      {/* Regenerate Button */}
-      {questionsCount > 0 && (
-        <div className="flex justify-center pt-6">
-          <Button
-            onClick={onRegenerate}
-            variant="outline"
-            className="hover:bg-orange-50 hover:border-orange-300"
-          >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Regenerate Questions
-          </Button>
-        </div>
-      )}
+
     </div>
   );
 });

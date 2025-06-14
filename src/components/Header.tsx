@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import iQubeLogo from '@/assets/images/5f87692c-a4e5-4595-8ad0-26c2ce2c520e.png';
+import iMochaLogo from '@/assets/images/imocha-logo.png';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,11 +27,11 @@ const Header: React.FC = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <img
-              src={iQubeLogo}
-              alt="iQube Logo"
+              src={iMochaLogo}
+              alt="iMocha Logo"
               className="w-8 h-8 object-contain"
             />
-            <span className="text-xl font-bold text-gray-900">iQube</span>
+            <span className="text-xl font-bold text-gray-900">iMocha</span>
           </Link>
           
           <div className="flex items-center gap-2">
@@ -52,11 +52,11 @@ const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
           <img
-            src={iQubeLogo}
-            alt="iQube Logo"
+            src={iMochaLogo}
+            alt="iMocha Logo"
             className="w-8 h-8 object-contain"
           />
-          <span className="text-xl font-bold text-gray-900">iQube</span>
+          <span className="text-xl font-bold text-gray-900">iMocha</span>
         </Link>
         
         <div className="flex items-center gap-4">
