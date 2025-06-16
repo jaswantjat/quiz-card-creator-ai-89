@@ -22,6 +22,9 @@ import userRoutes from './routes/users.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { authenticateToken } from './middleware/auth.js';
 
+// Import credit refresh utility
+import { refreshExpiredCredits, getCreditRefreshStats } from './utils/creditRefresh.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -627,6 +630,44 @@ app.get('/api/questions/topics', (req, res) => {
   });
 });
 
+// Credit refresh endpoint (admin/system use)
+app.get('/api/admin/credits/refresh', async (req, res) => {
+  try {
+    console.log('🔄 Manual credit refresh triggered');
+    const result = await refreshExpiredCredits();
+    res.json({
+      success: true,
+      message: 'Credit refresh completed',
+      ...result
+    });
+  } catch (error) {
+    console.error('❌ Manual credit refresh failed:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Credit refresh failed',
+      message: error.message
+    });
+  }
+});
+
+// Credit refresh statistics endpoint
+app.get('/api/admin/credits/stats', async (req, res) => {
+  try {
+    const stats = await getCreditRefreshStats();
+    res.json({
+      success: true,
+      stats
+    });
+  } catch (error) {
+    console.error('❌ Failed to get credit stats:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get credit statistics',
+      message: error.message
+    });
+  }
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/questions', questionRoutes); // Database-dependent routes
@@ -690,7 +731,7 @@ const server = app.listen(PORT, '::', () => {
     });
   });
 
-  // Database connection (optional, non-blocking)
+  // Database connection and credit refresh setup (optional, non-blocking)
   setTimeout(async () => {
     try {
       // Only try to connect if we have database environment variables
@@ -698,6 +739,32 @@ const server = app.listen(PORT, '::', () => {
         const { getPool } = await import('./config/database.js');
         await getPool();
         console.log('✅ Database connection verified');
+
+        // Set up credit refresh job to run every hour
+        console.log('🔄 Setting up automatic credit refresh job...');
+        setInterval(async () => {
+          try {
+            console.log('⏰ Running scheduled credit refresh...');
+            const result = await refreshExpiredCredits();
+            if (result.refreshed > 0) {
+              console.log(`🎉 Scheduled refresh completed: ${result.message}`);
+            }
+          } catch (refreshError) {
+            console.error('❌ Scheduled credit refresh failed:', refreshError.message);
+          }
+        }, 60 * 60 * 1000); // Run every hour (3600000 ms)
+
+        console.log('✅ Credit refresh job scheduled to run every hour');
+
+        // Run initial credit refresh
+        try {
+          console.log('🚀 Running initial credit refresh check...');
+          const initialResult = await refreshExpiredCredits();
+          console.log(`✅ Initial credit refresh: ${initialResult.message}`);
+        } catch (initialError) {
+          console.log('⚠️ Initial credit refresh failed (non-critical):', initialError.message);
+        }
+
       } else {
         console.log('ℹ️ Database environment variables not set - running in standalone mode');
       }

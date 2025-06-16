@@ -66,16 +66,16 @@ router.post('/register', async (req, res, next) => {
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // Create user
+    // Create user with explicit credit initialization
     const result = await pool.request()
       .input('email', sql.NVarChar, email.toLowerCase())
       .input('passwordHash', sql.NVarChar, passwordHash)
       .input('firstName', sql.NVarChar, firstName)
       .input('lastName', sql.NVarChar, lastName)
       .query(`
-        INSERT INTO users (email, password_hash, first_name, last_name)
-        OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.created_at
-        VALUES (@email, @passwordHash, @firstName, @lastName)
+        INSERT INTO users (email, password_hash, first_name, last_name, daily_credits, last_credit_refresh, timezone)
+        OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name, INSERTED.daily_credits, INSERTED.last_credit_refresh, INSERTED.timezone, INSERTED.created_at
+        VALUES (@email, @passwordHash, @firstName, @lastName, 10, GETUTCDATE(), 'UTC')
       `);
 
     const newUser = result.recordset[0];
@@ -90,6 +90,9 @@ router.post('/register', async (req, res, next) => {
         email: newUser.email,
         firstName: newUser.first_name,
         lastName: newUser.last_name,
+        dailyCredits: newUser.daily_credits,
+        lastCreditRefresh: newUser.last_credit_refresh,
+        timezone: newUser.timezone,
         createdAt: newUser.created_at
       },
       token
@@ -134,8 +137,8 @@ router.post('/login', async (req, res, next) => {
     const result = await pool.request()
       .input('email', sql.NVarChar, email.toLowerCase())
       .query(`
-        SELECT id, email, password_hash, first_name, last_name, is_active
-        FROM users 
+        SELECT id, email, password_hash, first_name, last_name, daily_credits, last_credit_refresh, timezone, is_active
+        FROM users
         WHERE email = @email
       `);
 
@@ -174,7 +177,10 @@ router.post('/login', async (req, res, next) => {
         id: user.id,
         email: user.email,
         firstName: user.first_name,
-        lastName: user.last_name
+        lastName: user.last_name,
+        dailyCredits: user.daily_credits,
+        lastCreditRefresh: user.last_credit_refresh,
+        timezone: user.timezone
       },
       token
     });

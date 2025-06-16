@@ -19,6 +19,7 @@
     "test": "echo 'No tests specified'",
     "init-db": "node scripts/init-db.js",
     "test-db": "node scripts/test-database-connection.js",
+    "test-credits": "node scripts/test-credit-system.js",
     "detect-railway-ip": "node scripts/railway-ip-detector.js",
     "railway:build": "npm run build:frontend && npm run copy-images && npm run build:backend",
     "railway:start": "NODE_ENV=production node server.js"

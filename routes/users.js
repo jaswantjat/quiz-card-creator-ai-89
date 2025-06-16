@@ -27,14 +27,17 @@ router.get('/profile', async (req, res, next) => {
     const result = await pool.request()
       .input('userId', sql.UniqueIdentifier, userId)
       .query(`
-        SELECT 
-          id, 
-          email, 
-          first_name, 
-          last_name, 
+        SELECT
+          id,
+          email,
+          first_name,
+          last_name,
+          daily_credits,
+          last_credit_refresh,
+          timezone,
           created_at,
           (SELECT COUNT(*) FROM user_questions WHERE user_id = @userId) as saved_questions_count
-        FROM users 
+        FROM users
         WHERE id = @userId AND is_active = 1
       `);
 
@@ -53,6 +56,9 @@ router.get('/profile', async (req, res, next) => {
         email: user.email,
         firstName: user.first_name,
         lastName: user.last_name,
+        dailyCredits: user.daily_credits,
+        lastCreditRefresh: user.last_credit_refresh,
+        timezone: user.timezone,
         createdAt: user.created_at,
         savedQuestionsCount: user.saved_questions_count
       }
@@ -313,6 +319,289 @@ router.delete('/account', async (req, res, next) => {
 
     res.json({
       message: 'Account deactivated successfully'
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get user credits
+router.get('/credits', async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const pool = await getPool();
+
+    const result = await pool.request()
+      .input('userId', sql.UniqueIdentifier, userId)
+      .query(`
+        SELECT daily_credits, last_credit_refresh, timezone
+        FROM users
+        WHERE id = @userId AND is_active = 1
+      `);
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({
+        error: 'User not found',
+        message: 'User not found or inactive'
+      });
+    }
+
+    const user = result.recordset[0];
+
+    res.json({
+      credits: user.daily_credits,
+      lastRefresh: user.last_credit_refresh,
+      timezone: user.timezone
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Refresh user credits (manual or automatic)
+router.post('/credits/refresh', async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const pool = await getPool();
+
+    // Get current user data
+    const userResult = await pool.request()
+      .input('userId', sql.UniqueIdentifier, userId)
+      .query(`
+        SELECT daily_credits, last_credit_refresh, timezone
+        FROM users
+        WHERE id = @userId AND is_active = 1
+      `);
+
+    if (userResult.recordset.length === 0) {
+      return res.status(404).json({
+        error: 'User not found',
+        message: 'User not found or inactive'
+      });
+    }
+
+    const user = userResult.recordset[0];
+    const userTimezone = user.timezone || 'UTC';
+    const now = new Date();
+
+    // Calculate if it's been 24 hours since last refresh in user's timezone
+    const lastRefresh = new Date(user.last_credit_refresh);
+    const timeDiff = now.getTime() - lastRefresh.getTime();
+    const hoursSinceRefresh = timeDiff / (1000 * 60 * 60);
+
+    // Allow refresh if it's been more than 20 hours (to account for timezone differences)
+    // or if this is a manual refresh and user has 0 credits
+    const canRefresh = hoursSinceRefresh >= 20 || user.daily_credits === 0;
+
+    if (!canRefresh) {
+      return res.status(429).json({
+        error: 'Refresh not available',
+        message: 'Credits can only be refreshed once per day',
+        nextRefreshAvailable: new Date(lastRefresh.getTime() + (24 * 60 * 60 * 1000)),
+        hoursUntilRefresh: Math.ceil(24 - hoursSinceRefresh)
+      });
+    }
+
+    // Refresh credits to 10 and update timestamp
+    const refreshResult = await pool.request()
+      .input('userId', sql.UniqueIdentifier, userId)
+      .query(`
+        UPDATE users
+        SET daily_credits = 10,
+            last_credit_refresh = GETUTCDATE(),
+            updated_at = GETUTCDATE()
+        OUTPUT INSERTED.daily_credits, INSERTED.last_credit_refresh
+        WHERE id = @userId AND is_active = 1
+      `);
+
+    const updatedUser = refreshResult.recordset[0];
+
+    // Log the credit refresh transaction
+    await pool.request()
+      .input('userId', sql.UniqueIdentifier, userId)
+      .input('amount', sql.Int, 10)
+      .input('balanceAfter', sql.Int, 10)
+      .input('description', sql.NVarChar, 'Daily credit refresh')
+      .query(`
+        INSERT INTO credit_transactions (user_id, transaction_type, amount, balance_after, description)
+        VALUES (@userId, 'refresh', @amount, @balanceAfter, @description)
+      `);
+
+    res.json({
+      message: 'Credits refreshed successfully',
+      credits: updatedUser.daily_credits,
+      lastRefresh: updatedUser.last_credit_refresh,
+      refreshedAt: now.toISOString()
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get credit transaction history
+router.get('/credits/history', async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const limit = parseInt(req.query.limit) || 50;
+    const pool = await getPool();
+
+    const result = await pool.request()
+      .input('userId', sql.UniqueIdentifier, userId)
+      .input('limit', sql.Int, Math.min(limit, 100)) // Cap at 100 records
+      .query(`
+        SELECT TOP (@limit)
+          id,
+          transaction_type,
+          amount,
+          balance_after,
+          description,
+          created_at
+        FROM credit_transactions
+        WHERE user_id = @userId
+        ORDER BY created_at DESC
+      `);
+
+    res.json({
+      transactions: result.recordset.map(transaction => ({
+        id: transaction.id,
+        type: transaction.transaction_type,
+        amount: transaction.amount,
+        balanceAfter: transaction.balance_after,
+        description: transaction.description,
+        createdAt: transaction.created_at
+      })),
+      total: result.recordset.length
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update user timezone
+router.put('/timezone', async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { timezone } = req.body;
+
+    // Basic timezone validation
+    if (!timezone || typeof timezone !== 'string') {
+      return res.status(400).json({
+        error: 'Invalid timezone',
+        message: 'Timezone must be a valid string'
+      });
+    }
+
+    const pool = await getPool();
+
+    const result = await pool.request()
+      .input('userId', sql.UniqueIdentifier, userId)
+      .input('timezone', sql.NVarChar, timezone)
+      .query(`
+        UPDATE users
+        SET timezone = @timezone, updated_at = GETUTCDATE()
+        OUTPUT INSERTED.timezone
+        WHERE id = @userId AND is_active = 1
+      `);
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({
+        error: 'User not found',
+        message: 'User not found or inactive'
+      });
+    }
+
+    res.json({
+      message: 'Timezone updated successfully',
+      timezone: result.recordset[0].timezone
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Deduct credits (for question generation)
+router.post('/credits/deduct', async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { amount, description } = req.body;
+
+    if (!amount || amount < 1) {
+      return res.status(400).json({
+        error: 'Invalid amount',
+        message: 'Amount must be a positive number'
+      });
+    }
+
+    const pool = await getPool();
+
+    // Get current credits
+    const userResult = await pool.request()
+      .input('userId', sql.UniqueIdentifier, userId)
+      .query(`
+        SELECT daily_credits
+        FROM users
+        WHERE id = @userId AND is_active = 1
+      `);
+
+    if (userResult.recordset.length === 0) {
+      return res.status(404).json({
+        error: 'User not found',
+        message: 'User not found or inactive'
+      });
+    }
+
+    const currentCredits = userResult.recordset[0].daily_credits;
+
+    if (currentCredits < amount) {
+      return res.status(400).json({
+        error: 'Insufficient credits',
+        message: `You have ${currentCredits} credits but need ${amount}`,
+        currentCredits,
+        requiredCredits: amount
+      });
+    }
+
+    const newBalance = currentCredits - amount;
+
+    // Deduct credits atomically
+    const deductResult = await pool.request()
+      .input('userId', sql.UniqueIdentifier, userId)
+      .input('newBalance', sql.Int, newBalance)
+      .query(`
+        UPDATE users
+        SET daily_credits = @newBalance, updated_at = GETUTCDATE()
+        OUTPUT INSERTED.daily_credits
+        WHERE id = @userId AND is_active = 1 AND daily_credits >= ${amount}
+      `);
+
+    if (deductResult.recordset.length === 0) {
+      return res.status(409).json({
+        error: 'Credit deduction failed',
+        message: 'Credits may have been modified by another request. Please try again.'
+      });
+    }
+
+    // Log the transaction
+    await pool.request()
+      .input('userId', sql.UniqueIdentifier, userId)
+      .input('amount', sql.Int, -amount)
+      .input('balanceAfter', sql.Int, newBalance)
+      .input('description', sql.NVarChar, description || 'Question generation')
+      .query(`
+        INSERT INTO credit_transactions (user_id, transaction_type, amount, balance_after, description)
+        VALUES (@userId, 'deduction', @amount, @balanceAfter, @description)
+      `);
+
+    res.json({
+      message: 'Credits deducted successfully',
+      creditsDeducted: amount,
+      remainingCredits: newBalance,
+      description: description || 'Question generation'
     });
 
   } catch (error) {
